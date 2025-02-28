@@ -28,6 +28,7 @@ const Index = () => {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [loadingModel, setLoadingModel] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
+  const frontCrystalRef = useRef<HTMLDivElement>(null);
   
   // Carregar o título e subtítulo do localStorage
   const [titleText, setTitleText] = useState(() => {
@@ -53,6 +54,25 @@ const Index = () => {
     const savedParams = localStorage.getItem("modelParameters");
     return savedParams ? JSON.parse(savedParams) : defaultModelParams;
   });
+
+  // Configurar o cristal flutuante na frente
+  useEffect(() => {
+    if (!frontCrystalRef.current) return;
+    
+    const crystal = frontCrystalRef.current;
+    
+    // Configurar animação do cristal
+    const animate = () => {
+      crystal.style.transform = `rotate3d(1, 1, 1, ${Date.now() / 5000}rad) rotate(${Date.now() / 3000}rad)`;
+      requestAnimationFrame(animate);
+    };
+    
+    animate();
+    
+    return () => {
+      // Cleanup
+    };
+  }, []);
 
   // Carregar o modelo ativo do Supabase
   useEffect(() => {
@@ -736,6 +756,39 @@ const Index = () => {
   
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
+      {/* Cristal flutuante na frente do texto */}
+      <div 
+        ref={frontCrystalRef}
+        className="absolute inset-0 z-25 flex items-center justify-center pointer-events-none"
+        style={{
+          perspective: "1000px",
+          transformStyle: "preserve-3d",
+        }}
+      >
+        <div 
+          className="w-[600px] h-[600px] relative"
+          style={{
+            background: "radial-gradient(circle at center, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%)",
+            backgroundSize: "100% 100%",
+            backgroundPosition: "center center",
+            boxShadow: "0 0 80px rgba(255,255,255,0.15), inset 0 0 80px rgba(255,255,255,0.15)",
+            backdropFilter: "blur(5px)",
+            WebkitBackdropFilter: "blur(5px)",
+            borderRadius: "50%",
+            opacity: 0.8,
+            transform: "scale(0.8)",
+          }}
+        >
+          <div 
+            className="absolute inset-0"
+            style={{
+              background: "radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%)",
+              mixBlendMode: "overlay",
+            }}
+          ></div>
+        </div>
+      </div>
+
       {/* Admin Link */}
       <div className="absolute top-4 right-4 z-30">
         <Link 
