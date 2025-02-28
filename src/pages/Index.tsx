@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
@@ -7,6 +7,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [currentModel, setCurrentModel] = useState("diamond");
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -95,6 +97,7 @@ const Index = () => {
       scene.remove(model);
       model = diamond;
       scene.add(model);
+      setModelLoaded(true);
     };
     
     // OPÇÃO 2: Usar uma esfera
@@ -106,6 +109,7 @@ const Index = () => {
       scene.remove(model);
       model = sphere;
       scene.add(model);
+      setModelLoaded(true);
     };
     
     // OPÇÃO 3: Usar um torus (anel)
@@ -117,38 +121,71 @@ const Index = () => {
       scene.remove(model);
       model = torus;
       scene.add(model);
+      setModelLoaded(true);
     };
     
     // OPÇÃO 4: Carregar um modelo GLTF externo
     const loadGLTFModel = (url: string) => {
+      console.log("Carregando modelo:", url);
+      
       const loader = new GLTFLoader();
-      loader.load(url, (gltf) => {
-        // Limpar o modelo atual
-        scene.remove(model);
-        
-        // Ajustar o tamanho e materiais do modelo carregado
-        const newModel = gltf.scene;
-        newModel.scale.set(1, 1, 1); // Ajustar escala conforme necessário
-        
-        // Opcionalmente, aplicar material a todos os objetos do modelo
-        newModel.traverse((object) => {
-          if (object instanceof THREE.Mesh) {
-            object.material = material;
-          }
-        });
-        
-        // Definir como o modelo atual
-        model = newModel;
-        scene.add(model);
-      });
+      loader.load(
+        // URL do modelo
+        url,
+        // Callback chamado quando o modelo é carregado
+        (gltf) => {
+          console.log("Modelo carregado com sucesso:", gltf);
+          
+          // Limpar o modelo atual
+          scene.remove(model);
+          
+          // Ajustar o tamanho e materiais do modelo carregado
+          const newModel = gltf.scene;
+          
+          // Ajuste a escala conforme necessário
+          newModel.scale.set(1, 1, 1);
+          
+          // Opcionalmente, aplicar material a todos os objetos do modelo
+          newModel.traverse((object) => {
+            if (object instanceof THREE.Mesh) {
+              object.material = material;
+            }
+          });
+          
+          // Definir como o modelo atual
+          model = newModel;
+          scene.add(model);
+          setModelLoaded(true);
+        },
+        // Callback de progresso do carregamento
+        (xhr) => {
+          console.log("Progresso:", (xhr.loaded / xhr.total * 100) + "% carregado");
+        },
+        // Callback de erro
+        (error) => {
+          console.error("Erro ao carregar modelo:", error);
+        }
+      );
     };
     
-    // Por padrão, criar o diamante
-    // createDiamondGeometry();
-    
-    // Aqui carregamos o modelo GLTF externo
-    // Substitua pelo caminho do seu modelo GLTF
-    loadGLTFModel('/path/to/your/model.gltf');
+    // Carregar modelo baseado no estado atual
+    switch (currentModel) {
+      case "diamond":
+        createDiamondGeometry();
+        break;
+      case "sphere":
+        createSphereModel();
+        break;
+      case "torus":
+        createTorusModel();
+        break;
+      case "gltf":
+        // Substitua '/seu-modelo.gltf' pelo caminho do seu modelo
+        loadGLTFModel('/seu-modelo.gltf');
+        break;
+      default:
+        createDiamondGeometry();
+    }
     
     // Load HDR environment map
     const rgbeLoader = new RGBELoader();
@@ -225,7 +262,7 @@ const Index = () => {
       scene.clear();
       renderer.dispose();
     };
-  }, []);
+  }, [currentModel]);
   
   return (
     <div className="relative h-screen w-full overflow-hidden">
@@ -237,8 +274,43 @@ const Index = () => {
           <p className="max-w-md text-center text-lg opacity-80">
             A stunning 3D representation with perfect clarity and exceptional brilliance
           </p>
+          
+          {/* Controles para escolher o modelo */}
+          <div className="flex gap-3 justify-center mt-8">
+            <button 
+              className={`px-4 py-2 rounded-md ${currentModel === 'diamond' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
+              onClick={() => setCurrentModel('diamond')}
+            >
+              Diamante
+            </button>
+            <button 
+              className={`px-4 py-2 rounded-md ${currentModel === 'sphere' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
+              onClick={() => setCurrentModel('sphere')}
+            >
+              Esfera
+            </button>
+            <button 
+              className={`px-4 py-2 rounded-md ${currentModel === 'torus' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
+              onClick={() => setCurrentModel('torus')}
+            >
+              Anel
+            </button>
+            <button 
+              className={`px-4 py-2 rounded-md ${currentModel === 'gltf' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
+              onClick={() => setCurrentModel('gltf')}
+            >
+              Modelo GLTF
+            </button>
+          </div>
         </div>
       </div>
+      
+      {/* Loading indicator */}
+      {!modelLoaded && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50">
+          <div className="text-white text-xl">Carregando modelo...</div>
+        </div>
+      )}
       
       {/* Diamond canvas container */}
       <div ref={mountRef} className="absolute inset-0 z-10" />
