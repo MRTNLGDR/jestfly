@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -28,24 +29,15 @@ const Index = () => {
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
+    renderer.outputEncoding = THREE.sRGBEncoding;
     mountRef.current.appendChild(renderer.domElement);
     
     // Create orbit controls for interaction
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    
-    // Environment map for realistic reflections
-    const cubeTextureLoader = new THREE.CubeTextureLoader();
-    const environmentMap = cubeTextureLoader.load([
-      '/envmap/px.jpg',
-      '/envmap/nx.jpg',
-      '/envmap/py.jpg',
-      '/envmap/ny.jpg',
-      '/envmap/pz.jpg',
-      '/envmap/nz.jpg'
-    ]);
-    scene.environment = environmentMap;
     
     // Diamond geometry
     // Using a custom polyhedron for better diamond shape
@@ -75,14 +67,14 @@ const Index = () => {
     
     const geometry = new THREE.PolyhedronGeometry(vertices, indices, 1, 4);
     
-    // Diamond material
+    // Diamond material - We'll update the environment map after loading
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       metalness: 0.1,
       roughness: 0.05,
       transmission: 0.95, // Glass-like transparency
       thickness: 0.5,
-      envMapIntensity: 1,
+      envMapIntensity: 1.5,
       clearcoat: 0.8,
       clearcoatRoughness: 0.1,
       ior: 2.5, // High IOR for diamond-like refraction
@@ -92,6 +84,22 @@ const Index = () => {
     // Create diamond mesh
     const diamond = new THREE.Mesh(geometry, material);
     scene.add(diamond);
+    
+    // Load HDR environment map
+    const rgbeLoader = new RGBELoader();
+    rgbeLoader.setDataType(THREE.FloatType);
+    
+    // Using a public HDR file - replace with your desired HDR file
+    rgbeLoader.load('/environment.hdr', (texture) => {
+      const pmremGenerator = new THREE.PMREMGenerator(renderer);
+      pmremGenerator.compileEquirectangularShader();
+      
+      const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+      
+      scene.environment = envMap;
+      texture.dispose();
+      pmremGenerator.dispose();
+    });
     
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
