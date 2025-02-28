@@ -14,8 +14,7 @@ import {
   Image,
   Layers,
   Monitor,
-  Eye,
-  Cube
+  Eye
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ModelParameters, defaultModelParams } from "@/types/model";
@@ -231,7 +230,7 @@ const Admin = () => {
                       <span className="hidden md:inline">Modelos 3D</span>
                     </TabsTrigger>
                     <TabsTrigger value="sketchfab" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <Cube size={16} /> 
+                      <Box size={16} /> 
                       <span className="hidden md:inline">Sketchfab</span>
                     </TabsTrigger>
                     <TabsTrigger value="material" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
@@ -287,7 +286,7 @@ const Admin = () => {
                       
                       <Card className="bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-700/30">
                         <CardContent className="p-6 flex flex-col">
-                          <Cube className="mb-4 text-indigo-400" size={24} />
+                          <Box className="mb-4 text-indigo-400" size={24} />
                           <h3 className="text-lg font-medium mb-1">Sketchfab</h3>
                           <p className="text-sm text-gray-400 mb-4">Adicione modelos direto do Sketchfab</p>
                           <button 
