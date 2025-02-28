@@ -4,6 +4,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { Link } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -328,6 +330,17 @@ const Index = () => {
   
   return (
     <div className="relative h-screen w-full overflow-hidden">
+      {/* Admin Link */}
+      <div className="absolute top-4 right-4 z-30">
+        <Link 
+          to="/admin" 
+          className="flex items-center gap-2 px-3 py-2 bg-black/30 hover:bg-black/50 rounded-md text-white transition-colors border border-white/10"
+        >
+          <Settings size={16} />
+          Admin
+        </Link>
+      </div>
+
       {/* Content overlay */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full text-white">
         <div className="animate-fade-in">
