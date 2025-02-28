@@ -194,241 +194,268 @@ const Admin = () => {
     document.documentElement.style.setProperty('--accent', accentColor);
   }, [backgroundColor, primaryColor, secondaryColor, accentColor]);
 
-  console.log("Active tab:", activeTab); // Ajuda a depurar o valor da aba ativa
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-      <header className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center sticky top-0 z-50 bg-black/70 backdrop-blur-md">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="mr-2 md:mr-4">
-            <ArrowLeft size={18} className="text-gray-400 hover:text-white transition-colors" />
+      {/* Header responsivo */}
+      <header className="p-3 sm:p-4 md:p-6 border-b border-white/10 flex justify-between items-center sticky top-0 z-50 bg-black/70 backdrop-blur-md">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Link to="/" className="mr-1 sm:mr-2 md:mr-4">
+            <ArrowLeft size={16} className="text-gray-400 hover:text-white transition-colors" />
           </Link>
-          <h1 className="text-lg md:text-2xl font-semibold flex items-center gap-2">
+          <h1 className="text-base sm:text-lg md:text-2xl font-semibold flex items-center gap-2 truncate">
             <Settings className="hidden md:inline mr-2" size={20} /> 
-            Painel de Administração
+            Painel de Admin
           </h1>
         </div>
         
         <div className="flex gap-2">
           <Link 
             to="/" 
-            className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-md text-sm text-white transition-colors"
+            className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-md text-xs sm:text-sm text-white transition-colors"
           >
             <Eye size={14} />
-            <span className="hidden md:inline">Visualizar Site</span>
+            <span className="hidden sm:inline">Visualizar Site</span>
           </Link>
         </div>
       </header>
       
-      <div className="container mx-auto p-4 md:p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <aside className="w-full md:w-56 lg:w-64 mb-6 md:mb-0">
-            <Tabs 
-              value={activeTab} 
-              onValueChange={setActiveTab} 
-              className="w-full"
-            >
-              <Card className="bg-black/30">
-                <CardContent className="p-3">
-                  <TabsList className="flex flex-row md:flex-col h-auto gap-1 bg-transparent justify-start">
-                    <TabsTrigger value="dashboard" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <LayoutDashboard size={16} /> 
+      <div className="container mx-auto px-2 py-3 sm:p-4 md:p-6 max-w-[1600px]">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6">
+          {/* Sidebar com tabs */}
+          <div className="w-full md:w-56 lg:w-64 mb-4 md:mb-0 sticky top-[73px] md:top-[85px] self-start">
+            <Card className="bg-black/30 border-gray-800">
+              <CardContent className="p-2 sm:p-3">
+                <Tabs 
+                  value={activeTab} 
+                  onValueChange={setActiveTab} 
+                  className="w-full"
+                >
+                  <TabsList className="grid grid-cols-4 md:grid-cols-1 gap-1 bg-transparent h-auto">
+                    <TabsTrigger 
+                      value="dashboard" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <LayoutDashboard size={14} /> 
                       <span className="hidden md:inline">Dashboard</span>
                     </TabsTrigger>
-                    <TabsTrigger value="models" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <FileAxis3d size={16} /> 
+                    <TabsTrigger 
+                      value="models" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <FileAxis3d size={14} /> 
                       <span className="hidden md:inline">Modelos 3D</span>
                     </TabsTrigger>
-                    <TabsTrigger value="sketchfab" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <Box size={16} /> 
+                    <TabsTrigger 
+                      value="sketchfab" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <Box size={14} /> 
                       <span className="hidden md:inline">Sketchfab</span>
                     </TabsTrigger>
-                    <TabsTrigger value="material" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <Droplet size={16} /> 
+                    <TabsTrigger 
+                      value="material" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <Droplet size={14} /> 
                       <span className="hidden md:inline">Material</span>
                     </TabsTrigger>
-                    <TabsTrigger value="elements" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <Layers size={16} /> 
+                    <TabsTrigger 
+                      value="elements" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <Layers size={14} /> 
                       <span className="hidden md:inline">Elementos</span>
                     </TabsTrigger>
-                    <TabsTrigger value="layout" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <Monitor size={16} /> 
+                    <TabsTrigger 
+                      value="layout" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <Monitor size={14} /> 
                       <span className="hidden md:inline">Layout</span>
                     </TabsTrigger>
-                    <TabsTrigger value="colors" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <Palette size={16} /> 
+                    <TabsTrigger 
+                      value="colors" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <Palette size={14} /> 
                       <span className="hidden md:inline">Cores</span>
                     </TabsTrigger>
-                    <TabsTrigger value="settings" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
-                      <Settings size={16} /> 
-                      <span className="hidden md:inline">Configurações</span>
+                    <TabsTrigger 
+                      value="settings" 
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                    >
+                      <Settings size={14} /> 
+                      <span className="hidden md:inline">Config</span>
                     </TabsTrigger>
                   </TabsList>
-                </CardContent>
-              </Card>
-            
-              <main className="flex-1 mt-6">
-                <Card className="bg-black/30 border-gray-800">
-                  <CardContent className="p-4 md:p-6">
-                    {/* Conteúdo do Dashboard */}
-                    <TabsContent value="dashboard" className="mt-0">
-                      <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-xl md:text-2xl font-semibold">Dashboard</h2>
-                        </div>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Conteúdo principal */}
+          <div className="flex-1">
+            <Card className="bg-black/30 border-gray-800">
+              <CardContent className="p-3 sm:p-4 md:p-6">
+                <Tabs value={activeTab} className="w-full">
+                  {/* Conteúdo do Dashboard */}
+                  <TabsContent value="dashboard" className="mt-0">
+                    <div className="space-y-4 md:space-y-6">
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Dashboard</h2>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                        <Card className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 border-purple-700/30">
+                          <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
+                            <Box className="mb-3 md:mb-4 text-purple-400" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Modelos 3D</h3>
+                            <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Gerencie os modelos 3D da página inicial</p>
+                            <button 
+                              onClick={() => setActiveTab("models")}
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-purple-700/50 hover:bg-purple-700 rounded-md transition-colors"
+                            >
+                              Configurar
+                            </button>
+                          </CardContent>
+                        </Card>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          <Card className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 border-purple-700/30">
-                            <CardContent className="p-6 flex flex-col">
-                              <Box className="mb-4 text-purple-400" size={24} />
-                              <h3 className="text-lg font-medium mb-1">Modelos 3D</h3>
-                              <p className="text-sm text-gray-400 mb-4">Gerencie os modelos 3D da página inicial</p>
-                              <button 
-                                onClick={() => setActiveTab("models")}
-                                className="mt-auto text-sm px-3 py-1.5 bg-purple-700/50 hover:bg-purple-700 rounded-md transition-colors"
-                              >
-                                Configurar
-                              </button>
-                            </CardContent>
-                          </Card>
-                          
-                          <Card className="bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-700/30">
-                            <CardContent className="p-6 flex flex-col">
-                              <Box className="mb-4 text-indigo-400" size={24} />
-                              <h3 className="text-lg font-medium mb-1">Sketchfab</h3>
-                              <p className="text-sm text-gray-400 mb-4">Adicione modelos direto do Sketchfab</p>
-                              <button 
-                                onClick={() => setActiveTab("sketchfab")}
-                                className="mt-auto text-sm px-3 py-1.5 bg-indigo-700/50 hover:bg-indigo-700 rounded-md transition-colors"
-                              >
-                                Explorar
-                              </button>
-                            </CardContent>
-                          </Card>
-                          
-                          <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-blue-700/30">
-                            <CardContent className="p-6 flex flex-col">
-                              <Type className="mb-4 text-blue-400" size={24} />
-                              <h3 className="text-lg font-medium mb-1">Textos</h3>
-                              <p className="text-sm text-gray-400 mb-4">Edite os títulos e textos do site</p>
-                              <button 
-                                onClick={() => setActiveTab("elements")}
-                                className="mt-auto text-sm px-3 py-1.5 bg-blue-700/50 hover:bg-blue-700 rounded-md transition-colors"
-                              >
-                                Editar
-                              </button>
-                            </CardContent>
-                          </Card>
-                          
-                          <Card className="bg-gradient-to-br from-red-900/50 to-red-800/30 border-red-700/30">
-                            <CardContent className="p-6 flex flex-col">
-                              <Image className="mb-4 text-red-400" size={24} />
-                              <h3 className="text-lg font-medium mb-1">Aparência</h3>
-                              <p className="text-sm text-gray-400 mb-4">Personalize cores e tema do site</p>
-                              <button 
-                                onClick={() => setActiveTab("colors")}
-                                className="mt-auto text-sm px-3 py-1.5 bg-red-700/50 hover:bg-red-700 rounded-md transition-colors"
-                              >
-                                Personalizar
-                              </button>
-                            </CardContent>
-                          </Card>
-                        </div>
+                        <Card className="bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-700/30">
+                          <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
+                            <Box className="mb-3 md:mb-4 text-indigo-400" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Sketchfab</h3>
+                            <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Adicione modelos direto do Sketchfab</p>
+                            <button 
+                              onClick={() => setActiveTab("sketchfab")}
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-indigo-700/50 hover:bg-indigo-700 rounded-md transition-colors"
+                            >
+                              Explorar
+                            </button>
+                          </CardContent>
+                        </Card>
                         
-                        <div className="bg-gray-800/30 rounded-lg p-6">
-                          <h3 className="text-lg font-medium mb-4">Visualização Rápida</h3>
-                          <div className="aspect-video relative bg-black rounded-lg overflow-hidden border border-gray-800">
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-red-600 leading-none opacity-90">
-                                {titleText}
-                              </h1>
-                            </div>
-                            <div className="absolute bottom-8 left-8 max-w-xs">
-                              <p className="text-sm uppercase tracking-widest text-white/80">
-                                {subtitleText}
-                              </p>
-                            </div>
+                        <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-blue-700/30">
+                          <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
+                            <Type className="mb-3 md:mb-4 text-blue-400" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Textos</h3>
+                            <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Edite os títulos e textos do site</p>
+                            <button 
+                              onClick={() => setActiveTab("elements")}
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-blue-700/50 hover:bg-blue-700 rounded-md transition-colors"
+                            >
+                              Editar
+                            </button>
+                          </CardContent>
+                        </Card>
+                        
+                        <Card className="bg-gradient-to-br from-red-900/50 to-red-800/30 border-red-700/30">
+                          <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
+                            <Image className="mb-3 md:mb-4 text-red-400" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Aparência</h3>
+                            <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Personalize cores e tema do site</p>
+                            <button 
+                              onClick={() => setActiveTab("colors")}
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-red-700/50 hover:bg-red-700 rounded-md transition-colors"
+                            >
+                              Personalizar
+                            </button>
+                          </CardContent>
+                        </Card>
+                      </div>
+                      
+                      <div className="bg-gray-800/30 rounded-lg p-3 sm:p-4 md:p-6">
+                        <h3 className="text-sm sm:text-base md:text-lg font-medium mb-2 md:mb-4">Visualização Rápida</h3>
+                        <div className="aspect-video relative bg-black rounded-lg overflow-hidden border border-gray-800">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter text-red-600 leading-none opacity-90 px-4 text-center">
+                              {titleText}
+                            </h1>
+                          </div>
+                          <div className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 max-w-xs">
+                            <p className="text-xs sm:text-sm uppercase tracking-widest text-white/80">
+                              {subtitleText}
+                            </p>
                           </div>
                         </div>
                       </div>
-                    </TabsContent>
-                    
-                    {/* Tab de Modelos 3D */}
-                    <TabsContent value="models" className="mt-0">
-                      <ModelTab 
-                        uploadedModels={uploadedModels}
-                        setUploadedModels={setUploadedModels}
-                        newModelName={newModelName}
-                        setNewModelName={setNewModelName}
-                        activeModel={activeModel}
-                        changeActiveModel={changeActiveModel}
-                      />
-                    </TabsContent>
-                    
-                    {/* Tab do Sketchfab */}
-                    <TabsContent value="sketchfab" className="mt-0">
-                      <SketchfabTab 
-                        changeActiveModel={changeActiveModel}
-                      />
-                    </TabsContent>
-                    
-                    {/* Tab de Material e Efeitos */}
-                    <TabsContent value="material" className="mt-0">
-                      <MaterialTab 
-                        modelParams={modelParams}
-                        updateModelParam={updateModelParam}
-                        resetModelParams={resetModelParams}
-                        saveModelSettings={saveModelSettings}
-                        isColorPickerOpen={isColorPickerOpen}
-                        setIsColorPickerOpen={setIsColorPickerOpen}
-                      />
-                    </TabsContent>
-                    
-                    {/* Tab de Elementos */}
-                    <TabsContent value="elements" className="mt-0">
-                      <ElementsTab
-                        titleText={titleText}
-                        setTitleText={setTitleText}
-                        subtitleText={subtitleText}
-                        setSubtitleText={setSubtitleText}
-                      />
-                    </TabsContent>
-                    
-                    {/* Tab de Layout */}
-                    <TabsContent value="layout" className="mt-0">
-                      <LayoutTab
-                        titleText={titleText}
-                        subtitleText={subtitleText}
-                        modelParams={modelParams}
-                      />
-                    </TabsContent>
-                    
-                    {/* Tab de Cores e Temas */}
-                    <TabsContent value="colors" className="mt-0">
-                      <ColorsTab 
-                        primaryColor={primaryColor}
-                        setPrimaryColor={setPrimaryColor}
-                        secondaryColor={secondaryColor}
-                        setSecondaryColor={setSecondaryColor}
-                        backgroundColor={backgroundColor}
-                        setBackgroundColor={setBackgroundColor}
-                        accentColor={accentColor}
-                        setAccentColor={setAccentColor}
-                        isColorPickerOpen={isColorPickerOpen}
-                        setIsColorPickerOpen={setIsColorPickerOpen}
-                        saveColorSettings={saveColorSettings}
-                      />
-                    </TabsContent>
-                    
-                    {/* Tab de Configurações */}
-                    <TabsContent value="settings" className="mt-0">
-                      <SettingsTab />
-                    </TabsContent>
-                  </CardContent>
-                </Card>
-              </main>
-            </Tabs>
-          </aside>
+                    </div>
+                  </TabsContent>
+                  
+                  {/* Tab de Modelos 3D */}
+                  <TabsContent value="models" className="mt-0">
+                    <ModelTab 
+                      uploadedModels={uploadedModels}
+                      setUploadedModels={setUploadedModels}
+                      newModelName={newModelName}
+                      setNewModelName={setNewModelName}
+                      activeModel={activeModel}
+                      changeActiveModel={changeActiveModel}
+                    />
+                  </TabsContent>
+                  
+                  {/* Tab do Sketchfab */}
+                  <TabsContent value="sketchfab" className="mt-0">
+                    <SketchfabTab 
+                      changeActiveModel={changeActiveModel}
+                    />
+                  </TabsContent>
+                  
+                  {/* Tab de Material e Efeitos */}
+                  <TabsContent value="material" className="mt-0">
+                    <MaterialTab 
+                      modelParams={modelParams}
+                      updateModelParam={updateModelParam}
+                      resetModelParams={resetModelParams}
+                      saveModelSettings={saveModelSettings}
+                      isColorPickerOpen={isColorPickerOpen}
+                      setIsColorPickerOpen={setIsColorPickerOpen}
+                    />
+                  </TabsContent>
+                  
+                  {/* Tab de Elementos */}
+                  <TabsContent value="elements" className="mt-0">
+                    <ElementsTab
+                      titleText={titleText}
+                      setTitleText={setTitleText}
+                      subtitleText={subtitleText}
+                      setSubtitleText={setSubtitleText}
+                    />
+                  </TabsContent>
+                  
+                  {/* Tab de Layout */}
+                  <TabsContent value="layout" className="mt-0">
+                    <LayoutTab
+                      titleText={titleText}
+                      subtitleText={subtitleText}
+                      modelParams={modelParams}
+                    />
+                  </TabsContent>
+                  
+                  {/* Tab de Cores e Temas */}
+                  <TabsContent value="colors" className="mt-0">
+                    <ColorsTab 
+                      primaryColor={primaryColor}
+                      setPrimaryColor={setPrimaryColor}
+                      secondaryColor={secondaryColor}
+                      setSecondaryColor={setSecondaryColor}
+                      backgroundColor={backgroundColor}
+                      setBackgroundColor={setBackgroundColor}
+                      accentColor={accentColor}
+                      setAccentColor={setAccentColor}
+                      isColorPickerOpen={isColorPickerOpen}
+                      setIsColorPickerOpen={setIsColorPickerOpen}
+                      saveColorSettings={saveColorSettings}
+                    />
+                  </TabsContent>
+                  
+                  {/* Tab de Configurações */}
+                  <TabsContent value="settings" className="mt-0">
+                    <SettingsTab />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
