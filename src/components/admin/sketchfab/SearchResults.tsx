@@ -36,6 +36,15 @@ interface SearchResultsProps {
   isSaving: string | null;
 }
 
+// Função auxiliar para verificar se o Json params tem a propriedade uid
+const hasUid = (params: Json | null | undefined): boolean => {
+  if (!params) return false;
+  if (typeof params === 'object' && params !== null) {
+    return 'uid' in params;
+  }
+  return false;
+};
+
 const SearchResults = ({ 
   isLoading, 
   searchResults, 
@@ -64,11 +73,16 @@ const SearchResults = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {searchResults.map((model) => {
-        const isAlreadySaved = savedModels.some(saved => 
-          saved.params?.uid === model.uid || 
-          saved.url === model.viewerUrl || 
-          saved.url === model.embedUrl
-        );
+        const isAlreadySaved = savedModels.some(saved => {
+          // Verificar se params é um objeto e se tem a propriedade uid
+          const paramsHasUid = hasUid(saved.params);
+          const uidMatches = paramsHasUid && typeof saved.params === 'object' && saved.params.uid === model.uid;
+          
+          // Verificar se a URL corresponde
+          const urlMatches = saved.url === model.viewerUrl || saved.url === model.embedUrl;
+          
+          return uidMatches || urlMatches;
+        });
         
         return (
           <ModelCard
