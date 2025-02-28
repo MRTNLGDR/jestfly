@@ -644,10 +644,30 @@ const Index = () => {
   
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
-      {/* Cristal flutuante na frente do texto */}
+      {/* Sketchfab container - mostrado apenas quando o modelo for do Sketchfab */}
+      {currentModel === 'sketchfab' ? (
+        <div 
+          ref={sketchfabContainerRef} 
+          className="absolute inset-0 z-10"
+        ></div>
+      ) : (
+        <div 
+          ref={mountRef} 
+          className="absolute inset-0 z-10"
+        ></div>
+      )}
+
+      {/* Logo/Title overlay - Aumentado o z-index para ficar por cima do modelo */}
+      <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+        <h1 className="text-7xl sm:text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
+          {titleText}
+        </h1>
+      </div>
+
+      {/* Cristal flutuante - mudado para z-25 para ficar entre o modelo e o texto */}
       <div 
         ref={frontCrystalRef}
-        className="absolute inset-0 z-25 flex items-center justify-center pointer-events-none"
+        className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
         style={{
           perspective: "1000px",
           transformStyle: "preserve-3d",
@@ -677,8 +697,15 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Content overlay - Aumentado o z-index para ficar por cima do modelo */}
+      <div className="absolute left-4 sm:left-16 bottom-16 sm:bottom-32 z-40 max-w-xs text-left text-white">
+        <div className="animate-fade-in space-y-2">
+          {formattedSubtitle}
+        </div>
+      </div>
+
       {/* Admin Link */}
-      <div className="absolute top-4 right-4 z-30">
+      <div className="absolute top-4 right-4 z-50">
         <Link 
           to="/admin" 
           className="flex items-center gap-2 px-3 py-2 bg-black/70 hover:bg-black/90 rounded-md text-white transition-colors border border-white/10"
@@ -687,24 +714,10 @@ const Index = () => {
           Admin
         </Link>
       </div>
-
-      {/* Logo/Title overlay */}
-      <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-        <h1 className="text-7xl sm:text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
-          {titleText}
-        </h1>
-      </div>
-
-      {/* Content overlay */}
-      <div className="absolute left-4 sm:left-16 bottom-16 sm:bottom-32 z-20 max-w-xs text-left text-white">
-        <div className="animate-fade-in space-y-2">
-          {formattedSubtitle}
-        </div>
-      </div>
       
       {/* Loading indicator */}
       {loadingModel && (
-        <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/70 backdrop-blur-sm">
+        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-sm">
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
             <div className="text-white text-xl">Carregando modelo...</div>
@@ -714,23 +727,10 @@ const Index = () => {
       
       {/* Error message */}
       {loadingError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/90">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/90">
           <div className="text-red-500 text-2xl mb-4">Erro de carregamento</div>
           <div className="text-white text-lg">{loadingError}</div>
         </div>
-      )}
-      
-      {/* Sketchfab container - mostrado apenas quando o modelo for do Sketchfab */}
-      {currentModel === 'sketchfab' ? (
-        <div 
-          ref={sketchfabContainerRef} 
-          className="absolute inset-0 z-10"
-        ></div>
-      ) : (
-        <div 
-          ref={mountRef} 
-          className="absolute inset-0 z-10"
-        ></div>
       )}
     </div>
   );
