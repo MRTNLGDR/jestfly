@@ -53,7 +53,28 @@ const Index = () => {
   // Carregar parâmetros do modelo do localStorage
   const [modelParams, setModelParams] = useState<ModelParameters>(() => {
     const savedParams = localStorage.getItem("modelParameters");
-    return savedParams ? JSON.parse(savedParams) : defaultModelParams;
+    // Se não existir parâmetros salvos, usar os padrões do vidro brilhante
+    if (!savedParams) {
+      // Salvar os parâmetros otimizados para vidro
+      const glassParams = {
+        ...defaultModelParams,
+        color: "#ffffff",
+        metalness: 0.0,
+        roughness: 0.0,
+        transmission: 0.98,
+        thickness: 0.2,
+        envMapIntensity: 3.0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.0,
+        ior: 1.5,
+        reflectivity: 1.0,
+        transparent: true,
+        opacity: 0.9
+      };
+      localStorage.setItem("modelParameters", JSON.stringify(glassParams));
+      return glassParams;
+    }
+    return JSON.parse(savedParams);
   });
 
   // Efeito para aplicar a distorção do texto
@@ -250,18 +271,20 @@ const Index = () => {
     controls.autoRotateSpeed = 0.8; // Velocidade de rotação mais lenta
     controls.enableZoom = false; // Desativar zoom para manter a composição
     
-    // Material configurável baseado nos parâmetros - mais transparente e reflexivo
+    // Material configurável baseado nos parâmetros - Otimizado para vidro brilhante e transparente
     const material = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(modelParams.color),
       metalness: modelParams.metalness,
       roughness: modelParams.roughness,
-      transmission: modelParams.transmission,
-      thickness: modelParams.thickness,
-      envMapIntensity: modelParams.envMapIntensity,
-      clearcoat: modelParams.clearcoat,
-      clearcoatRoughness: modelParams.clearcoatRoughness,
-      ior: modelParams.ior,
-      reflectivity: modelParams.reflectivity,
+      transmission: modelParams.transmission, // Alta transmissão para transparência
+      thickness: modelParams.thickness, // Espessura fina para vidro
+      envMapIntensity: modelParams.envMapIntensity, // Mais intensidade para reflexões
+      clearcoat: modelParams.clearcoat, // Camada de verniz para brilho
+      clearcoatRoughness: modelParams.clearcoatRoughness, // Verniz super liso
+      ior: modelParams.ior, // Índice de refração do vidro
+      reflectivity: modelParams.reflectivity, // Alta refletividade
+      transparent: modelParams.transparent,
+      opacity: modelParams.opacity,
       iridescence: modelParams.iridescence,
       iridescenceIOR: modelParams.iridescenceIOR
     });
@@ -450,6 +473,33 @@ const Index = () => {
       );
     };
     
+    // Função para criar um ambiente com HDRI para reflexões realistas
+    const loadHDREnvironment = () => {
+      try {
+        console.log("Carregando ambiente HDRI para reflexões realistas");
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
+        
+        new RGBELoader()
+          .setDataType(THREE.HalfFloatType)
+          .load('/environment.hdr', (texture) => {
+            const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+            scene.environment = envMap;
+            
+            texture.dispose();
+            pmremGenerator.dispose();
+            
+            console.log("Ambiente HDRI carregado com sucesso");
+          }, undefined, (error) => {
+            console.error("Erro ao carregar HDRI:", error);
+            createBasicEnvironment(); // Fallback
+          });
+      } catch (error) {
+        console.error("Erro ao configurar ambiente HDRI:", error);
+        createBasicEnvironment(); // Fallback
+      }
+    };
+    
     // Função para criar um ambiente básico quando o HDR falhar
     const createBasicEnvironment = () => {
       console.log("Criando ambiente básico");
@@ -458,12 +508,28 @@ const Index = () => {
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
       pmremGenerator.compileEquirectangularShader();
       
-      // Criar uma cena de ambiente simples
+      // Criar uma cena de ambiente mais detalhada
       const envScene = new THREE.Scene();
-      envScene.background = new THREE.Color(0x111122);
+      envScene.background = new THREE.Color(0x222244); // Cor mais azulada para melhores reflexos
+      
+      // Adicionar algumas fontes de luz para criar reflexos interessantes
+      const envLights = [
+        new THREE.DirectionalLight(0xffffff, 5),
+        new THREE.DirectionalLight(0x88ccff, 3),
+        new THREE.DirectionalLight(0xffaa88, 2),
+      ];
+      
+      envLights[0].position.set(5, 10, 5);
+      envLights[1].position.set(-5, 5, -5);
+      envLights[2].position.set(0, -10, 0);
+      
+      envLights.forEach(light => envScene.add(light));
       
       // Criar um cubo para reflexões
-      const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
+      const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(1024, {
+        generateMipmaps: true,
+        minFilter: THREE.LinearMipmapLinearFilter
+      });
       const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
       cubeCamera.update(renderer, envScene);
       
@@ -476,6 +542,9 @@ const Index = () => {
       
       console.log("Ambiente básico criado com sucesso");
     };
+
+    // Tentar carregar HDRI primeiro, com fallback para ambiente básico
+    loadHDREnvironment();
 
     // Selecionar o modelo correto com base na preferência
     console.log("Selecionando modelo:", currentModel);
@@ -508,9 +577,6 @@ const Index = () => {
     window.addEventListener('click', handleTouch);
     window.addEventListener('touchstart', handleTouch);
     
-    // Criar ambiente básico diretamente em vez de tentar carregar HDR
-    createBasicEnvironment();
-    
     // Criar linha diagonal (semelhante ao visual da referência)
     const createDiagonalLine = () => {
       const lineMaterial = new THREE.LineBasicMaterial({ 
@@ -534,13 +600,13 @@ const Index = () => {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
     
-    // Luz principal direcional
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    // Luz principal direcional - mais brilhante para reflexos
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
     
-    // Luzes coloridas para criar efeitos interessantes
-    const colors = [0xff3366, 0xffccd5, 0xd5ffff, 0xffffcc];
+    // Luzes coloridas para criar efeitos interessantes em vidro
+    const colors = [0xff3366, 0x88ccff, 0xffffff, 0xffddaa];
     const positions = [
       [3, 2, 2],
       [-3, -2, 2],
@@ -549,7 +615,7 @@ const Index = () => {
     ];
     
     positions.forEach((position, i) => {
-      const light = new THREE.PointLight(colors[i], 2.0, 15);
+      const light = new THREE.PointLight(colors[i], 2.5, 15);
       light.position.set(position[0], position[1], position[2]);
       scene.add(light);
     });
@@ -573,6 +639,10 @@ const Index = () => {
         // Pulsar levemente o modelo
         const pulseFactor = Math.sin(Date.now() * 0.001) * 0.03 + 1;
         model.scale.set(pulseFactor * 1.2, pulseFactor * 1.2, pulseFactor * 1.2);
+        
+        // Adicionar uma rotação suave adicional para aumentar reflexos
+        model.rotation.y += 0.001;
+        model.rotation.x += 0.0005;
       }
       
       controls.update();
@@ -798,6 +868,9 @@ const Index = () => {
           className="absolute inset-0 z-20"
         ></div>
       )}
+
+      {/* Camada de refração para simular vidro - aumenta distorções */}
+      <div className="refraction-layer"></div>
 
       {/* Cristal flutuante - colocado na frente (z-50) */}
       <div 
