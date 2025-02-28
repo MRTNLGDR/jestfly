@@ -1,4 +1,5 @@
 
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +8,8 @@ import { HexColorPicker } from "react-colorful";
 import { Lightbulb, Sparkles } from "lucide-react";
 import { Check } from "lucide-react";
 import { ModelParameters } from "@/types/model";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 interface ColorPickerProps {
   isColorPickerOpen: string | null;
@@ -32,6 +35,129 @@ const MaterialTab = ({
   isColorPickerOpen,
   setIsColorPickerOpen
 }: MaterialTabProps) => {
+  // Referência para o container do modelo 3D de prévia
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  // UseEffect para renderizar o modelo 3D
+  useEffect(() => {
+    if (!previewRef.current) return;
+
+    // Limpar qualquer canvas existente
+    while (previewRef.current.firstChild) {
+      previewRef.current.removeChild(previewRef.current.firstChild);
+    }
+
+    // Configurar scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
+
+    // Configurar camera
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      previewRef.current.clientWidth / previewRef.current.clientHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 5;
+
+    // Configurar renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(previewRef.current.clientWidth, previewRef.current.clientHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = modelParams.lightIntensity;
+    previewRef.current.appendChild(renderer.domElement);
+
+    // Configurar controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.5;
+
+    // Material configurável baseado nos parâmetros atuais
+    const material = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(modelParams.color),
+      metalness: modelParams.metalness,
+      roughness: modelParams.roughness,
+      transmission: modelParams.transmission,
+      thickness: modelParams.thickness,
+      envMapIntensity: modelParams.envMapIntensity,
+      clearcoat: modelParams.clearcoat,
+      clearcoatRoughness: modelParams.clearcoatRoughness,
+      ior: modelParams.ior,
+      reflectivity: modelParams.reflectivity,
+      iridescence: modelParams.iridescence,
+      iridescenceIOR: modelParams.iridescenceIOR
+    });
+
+    // Criar um modelo de cristal distorcido para prévia
+    const geometry = new THREE.IcosahedronGeometry(2, 2);
+    const positionAttribute = geometry.getAttribute('position');
+    const vertex = new THREE.Vector3();
+        
+    for (let i = 0; i < positionAttribute.count; i++) {
+      vertex.fromBufferAttribute(positionAttribute, i);
+      
+      // Aplicar distorção
+      const distortionFactor = 0.2;
+      const noise = Math.sin(vertex.x * 5) * Math.sin(vertex.y * 3) * Math.sin(vertex.z * 7);
+      
+      vertex.x += noise * distortionFactor;
+      vertex.y += noise * distortionFactor;
+      vertex.z += noise * distortionFactor;
+      
+      positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+    }
+    
+    geometry.computeVertexNormals();
+    
+    const crystal = new THREE.Mesh(geometry, material);
+    crystal.scale.set(0.7, 0.7, 0.7);
+    scene.add(crystal);
+
+    // Adicionar luz ambiente
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    // Adicionar luz direcional
+    const directionalLight = new THREE.DirectionalLight(0xffffff, modelParams.lightIntensity);
+    directionalLight.position.set(5, 10, 7.5);
+    scene.add(directionalLight);
+
+    // Criar environment map simples para reflexões
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileCubemapShader();
+    
+    // Criar um ambiente básico
+    const envScene = new THREE.Scene();
+    envScene.background = new THREE.Color(0x333333);
+    
+    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
+    const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
+    cubeCamera.update(renderer, envScene);
+    
+    const envMap = pmremGenerator.fromCubemap(cubeRenderTarget.texture).texture;
+    scene.environment = envMap;
+    pmremGenerator.dispose();
+
+    // Animation loop
+    const animate = () => {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // Cleanup
+    return () => {
+      if (previewRef.current && previewRef.current.contains(renderer.domElement)) {
+        previewRef.current.removeChild(renderer.domElement);
+      }
+      scene.clear();
+      renderer.dispose();
+    };
+  }, [modelParams]); // Re-renderizar quando os parâmetros mudarem
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -44,6 +170,11 @@ const MaterialTab = ({
             Salvar Configurações
           </Button>
         </div>
+      </div>
+      
+      {/* Adicionar a área de prévia do modelo */}
+      <div className="w-full h-64 bg-gray-800/80 rounded-lg overflow-hidden mb-6">
+        <div ref={previewRef} className="w-full h-full"></div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

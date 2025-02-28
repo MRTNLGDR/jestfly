@@ -19,10 +19,22 @@ import SettingsTab from "@/components/admin/SettingsTab";
 const Admin = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("models");
-  const [primaryColor, setPrimaryColor] = useState("#9b87f5");
-  const [secondaryColor, setSecondaryColor] = useState("#6E59A5");
-  const [backgroundColor, setBackgroundColor] = useState("#1A1F2C");
-  const [accentColor, setAccentColor] = useState("#D6BCFA");
+  const [primaryColor, setPrimaryColor] = useState(() => {
+    const savedColors = localStorage.getItem("siteColors");
+    return savedColors ? JSON.parse(savedColors).primaryColor : "#9b87f5";
+  });
+  const [secondaryColor, setSecondaryColor] = useState(() => {
+    const savedColors = localStorage.getItem("siteColors");
+    return savedColors ? JSON.parse(savedColors).secondaryColor : "#6E59A5";
+  });
+  const [backgroundColor, setBackgroundColor] = useState(() => {
+    const savedColors = localStorage.getItem("siteColors");
+    return savedColors ? JSON.parse(savedColors).backgroundColor : "#1A1F2C";
+  });
+  const [accentColor, setAccentColor] = useState(() => {
+    const savedColors = localStorage.getItem("siteColors");
+    return savedColors ? JSON.parse(savedColors).accentColor : "#D6BCFA";
+  });
   const [uploadedModels, setUploadedModels] = useState<{ name: string; file: File; preview?: string }[]>([]);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState<string | null>(null);
   const [newModelName, setNewModelName] = useState("");
@@ -67,7 +79,7 @@ const Admin = () => {
     document.documentElement.style.setProperty('--accent', accentColor);
   };
 
-  // Função para salvar as configurações do modelo
+  // Função para salvar as configurações do modelo - agora salva automaticamente
   const saveModelSettings = () => {
     localStorage.setItem("modelParameters", JSON.stringify(modelParams));
     
@@ -80,6 +92,8 @@ const Admin = () => {
   // Função para alterar o modelo ativo
   const changeActiveModel = (modelType: string) => {
     setActiveModel(modelType);
+    localStorage.setItem("preferredModel", modelType);
+    
     toast({
       title: "Modelo alterado",
       description: `O modelo da página inicial foi alterado para ${modelType}.`
@@ -88,20 +102,45 @@ const Admin = () => {
   
   // Função para atualizar um parâmetro do modelo
   const updateModelParam = (param: keyof ModelParameters, value: number | string) => {
-    setModelParams(prev => ({
-      ...prev,
+    const updatedParams = {
+      ...modelParams,
       [param]: value
-    }));
+    };
+    
+    setModelParams(updatedParams);
+    
+    // Salvar automaticamente ao alterar qualquer parâmetro
+    localStorage.setItem("modelParameters", JSON.stringify(updatedParams));
   };
   
   // Função para restaurar os valores padrão
   const resetModelParams = () => {
     setModelParams(defaultModelParams);
+    localStorage.setItem("modelParameters", JSON.stringify(defaultModelParams));
+    
     toast({
       title: "Parâmetros resetados",
       description: "Os parâmetros do modelo foram restaurados para os valores padrão."
     });
   };
+
+  // Carregar cores iniciais do localStorage
+  useEffect(() => {
+    const savedColors = localStorage.getItem("siteColors");
+    if (savedColors) {
+      const colors = JSON.parse(savedColors);
+      setPrimaryColor(colors.primaryColor);
+      setSecondaryColor(colors.secondaryColor);
+      setBackgroundColor(colors.backgroundColor);
+      setAccentColor(colors.accentColor);
+      
+      // Aplicar cores ao CSS
+      document.documentElement.style.setProperty('--background', colors.backgroundColor);
+      document.documentElement.style.setProperty('--primary', colors.primaryColor);
+      document.documentElement.style.setProperty('--secondary', colors.secondaryColor);
+      document.documentElement.style.setProperty('--accent', colors.accentColor);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
