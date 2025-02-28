@@ -120,7 +120,7 @@ const Index = () => {
     };
     
     // OPÇÃO 4: Carregar um modelo GLTF externo
-    const loadGLTFModel = (url) => {
+    const loadGLTFModel = (url: string) => {
       const loader = new GLTFLoader();
       loader.load(url, (gltf) => {
         // Limpar o modelo atual
@@ -132,7 +132,7 @@ const Index = () => {
         
         // Opcionalmente, aplicar material a todos os objetos do modelo
         newModel.traverse((object) => {
-          if (object.isMesh) {
+          if (object instanceof THREE.Mesh) {
             object.material = material;
           }
         });
@@ -144,13 +144,11 @@ const Index = () => {
     };
     
     // Por padrão, criar o diamante
-    createDiamondGeometry();
+    // createDiamondGeometry();
     
-    // Para demonstração, você pode descomentar uma das linhas abaixo
-    // para usar um modelo diferente:
-    // createSphereModel();
-    // createTorusModel();
-    // loadGLTFModel('/path/to/your/model.gltf'); // Substitua pelo caminho do seu modelo
+    // Aqui carregamos o modelo GLTF externo
+    // Substitua pelo caminho do seu modelo GLTF
+    loadGLTFModel('/path/to/your/model.gltf');
     
     // Load HDR environment map
     const rgbeLoader = new RGBELoader();
