@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +15,9 @@ import {
   Circle,
   CircleDot
 } from "lucide-react";
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { ModelParameters } from "@/types/model";
 
 interface ModelTabProps {
   uploadedModels: Array<{ name: string; file: File; preview?: string }>;
@@ -34,6 +37,11 @@ const ModelTab = ({
   changeActiveModel
 }: ModelTabProps) => {
   const { toast } = useToast();
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [modelParams, setModelParams] = useState<ModelParameters>(() => {
+    const savedParams = localStorage.getItem("modelParameters");
+    return savedParams ? JSON.parse(savedParams) : null;
+  });
 
   // Função para adicionar um novo modelo
   const handleModelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,6 +85,184 @@ const ModelTab = ({
     });
   };
 
+  // UseEffect para renderizar o modelo 3D de prévia
+  useEffect(() => {
+    if (!previewRef.current || !modelParams) return;
+
+    // Limpar qualquer canvas existente
+    while (previewRef.current.firstChild) {
+      previewRef.current.removeChild(previewRef.current.firstChild);
+    }
+
+    // Configurar scene
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
+
+    // Configurar camera
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      previewRef.current.clientWidth / previewRef.current.clientHeight,
+      0.1,
+      1000
+    );
+    camera.position.z = 5;
+
+    // Configurar renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(previewRef.current.clientWidth, previewRef.current.clientHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = modelParams.lightIntensity;
+    previewRef.current.appendChild(renderer.domElement);
+
+    // Configurar controls
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.5;
+
+    // Material configurável baseado nos parâmetros atuais
+    const material = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color(modelParams.color),
+      metalness: modelParams.metalness,
+      roughness: modelParams.roughness,
+      transmission: modelParams.transmission,
+      thickness: modelParams.thickness,
+      envMapIntensity: modelParams.envMapIntensity,
+      clearcoat: modelParams.clearcoat,
+      clearcoatRoughness: modelParams.clearcoatRoughness,
+      ior: modelParams.ior,
+      reflectivity: modelParams.reflectivity,
+      iridescence: modelParams.iridescence,
+      iridescenceIOR: modelParams.iridescenceIOR
+    });
+
+    // Criar o modelo conforme o tipo selecionado
+    let modelObject: THREE.Object3D;
+
+    if (activeModel === 'diamond') {
+      // Criar geometria do diamante
+      const vertices = [
+        0, 2, 0,
+        ...Array.from({ length: 18 }, (_, i) => {
+          const angle = (i / 18) * Math.PI * 2;
+          const x = Math.cos(angle) * 1.0;
+          const z = Math.sin(angle) * 1.0;
+          return [x, 0, z];
+        }).flat(),
+        0, -2, 0,
+      ];
+      
+      const indices = [];
+      // Top faces
+      for (let i = 1; i < 19; i++) {
+        indices.push(0, i, i === 18 ? 1 : i + 1);
+      }
+      // Middle faces
+      for (let i = 1; i < 19; i++) {
+        indices.push(i, 19, i === 18 ? 1 : i + 1);
+      }
+      
+      const geometry = new THREE.PolyhedronGeometry(vertices, indices, 2, 2);
+      modelObject = new THREE.Mesh(geometry, material);
+    } else if (activeModel === 'sphere') {
+      // Criar geometria da esfera
+      const geometry = new THREE.SphereGeometry(2, 32, 32);
+      modelObject = new THREE.Mesh(geometry, material);
+    } else if (activeModel === 'torus') {
+      // Criar geometria do torus
+      const geometry = new THREE.TorusGeometry(1.5, 0.5, 16, 64);
+      modelObject = new THREE.Mesh(geometry, material);
+    } else {
+      // Modelo padrão - cristal distorcido
+      const geometry = new THREE.IcosahedronGeometry(2, 1);
+      const positionAttribute = geometry.getAttribute('position');
+      const vertex = new THREE.Vector3();
+          
+      for (let i = 0; i < positionAttribute.count; i++) {
+        vertex.fromBufferAttribute(positionAttribute, i);
+        
+        // Aplicar distorção
+        const distortionFactor = 0.2;
+        const noise = Math.sin(vertex.x * 5) * Math.sin(vertex.y * 3) * Math.sin(vertex.z * 7);
+        
+        vertex.x += noise * distortionFactor;
+        vertex.y += noise * distortionFactor;
+        vertex.z += noise * distortionFactor;
+        
+        positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+      }
+      
+      geometry.computeVertexNormals();
+      
+      modelObject = new THREE.Mesh(geometry, material);
+    }
+
+    modelObject.scale.set(0.7, 0.7, 0.7);
+    scene.add(modelObject);
+
+    // Adicionar luzes
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    directionalLight.position.set(5, 10, 7.5);
+    scene.add(directionalLight);
+
+    // Criar ambiente simples
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileCubemapShader();
+    
+    const envScene = new THREE.Scene();
+    envScene.background = new THREE.Color(0x333333);
+    
+    const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
+    const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
+    cubeCamera.update(renderer, envScene);
+    
+    const envMap = pmremGenerator.fromCubemap(cubeRenderTarget.texture).texture;
+    scene.environment = envMap;
+    pmremGenerator.dispose();
+
+    // Animation loop
+    const animate = () => {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    // Cleanup
+    return () => {
+      if (previewRef.current && previewRef.current.contains(renderer.domElement)) {
+        previewRef.current.removeChild(renderer.domElement);
+      }
+      scene.clear();
+      renderer.dispose();
+    };
+  }, [activeModel, modelParams]);
+
+  // Atualizar os parâmetros do modelo quando mudarem
+  useEffect(() => {
+    const checkForUpdates = () => {
+      const savedParams = localStorage.getItem("modelParameters");
+      if (savedParams) {
+        const newParams = JSON.parse(savedParams);
+        setModelParams(newParams);
+      }
+    };
+    
+    checkForUpdates();
+    
+    window.addEventListener('storage', checkForUpdates);
+    const interval = setInterval(checkForUpdates, 1000);
+    
+    return () => {
+      window.removeEventListener('storage', checkForUpdates);
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -95,6 +281,11 @@ const ModelTab = ({
         </label>
       </div>
 
+      {/* Prévia do modelo selecionado */}
+      <div className="w-full h-64 bg-gray-800/80 rounded-lg overflow-hidden mb-6">
+        <div ref={previewRef} className="w-full h-full"></div>
+      </div>
+      
       {/* Seleção de modelo para a página inicial */}
       <div className="p-4 bg-gray-800/50 rounded-lg">
         <h3 className="text-xl font-medium mb-4">Modelo da Página Inicial</h3>

@@ -29,6 +29,7 @@ const Index = () => {
     if (!mountRef.current) return;
     
     setLoadingError(null);
+    setModelLoaded(false);
     
     console.log("Inicializando cena 3D");
     console.log("Modelo atual:", currentModel);
@@ -71,16 +72,16 @@ const Index = () => {
     const material = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(modelParams.color),
       metalness: modelParams.metalness,
-      roughness: 0.005, // Mais liso para maior reflexão
-      transmission: 0.95, // Mais transparente
+      roughness: modelParams.roughness,
+      transmission: modelParams.transmission,
       thickness: modelParams.thickness,
-      envMapIntensity: 3.5, // Aumentar intensidade da reflexão
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.01,
-      ior: 2.75, // Índice de refração alto para maior distorção
-      reflectivity: 1.0,
-      iridescence: 0.5, // Aumentar efeito iridescente
-      iridescenceIOR: 1.3
+      envMapIntensity: modelParams.envMapIntensity,
+      clearcoat: modelParams.clearcoat,
+      clearcoatRoughness: modelParams.clearcoatRoughness,
+      ior: modelParams.ior,
+      reflectivity: modelParams.reflectivity,
+      iridescence: modelParams.iridescence,
+      iridescenceIOR: modelParams.iridescenceIOR
     });
     
     // Inicialmente criamos um objeto vazio para representar nosso modelo
@@ -339,9 +340,21 @@ const Index = () => {
       
       console.log("Ambiente básico criado");
     };
-    
-    // Vamos usar o modelo de cristal distorcido por padrão para a estética desejada
-    createCrystalGeometry();
+
+    // Selecionar o modelo correto com base na preferência
+    console.log("Selecionando modelo:", currentModel);
+    if (currentModel === 'diamond') {
+      createDiamondGeometry();
+    } else if (currentModel === 'sphere') {
+      createSphereModel();
+    } else if (currentModel === 'torus') {
+      createTorusModel();
+    } else if (currentModel === 'crystal' || currentModel === 'gltf') {
+      createCrystalGeometry();
+    } else {
+      // Fallback para o modelo de cristal se não reconhecer
+      createCrystalGeometry();
+    }
     
     // Adicionar evento para detectar cliques ou toques no cristal
     // Isso fará o cristal girar mais rápido temporariamente
@@ -508,7 +521,7 @@ const Index = () => {
     };
   }, [currentModel, modelParams]);
   
-  // Verificar alterações nos parâmetros salvos no localStorage
+  // Verificar alterações nos parâmetros salvos no localStorage mais frequentemente
   useEffect(() => {
     const checkForUpdates = () => {
       const savedParams = localStorage.getItem("modelParameters");
@@ -516,18 +529,20 @@ const Index = () => {
         const newParams = JSON.parse(savedParams);
         // Comparar com os parâmetros atuais para ver se precisa atualizar
         if (JSON.stringify(newParams) !== JSON.stringify(modelParams)) {
+          console.log("Atualizando parâmetros do modelo na página inicial");
           setModelParams(newParams);
         }
       }
       
       const savedModel = localStorage.getItem("preferredModel");
       if (savedModel && savedModel !== currentModel) {
+        console.log("Atualizando tipo de modelo na página inicial:", savedModel);
         setCurrentModel(savedModel);
       }
     };
     
-    // Verificar a cada segundo por mudanças nos parâmetros (para quando admin estiver aberto em outra aba)
-    const interval = setInterval(checkForUpdates, 1000);
+    // Verificar a cada 500ms por mudanças nos parâmetros para uma atualização mais rápida
+    const interval = setInterval(checkForUpdates, 500);
     
     // Adicionar event listener para o evento storage
     window.addEventListener('storage', checkForUpdates);
