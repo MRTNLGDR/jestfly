@@ -13,6 +13,15 @@ const Index = () => {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   
+  // Carregar o título e subtítulo do localStorage
+  const [titleText, setTitleText] = useState(() => {
+    return localStorage.getItem("siteTitle") || "MKSHA";
+  });
+  
+  const [subtitleText, setSubtitleText] = useState(() => {
+    return localStorage.getItem("siteSubtitle") || "It was the year 2076. The substance had arrived.";
+  });
+  
   // Usar a preferência de modelo do localStorage ou o padrão (diamond)
   const [currentModel, setCurrentModel] = useState(() => {
     const savedModel = localStorage.getItem("preferredModel");
@@ -521,9 +530,10 @@ const Index = () => {
     };
   }, [currentModel, modelParams]);
   
-  // Verificar alterações nos parâmetros salvos no localStorage mais frequentemente
+  // Verificar alterações nos parâmetros e textos salvos no localStorage
   useEffect(() => {
     const checkForUpdates = () => {
+      // Verificar parâmetros do modelo
       const savedParams = localStorage.getItem("modelParameters");
       if (savedParams) {
         const newParams = JSON.parse(savedParams);
@@ -534,14 +544,26 @@ const Index = () => {
         }
       }
       
+      // Verificar tipo de modelo
       const savedModel = localStorage.getItem("preferredModel");
       if (savedModel && savedModel !== currentModel) {
         console.log("Atualizando tipo de modelo na página inicial:", savedModel);
         setCurrentModel(savedModel);
       }
+      
+      // Verificar textos
+      const savedTitle = localStorage.getItem("siteTitle");
+      if (savedTitle && savedTitle !== titleText) {
+        setTitleText(savedTitle);
+      }
+      
+      const savedSubtitle = localStorage.getItem("siteSubtitle");
+      if (savedSubtitle && savedSubtitle !== subtitleText) {
+        setSubtitleText(savedSubtitle);
+      }
     };
     
-    // Verificar a cada 500ms por mudanças nos parâmetros para uma atualização mais rápida
+    // Verificar a cada 500ms por mudanças para uma atualização mais rápida
     const interval = setInterval(checkForUpdates, 500);
     
     // Adicionar event listener para o evento storage
@@ -551,7 +573,14 @@ const Index = () => {
       clearInterval(interval);
       window.removeEventListener('storage', checkForUpdates);
     };
-  }, [modelParams, currentModel]);
+  }, [modelParams, currentModel, titleText, subtitleText]);
+  
+  // Converter quebras de linha no subtítulo
+  const formattedSubtitle = subtitleText.split('\n').map((text, i) => (
+    <p key={i} className="text-sm uppercase tracking-widest opacity-80">
+      {text}
+    </p>
+  ));
   
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
@@ -568,23 +597,15 @@ const Index = () => {
 
       {/* Logo/Title overlay */}
       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-        <h1 className="text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
-          MKSHA
+        <h1 className="text-7xl sm:text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
+          {titleText}
         </h1>
       </div>
 
       {/* Content overlay */}
-      <div className="absolute left-16 bottom-32 z-20 max-w-xs text-left text-white">
+      <div className="absolute left-4 sm:left-16 bottom-16 sm:bottom-32 z-20 max-w-xs text-left text-white">
         <div className="animate-fade-in space-y-2">
-          <p className="text-sm uppercase tracking-widest opacity-80">
-            It was the year
-          </p>
-          <p className="text-sm uppercase tracking-widest opacity-80">
-            2076. The substance
-          </p>
-          <p className="text-sm uppercase tracking-widest opacity-80">
-            had arrived.
-          </p>
+          {formattedSubtitle}
         </div>
       </div>
       
