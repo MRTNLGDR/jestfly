@@ -554,7 +554,7 @@ const Index = () => {
       {/* Logo/Title overlay */}
       <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
         <h1 className="text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
-          JESTFLY
+          MKSHA
         </h1>
       </div>
 
