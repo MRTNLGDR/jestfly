@@ -185,6 +185,17 @@ const Admin = () => {
     }
   }, []);
 
+  // Aplicar cores padrão ao CSS mesmo se não existirem no localStorage
+  useEffect(() => {
+    // Certificar-se de que as variáveis CSS foram aplicadas mesmo sem configurações salvas
+    document.documentElement.style.setProperty('--background', backgroundColor);
+    document.documentElement.style.setProperty('--primary', primaryColor);
+    document.documentElement.style.setProperty('--secondary', secondaryColor);
+    document.documentElement.style.setProperty('--accent', accentColor);
+  }, [backgroundColor, primaryColor, secondaryColor, accentColor]);
+
+  console.log("Active tab:", activeTab); // Ajuda a depurar o valor da aba ativa
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
       <header className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center sticky top-0 z-50 bg-black/70 backdrop-blur-md">
@@ -213,8 +224,7 @@ const Admin = () => {
         <div className="flex flex-col md:flex-row gap-6">
           <aside className="w-full md:w-56 lg:w-64 mb-6 md:mb-0">
             <Tabs 
-              orientation="vertical" 
-              defaultValue={activeTab} 
+              value={activeTab} 
               onValueChange={setActiveTab} 
               className="w-full"
             >
@@ -256,169 +266,169 @@ const Admin = () => {
                   </TabsList>
                 </CardContent>
               </Card>
-            </Tabs>
-          </aside>
-          
-          <main className="flex-1">
-            <Card className="bg-black/30 border-gray-800">
-              <CardContent className="p-4 md:p-6">
-                {/* Conteúdo do Dashboard */}
-                <TabsContent value="dashboard" className="mt-0">
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-xl md:text-2xl font-semibold">Dashboard</h2>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <Card className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 border-purple-700/30">
-                        <CardContent className="p-6 flex flex-col">
-                          <Box className="mb-4 text-purple-400" size={24} />
-                          <h3 className="text-lg font-medium mb-1">Modelos 3D</h3>
-                          <p className="text-sm text-gray-400 mb-4">Gerencie os modelos 3D da página inicial</p>
-                          <button 
-                            onClick={() => setActiveTab("models")}
-                            className="mt-auto text-sm px-3 py-1.5 bg-purple-700/50 hover:bg-purple-700 rounded-md transition-colors"
-                          >
-                            Configurar
-                          </button>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-700/30">
-                        <CardContent className="p-6 flex flex-col">
-                          <Box className="mb-4 text-indigo-400" size={24} />
-                          <h3 className="text-lg font-medium mb-1">Sketchfab</h3>
-                          <p className="text-sm text-gray-400 mb-4">Adicione modelos direto do Sketchfab</p>
-                          <button 
-                            onClick={() => setActiveTab("sketchfab")}
-                            className="mt-auto text-sm px-3 py-1.5 bg-indigo-700/50 hover:bg-indigo-700 rounded-md transition-colors"
-                          >
-                            Explorar
-                          </button>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-blue-700/30">
-                        <CardContent className="p-6 flex flex-col">
-                          <Type className="mb-4 text-blue-400" size={24} />
-                          <h3 className="text-lg font-medium mb-1">Textos</h3>
-                          <p className="text-sm text-gray-400 mb-4">Edite os títulos e textos do site</p>
-                          <button 
-                            onClick={() => setActiveTab("elements")}
-                            className="mt-auto text-sm px-3 py-1.5 bg-blue-700/50 hover:bg-blue-700 rounded-md transition-colors"
-                          >
-                            Editar
-                          </button>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="bg-gradient-to-br from-red-900/50 to-red-800/30 border-red-700/30">
-                        <CardContent className="p-6 flex flex-col">
-                          <Image className="mb-4 text-red-400" size={24} />
-                          <h3 className="text-lg font-medium mb-1">Aparência</h3>
-                          <p className="text-sm text-gray-400 mb-4">Personalize cores e tema do site</p>
-                          <button 
-                            onClick={() => setActiveTab("colors")}
-                            className="mt-auto text-sm px-3 py-1.5 bg-red-700/50 hover:bg-red-700 rounded-md transition-colors"
-                          >
-                            Personalizar
-                          </button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                    
-                    <div className="bg-gray-800/30 rounded-lg p-6">
-                      <h3 className="text-lg font-medium mb-4">Visualização Rápida</h3>
-                      <div className="aspect-video relative bg-black rounded-lg overflow-hidden border border-gray-800">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-red-600 leading-none opacity-90">
-                            {titleText}
-                          </h1>
+            
+              <main className="flex-1 mt-6">
+                <Card className="bg-black/30 border-gray-800">
+                  <CardContent className="p-4 md:p-6">
+                    {/* Conteúdo do Dashboard */}
+                    <TabsContent value="dashboard" className="mt-0">
+                      <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-xl md:text-2xl font-semibold">Dashboard</h2>
                         </div>
-                        <div className="absolute bottom-8 left-8 max-w-xs">
-                          <p className="text-sm uppercase tracking-widest text-white/80">
-                            {subtitleText}
-                          </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <Card className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 border-purple-700/30">
+                            <CardContent className="p-6 flex flex-col">
+                              <Box className="mb-4 text-purple-400" size={24} />
+                              <h3 className="text-lg font-medium mb-1">Modelos 3D</h3>
+                              <p className="text-sm text-gray-400 mb-4">Gerencie os modelos 3D da página inicial</p>
+                              <button 
+                                onClick={() => setActiveTab("models")}
+                                className="mt-auto text-sm px-3 py-1.5 bg-purple-700/50 hover:bg-purple-700 rounded-md transition-colors"
+                              >
+                                Configurar
+                              </button>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-700/30">
+                            <CardContent className="p-6 flex flex-col">
+                              <Box className="mb-4 text-indigo-400" size={24} />
+                              <h3 className="text-lg font-medium mb-1">Sketchfab</h3>
+                              <p className="text-sm text-gray-400 mb-4">Adicione modelos direto do Sketchfab</p>
+                              <button 
+                                onClick={() => setActiveTab("sketchfab")}
+                                className="mt-auto text-sm px-3 py-1.5 bg-indigo-700/50 hover:bg-indigo-700 rounded-md transition-colors"
+                              >
+                                Explorar
+                              </button>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-blue-700/30">
+                            <CardContent className="p-6 flex flex-col">
+                              <Type className="mb-4 text-blue-400" size={24} />
+                              <h3 className="text-lg font-medium mb-1">Textos</h3>
+                              <p className="text-sm text-gray-400 mb-4">Edite os títulos e textos do site</p>
+                              <button 
+                                onClick={() => setActiveTab("elements")}
+                                className="mt-auto text-sm px-3 py-1.5 bg-blue-700/50 hover:bg-blue-700 rounded-md transition-colors"
+                              >
+                                Editar
+                              </button>
+                            </CardContent>
+                          </Card>
+                          
+                          <Card className="bg-gradient-to-br from-red-900/50 to-red-800/30 border-red-700/30">
+                            <CardContent className="p-6 flex flex-col">
+                              <Image className="mb-4 text-red-400" size={24} />
+                              <h3 className="text-lg font-medium mb-1">Aparência</h3>
+                              <p className="text-sm text-gray-400 mb-4">Personalize cores e tema do site</p>
+                              <button 
+                                onClick={() => setActiveTab("colors")}
+                                className="mt-auto text-sm px-3 py-1.5 bg-red-700/50 hover:bg-red-700 rounded-md transition-colors"
+                              >
+                                Personalizar
+                              </button>
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        <div className="bg-gray-800/30 rounded-lg p-6">
+                          <h3 className="text-lg font-medium mb-4">Visualização Rápida</h3>
+                          <div className="aspect-video relative bg-black rounded-lg overflow-hidden border border-gray-800">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-red-600 leading-none opacity-90">
+                                {titleText}
+                              </h1>
+                            </div>
+                            <div className="absolute bottom-8 left-8 max-w-xs">
+                              <p className="text-sm uppercase tracking-widest text-white/80">
+                                {subtitleText}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                {/* Tab de Modelos 3D */}
-                <TabsContent value="models" className="mt-0">
-                  <ModelTab 
-                    uploadedModels={uploadedModels}
-                    setUploadedModels={setUploadedModels}
-                    newModelName={newModelName}
-                    setNewModelName={setNewModelName}
-                    activeModel={activeModel}
-                    changeActiveModel={changeActiveModel}
-                  />
-                </TabsContent>
-                
-                {/* Tab do Sketchfab */}
-                <TabsContent value="sketchfab" className="mt-0">
-                  <SketchfabTab 
-                    changeActiveModel={changeActiveModel}
-                  />
-                </TabsContent>
-                
-                {/* Tab de Material e Efeitos */}
-                <TabsContent value="material" className="mt-0">
-                  <MaterialTab 
-                    modelParams={modelParams}
-                    updateModelParam={updateModelParam}
-                    resetModelParams={resetModelParams}
-                    saveModelSettings={saveModelSettings}
-                    isColorPickerOpen={isColorPickerOpen}
-                    setIsColorPickerOpen={setIsColorPickerOpen}
-                  />
-                </TabsContent>
-                
-                {/* Tab de Elementos */}
-                <TabsContent value="elements" className="mt-0">
-                  <ElementsTab
-                    titleText={titleText}
-                    setTitleText={setTitleText}
-                    subtitleText={subtitleText}
-                    setSubtitleText={setSubtitleText}
-                  />
-                </TabsContent>
-                
-                {/* Tab de Layout */}
-                <TabsContent value="layout" className="mt-0">
-                  <LayoutTab
-                    titleText={titleText}
-                    subtitleText={subtitleText}
-                    modelParams={modelParams}
-                  />
-                </TabsContent>
-                
-                {/* Tab de Cores e Temas */}
-                <TabsContent value="colors" className="mt-0">
-                  <ColorsTab 
-                    primaryColor={primaryColor}
-                    setPrimaryColor={setPrimaryColor}
-                    secondaryColor={secondaryColor}
-                    setSecondaryColor={setSecondaryColor}
-                    backgroundColor={backgroundColor}
-                    setBackgroundColor={setBackgroundColor}
-                    accentColor={accentColor}
-                    setAccentColor={setAccentColor}
-                    isColorPickerOpen={isColorPickerOpen}
-                    setIsColorPickerOpen={setIsColorPickerOpen}
-                    saveColorSettings={saveColorSettings}
-                  />
-                </TabsContent>
-                
-                {/* Tab de Configurações */}
-                <TabsContent value="settings" className="mt-0">
-                  <SettingsTab />
-                </TabsContent>
-              </CardContent>
-            </Card>
-          </main>
+                    </TabsContent>
+                    
+                    {/* Tab de Modelos 3D */}
+                    <TabsContent value="models" className="mt-0">
+                      <ModelTab 
+                        uploadedModels={uploadedModels}
+                        setUploadedModels={setUploadedModels}
+                        newModelName={newModelName}
+                        setNewModelName={setNewModelName}
+                        activeModel={activeModel}
+                        changeActiveModel={changeActiveModel}
+                      />
+                    </TabsContent>
+                    
+                    {/* Tab do Sketchfab */}
+                    <TabsContent value="sketchfab" className="mt-0">
+                      <SketchfabTab 
+                        changeActiveModel={changeActiveModel}
+                      />
+                    </TabsContent>
+                    
+                    {/* Tab de Material e Efeitos */}
+                    <TabsContent value="material" className="mt-0">
+                      <MaterialTab 
+                        modelParams={modelParams}
+                        updateModelParam={updateModelParam}
+                        resetModelParams={resetModelParams}
+                        saveModelSettings={saveModelSettings}
+                        isColorPickerOpen={isColorPickerOpen}
+                        setIsColorPickerOpen={setIsColorPickerOpen}
+                      />
+                    </TabsContent>
+                    
+                    {/* Tab de Elementos */}
+                    <TabsContent value="elements" className="mt-0">
+                      <ElementsTab
+                        titleText={titleText}
+                        setTitleText={setTitleText}
+                        subtitleText={subtitleText}
+                        setSubtitleText={setSubtitleText}
+                      />
+                    </TabsContent>
+                    
+                    {/* Tab de Layout */}
+                    <TabsContent value="layout" className="mt-0">
+                      <LayoutTab
+                        titleText={titleText}
+                        subtitleText={subtitleText}
+                        modelParams={modelParams}
+                      />
+                    </TabsContent>
+                    
+                    {/* Tab de Cores e Temas */}
+                    <TabsContent value="colors" className="mt-0">
+                      <ColorsTab 
+                        primaryColor={primaryColor}
+                        setPrimaryColor={setPrimaryColor}
+                        secondaryColor={secondaryColor}
+                        setSecondaryColor={setSecondaryColor}
+                        backgroundColor={backgroundColor}
+                        setBackgroundColor={setBackgroundColor}
+                        accentColor={accentColor}
+                        setAccentColor={setAccentColor}
+                        isColorPickerOpen={isColorPickerOpen}
+                        setIsColorPickerOpen={setIsColorPickerOpen}
+                        saveColorSettings={saveColorSettings}
+                      />
+                    </TabsContent>
+                    
+                    {/* Tab de Configurações */}
+                    <TabsContent value="settings" className="mt-0">
+                      <SettingsTab />
+                    </TabsContent>
+                  </CardContent>
+                </Card>
+              </main>
+            </Tabs>
+          </aside>
         </div>
       </div>
     </div>
