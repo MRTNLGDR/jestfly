@@ -111,7 +111,7 @@ const Index = () => {
     
     positions.forEach((position, i) => {
       const light = new THREE.PointLight(colors[i], 1, 10);
-      light.position.set(...position);
+      light.position.set(position[0], position[1], position[2]);
       scene.add(light);
     });
     
@@ -155,11 +155,8 @@ const Index = () => {
   
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* Diamond canvas container */}
-      <div ref={mountRef} className="absolute inset-0 z-0" />
-      
       {/* Content overlay */}
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-white">
+      <div className="relative z-0 flex flex-col items-center justify-center h-full text-white">
         <div className="animate-fade-in">
           <p className="text-sm uppercase tracking-wider mb-2 opacity-80">Experience brilliance</p>
           <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-6">Reflection</h1>
@@ -168,6 +165,9 @@ const Index = () => {
           </p>
         </div>
       </div>
+      
+      {/* Diamond canvas container */}
+      <div ref={mountRef} className="absolute inset-0 z-10" />
     </div>
   );
 };
