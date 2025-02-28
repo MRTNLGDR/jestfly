@@ -21,16 +21,18 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ModelParameters } from "@/types/model";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 interface SavedModel {
   id: string;
   name: string;
   model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
-  url: string;
-  thumbnail_url: string;
-  is_active: boolean;
+  url: string | null;
+  thumbnail_url: string | null;
+  is_active: boolean | null;
   created_at: string;
-  params?: Record<string, any>;
+  updated_at?: string;
+  params?: Json | null;
 }
 
 interface ModelTabProps {

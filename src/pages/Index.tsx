@@ -8,6 +8,19 @@ import { Link } from "react-router-dom";
 import { Settings, Loader2 } from "lucide-react";
 import { ModelParameters, defaultModelParams } from "@/types/model";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
+
+interface SavedModel {
+  id: string;
+  name: string;
+  model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+  url: string | null;
+  thumbnail_url: string | null;
+  is_active: boolean | null;
+  created_at: string;
+  updated_at?: string;
+  params?: Json | null;
+}
 
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -33,6 +46,7 @@ const Index = () => {
   
   // Sketchfab URL para embedar
   const [sketchfabUrl, setSketchfabUrl] = useState<string | null>(null);
+  const [sketchfabModelData, setSketchfabModelData] = useState<SavedModel | null>(null);
   
   // Carregar parâmetros do modelo do localStorage
   const [modelParams, setModelParams] = useState<ModelParameters>(() => {
@@ -44,6 +58,7 @@ const Index = () => {
   useEffect(() => {
     const fetchActiveModel = async () => {
       try {
+        setLoadingModel(true);
         const { data, error } = await supabase
           .from('models')
           .select('*')
@@ -59,11 +74,15 @@ const Index = () => {
           
           if (data.model_type === 'sketchfab' && data.url) {
             setSketchfabUrl(data.url);
+            setSketchfabModelData(data);
             localStorage.setItem("sketchfabUrl", data.url);
           }
         }
       } catch (error) {
         console.error("Erro ao carregar modelo ativo:", error);
+        setLoadingError("Não foi possível carregar o modelo ativo. Por favor, verifique a conexão.");
+      } finally {
+        setLoadingModel(false);
       }
     };
     
@@ -591,18 +610,57 @@ const Index = () => {
     container.innerHTML = '';
     
     if (sketchfabUrl) {
-      const embedUrl = sketchfabUrl.replace('sketchfab.com/models', 'sketchfab.com/models/embed');
+      setLoadingModel(true);
       
-      // Criar iframe para o Sketchfab
-      const iframe = document.createElement('iframe');
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.style.border = 'none';
-      iframe.allow = 'autoplay; fullscreen; vr';
-      iframe.src = embedUrl + '?autostart=1&transparent=1&ui_infos=0&ui_controls=0&ui_stop=0';
-      
-      container.appendChild(iframe);
-      setLoadingModel(false);
+      try {
+        // Verificar se a URL é válida para o Sketchfab
+        const isSketchfabUrl = sketchfabUrl.includes('sketchfab.com');
+        if (!isSketchfabUrl) {
+          throw new Error("URL inválida para o Sketchfab");
+        }
+        
+        // Transformar para URL de embed se for uma URL normal
+        let embedUrl = sketchfabUrl;
+        if (sketchfabUrl.includes('sketchfab.com/models/') && !sketchfabUrl.includes('/embed')) {
+          embedUrl = sketchfabUrl.replace('sketchfab.com/models/', 'sketchfab.com/models/embed/');
+        }
+        
+        // Garantir que a URL termina com parâmetros adequados
+        if (!embedUrl.includes('?')) {
+          embedUrl += '?';
+        } else if (!embedUrl.endsWith('&') && !embedUrl.endsWith('?')) {
+          embedUrl += '&';
+        }
+        
+        // Adicionar parâmetros para melhor visualização
+        embedUrl += 'autostart=1&transparent=1&ui_infos=0&ui_controls=0&ui_stop=0';
+        
+        console.log("URL de embed final:", embedUrl);
+        
+        // Criar iframe para o Sketchfab
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.border = 'none';
+        iframe.allow = 'autoplay; fullscreen; vr';
+        iframe.src = embedUrl;
+        
+        // Tratar erros de carregamento do iframe
+        iframe.onerror = () => {
+          setLoadingError("Erro ao carregar o modelo do Sketchfab");
+          setLoadingModel(false);
+        };
+        
+        iframe.onload = () => {
+          setLoadingModel(false);
+        };
+        
+        container.appendChild(iframe);
+      } catch (error) {
+        console.error("Erro ao configurar iframe do Sketchfab:", error);
+        setLoadingError("URL do modelo Sketchfab inválida");
+        setLoadingModel(false);
+      }
     } else {
       setLoadingError("URL do modelo Sketchfab não encontrada");
       setLoadingModel(false);
@@ -717,27 +775,21 @@ const Index = () => {
       {loadingError && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/90">
           <div className="text-red-500 text-2xl mb-4">Erro de carregamento</div>
-          <div className="text-white text-xl mb-6">{loadingError}</div>
-          <Link 
-            to="/admin" 
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-white transition-colors"
-          >
-            Ir para o painel de Admin
-          </Link>
+          <div className="text-white text-lg">{loadingError}</div>
         </div>
       )}
       
-      {/* Sketchfab container */}
-      {currentModel === 'sketchfab' && (
+      {/* Sketchfab container - mostrado apenas quando o modelo for do Sketchfab */}
+      {currentModel === 'sketchfab' ? (
         <div 
           ref={sketchfabContainerRef} 
-          className="absolute inset-0 z-10 bg-transparent"
+          className="absolute inset-0 z-10"
         ></div>
-      )}
-      
-      {/* 3D model container */}
-      {currentModel !== 'sketchfab' && (
-        <div ref={mountRef} className="absolute inset-0 z-10" />
+      ) : (
+        <div 
+          ref={mountRef} 
+          className="absolute inset-0 z-10"
+        ></div>
       )}
     </div>
   );

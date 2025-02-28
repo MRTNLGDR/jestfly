@@ -1,16 +1,16 @@
 
 import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { FileAxis3d, Plus } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { FileAxis3d, Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import SavedModels from "@/components/admin/sketchfab/SavedModels";
+import SearchForm from "@/components/admin/sketchfab/SearchForm";
+import SearchResults from "@/components/admin/sketchfab/SearchResults";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Import our new components
-import SearchForm from "./sketchfab/SearchForm";
-import SearchResults from "./sketchfab/SearchResults";
-import SavedModels from "./sketchfab/SavedModels";
+import { Json } from "@/integrations/supabase/types";
 
 interface SketchfabModel {
   uid: string;
@@ -30,112 +30,147 @@ interface SavedModel {
   id: string;
   name: string;
   model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
-  url: string;
-  thumbnail_url: string;
-  is_active: boolean;
+  url: string | null;
+  thumbnail_url: string | null;
+  is_active: boolean | null;
   created_at: string;
-  params?: Record<string, any>;
+  updated_at?: string;
+  params?: Json | null;
 }
 
-const SketchfabTab = ({ 
-  changeActiveModel 
-}: { 
-  changeActiveModel: (modelType: string, modelUrl?: string) => void 
-}) => {
+interface SketchfabTabProps {
+  changeActiveModel: (modelType: string, modelUrl?: string) => void;
+}
+
+const SketchfabTab = ({ changeActiveModel }: SketchfabTabProps) => {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<"search" | "saved">("search");
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SketchfabModel[]>([]);
-  const [savedModels, setSavedModels] = useState<SavedModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingModels, setLoadingModels] = useState(true);
+  const [savedModels, setSavedModels] = useState<SavedModel[]>([]);
   const [isSaving, setIsSaving] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<"search" | "saved">("saved");
+  
+  // Carregar modelos salvos do banco de dados quando o componente montar
+  useEffect(() => {
+    const fetchSavedModels = async () => {
+      try {
+        setLoadingModels(true);
+        const { data, error } = await supabase
+          .from('models')
+          .select('*')
+          .eq('model_type', 'sketchfab')
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          throw error;
+        }
+        
+        setSavedModels(data || []);
+      } catch (error) {
+        console.error("Erro ao carregar modelos do Sketchfab:", error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar modelos",
+          description: "Não foi possível carregar os modelos salvos do Sketchfab."
+        });
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    
+    fetchSavedModels();
+  }, [toast]);
 
-  // Carregar modelos salvos
-  const fetchSavedModels = async () => {
-    setLoadingModels(true);
+  // Função para buscar modelos do Sketchfab
+  const searchSketchfabModels = async (query: string) => {
+    if (!query.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Busca inválida",
+        description: "Por favor, digite um termo de busca."
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    setSearchResults([]);
+    
     try {
-      const { data, error } = await supabase
-        .from('models')
-        .select('*')
-        .eq('model_type', 'sketchfab')
-        .order('created_at', { ascending: false });
+      // Usar function edge no supabase para fazer a busca (evitar CORS)
+      const { data, error } = await supabase.functions.invoke("sketchfab-fetch", {
+        body: { query },
+      });
       
       if (error) throw error;
       
-      console.log("Modelos carregados:", data);
-      setSavedModels(data as SavedModel[] || []);
+      if (data && Array.isArray(data.results)) {
+        setSearchResults(data.results);
+      } else {
+        console.error("Formato de resposta inesperado:", data);
+        throw new Error("Resposta inválida do servidor");
+      }
     } catch (error) {
-      console.error("Erro ao carregar modelos:", error);
+      console.error("Erro na busca:", error);
       toast({
         variant: "destructive",
-        title: "Erro ao carregar modelos",
-        description: "Não foi possível carregar os modelos do Sketchfab."
+        title: "Erro na busca",
+        description: "Não foi possível buscar modelos do Sketchfab. Tente novamente mais tarde."
       });
     } finally {
-      setLoadingModels(false);
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchSavedModels();
-  }, []);
-
-  // Handler para adicionar um modelo da busca
-  const addModelFromSearch = async (model: SketchfabModel) => {
-    setIsSaving(model.viewerUrl);
-    
+  // Função para adicionar um modelo do Sketchfab ao banco de dados
+  const addSketchfabModel = async (model: SketchfabModel) => {
     try {
-      const thumbnail = model.thumbnails?.images?.[0]?.url || "";
+      setIsSaving(model.viewerUrl);
       
-      const newModel = {
-        name: model.name,
-        model_type: 'sketchfab' as const,
-        url: model.viewerUrl || model.embedUrl,
-        thumbnail_url: thumbnail,
-        is_active: false,
-        params: {
-          originalUrl: model.viewerUrl,
-          uid: model.uid
-        }
-      };
-      
+      // Criar um novo registro no banco de dados
       const { data, error } = await supabase
         .from('models')
-        .insert({
-          name: newModel.name,
-          model_type: newModel.model_type,
-          url: newModel.url,
-          thumbnail_url: newModel.thumbnail_url,
-          is_active: newModel.is_active,
-          params: newModel.params
-        })
+        .insert([
+          {
+            name: model.name,
+            model_type: 'sketchfab',
+            url: model.viewerUrl,
+            thumbnail_url: model.thumbnails?.images?.[0]?.url || null,
+            is_active: false,
+            params: {
+              uid: model.uid,
+              embedUrl: model.embedUrl
+            }
+          }
+        ])
         .select();
       
       if (error) throw error;
       
-      toast({
-        title: "Modelo salvo",
-        description: "O modelo foi adicionado à sua biblioteca"
-      });
-      
-      // Atualizar a lista de modelos salvos
-      await fetchSavedModels();
-      setActiveView("saved");
-      
+      // Adicionar o novo modelo à lista local
+      if (data && data.length > 0) {
+        setSavedModels([...data, ...savedModels]);
+        
+        toast({
+          title: "Modelo salvo",
+          description: `O modelo ${model.name} foi adicionado com sucesso.`
+        });
+      }
     } catch (error) {
       console.error("Erro ao salvar modelo:", error);
       toast({
         variant: "destructive",
         title: "Erro ao salvar modelo",
-        description: "Não foi possível salvar o modelo. Tente novamente."
+        description: "Não foi possível salvar o modelo do Sketchfab."
       });
     } finally {
       setIsSaving(null);
     }
   };
 
-  // Excluir modelo
-  const deleteModel = async (id: string) => {
+  // Função para excluir um modelo do banco de dados
+  const deleteSketchfabModel = async (id: string) => {
     try {
       const { error } = await supabase
         .from('models')
@@ -144,32 +179,31 @@ const SketchfabTab = ({
       
       if (error) throw error;
       
-      toast({
-        title: "Modelo excluído",
-        description: "O modelo foi removido da sua biblioteca"
-      });
-      
-      // Atualizar a lista após a exclusão
+      // Atualizar a lista local
       setSavedModels(savedModels.filter(model => model.id !== id));
       
+      toast({
+        title: "Modelo excluído",
+        description: "O modelo foi removido com sucesso."
+      });
     } catch (error) {
       console.error("Erro ao excluir modelo:", error);
       toast({
         variant: "destructive",
         title: "Erro ao excluir modelo",
-        description: "Não foi possível excluir o modelo. Tente novamente."
+        description: "Não foi possível excluir o modelo do banco de dados."
       });
     }
   };
 
-  // Ativar modelo (definir como modelo ativo)
-  const activateModel = async (id: string, url: string) => {
+  // Função para ativar um modelo do Sketchfab
+  const activateSketchfabModel = async (id: string, url: string) => {
     try {
       // Primeiro, desativar todos os modelos
       await supabase
         .from('models')
         .update({ is_active: false })
-        .eq('model_type', 'sketchfab');
+        .not('id', 'is', null);
       
       // Depois, ativar o modelo selecionado
       const { error } = await supabase
@@ -179,7 +213,7 @@ const SketchfabTab = ({
       
       if (error) throw error;
       
-      // Atualizar a interface
+      // Atualizar a lista local
       const updatedModels = savedModels.map(model => ({
         ...model,
         is_active: model.id === id
@@ -192,101 +226,90 @@ const SketchfabTab = ({
       
       toast({
         title: "Modelo ativo",
-        description: "Este modelo agora é exibido na página inicial"
+        description: "O modelo do Sketchfab agora é exibido na página inicial."
       });
-      
     } catch (error) {
       console.error("Erro ao ativar modelo:", error);
       toast({
         variant: "destructive",
         title: "Erro ao ativar modelo",
-        description: "Não foi possível definir este modelo como ativo. Tente novamente."
+        description: "Não foi possível definir este modelo como ativo."
       });
     }
-  };
-
-  // Handler para resultados de busca
-  const handleSearchResults = (results: SketchfabModel[]) => {
-    setSearchResults(results);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-semibold flex items-center gap-2 text-white">
+        <h2 className="text-2xl font-semibold flex items-center gap-2">
           <FileAxis3d className="text-indigo-400" size={24} />
           Modelos do Sketchfab
         </h2>
         
-        <Tabs value={activeView} onValueChange={(value) => setActiveView(value as "search" | "saved")}>
-          <TabsList className="neo-blur bg-black/40 border border-white/10">
-            <TabsTrigger 
-              value="saved" 
-              className="data-[state=active]:bg-purple-600/80 data-[state=active]:text-white data-[state=inactive]:text-white/70"
-            >
-              Meus Modelos
-            </TabsTrigger>
-            <TabsTrigger 
-              value="search" 
-              className="data-[state=active]:bg-purple-600/80 data-[state=active]:text-white data-[state=inactive]:text-white/70"
-            >
-              Buscar Novos
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex gap-2">
+          <Button
+            variant={activeTab === "search" ? "default" : "outline"}
+            onClick={() => setActiveTab("search")}
+            className={activeTab === "search" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-gray-800/30 border-gray-600"}
+          >
+            <Search size={16} className="mr-2" />
+            Buscar Modelos
+          </Button>
+          <Button
+            variant={activeTab === "saved" ? "default" : "outline"}
+            onClick={() => setActiveTab("saved")}
+            className={activeTab === "saved" ? "bg-indigo-600 hover:bg-indigo-700" : "bg-gray-800/30 border-gray-600"}
+          >
+            <FileAxis3d size={16} className="mr-2" />
+            Modelos Salvos
+          </Button>
+        </div>
       </div>
       
-      {activeView === "search" && (
-        <>
-          <Card className="neo-blur bg-black/20 border-white/10">
-            <CardHeader>
-              <CardTitle className="text-lg font-medium text-white/90">Buscar Modelos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      <Card className="border-gray-700 bg-black/20">
+        <CardContent className="p-5">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "search" | "saved")}>
+            <TabsContent value="search" className="m-0 pt-4">
               <SearchForm 
-                onSearchResults={handleSearchResults}
-                onModelImport={fetchSavedModels}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                onSearch={searchSketchfabModels}
                 isLoading={isLoading}
-                setIsLoading={setIsLoading}
               />
-            </CardContent>
-          </Card>
-          
-          <div className="neo-blur bg-black/20 border border-white/10 rounded-lg p-4">
-            <h3 className="text-lg font-medium mb-4 text-white/90">Resultados da Busca</h3>
-            <SearchResults
-              isLoading={isLoading}
-              searchResults={searchResults}
-              savedModels={savedModels}
-              onAddModel={addModelFromSearch}
-              isSaving={isSaving}
-            />
-          </div>
-        </>
-      )}
+              
+              <div className="mt-6">
+                <SearchResults 
+                  isLoading={isLoading}
+                  searchResults={searchResults}
+                  savedModels={savedModels}
+                  onAddModel={addSketchfabModel}
+                  isSaving={isSaving}
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="saved" className="m-0 pt-4">
+              <SavedModels 
+                loadingModels={loadingModels}
+                savedModels={savedModels}
+                onDeleteModel={deleteSketchfabModel}
+                onActivateModel={activateSketchfabModel}
+                onSwitchToSearch={() => setActiveTab("search")}
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
       
-      {activeView === "saved" && (
-        <div className="neo-blur bg-black/20 border border-white/10 rounded-lg p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-white/90">Meus Modelos Sketchfab</h3>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setActiveView("search")}
-              className="neo-blur bg-white/5 border-white/10 hover:bg-white/10 text-white"
-            >
-              <Plus size={14} className="mr-1" /> Adicionar Novo
-            </Button>
+      <Card className="bg-indigo-900/20 border-indigo-800/30">
+        <CardContent className="p-5">
+          <div className="text-sm text-indigo-200">
+            <h3 className="font-medium mb-2">Sobre o Sketchfab</h3>
+            <p className="mb-4">O Sketchfab é uma plataforma que permite visualizar, compartilhar e baixar modelos 3D. Alguns modelos podem ter restrições de uso ou licença.</p>
+            <p>Você pode importar qualquer modelo do Sketchfab e usá-lo na sua página inicial, mas certifique-se de ter permissão para usar o modelo conforme a licença definida pelo autor.</p>
           </div>
-          <SavedModels
-            loadingModels={loadingModels}
-            savedModels={savedModels}
-            onDeleteModel={deleteModel}
-            onActivateModel={activateModel}
-            onSwitchToSearch={() => setActiveView("search")}
-          />
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
