@@ -644,27 +644,34 @@ const Index = () => {
   
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
-      {/* Sketchfab container - mostrado apenas quando o modelo for do Sketchfab */}
-      {currentModel === 'sketchfab' ? (
-        <div 
-          ref={sketchfabContainerRef} 
-          className="absolute inset-0 z-10"
-        ></div>
-      ) : (
-        <div 
-          ref={mountRef} 
-          className="absolute inset-0 z-10"
-        ></div>
-      )}
-
-      {/* Logo/Title overlay */}
-      <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none">
+      {/* Logo/Title overlay - COLOCADO ATRÁS (z-10) */}
+      <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
         <h1 className="text-7xl sm:text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
           {titleText}
         </h1>
       </div>
+      
+      {/* Content overlay - COLOCADO ATRÁS (z-10) */}
+      <div className="absolute left-4 sm:left-16 bottom-16 sm:bottom-32 z-10 max-w-xs text-left text-white">
+        <div className="animate-fade-in space-y-2">
+          {formattedSubtitle}
+        </div>
+      </div>
 
-      {/* Cristal flutuante - colocado na frente do texto com z-50 */}
+      {/* Sketchfab container - mostrado apenas quando o modelo for do Sketchfab */}
+      {currentModel === 'sketchfab' ? (
+        <div 
+          ref={sketchfabContainerRef} 
+          className="absolute inset-0 z-20"
+        ></div>
+      ) : (
+        <div 
+          ref={mountRef} 
+          className="absolute inset-0 z-20"
+        ></div>
+      )}
+
+      {/* Cristal flutuante - colocado na frente (z-50) */}
       <div 
         ref={frontCrystalRef}
         className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
@@ -694,13 +701,6 @@ const Index = () => {
               mixBlendMode: "overlay",
             }}
           ></div>
-        </div>
-      </div>
-
-      {/* Content overlay */}
-      <div className="absolute left-4 sm:left-16 bottom-16 sm:bottom-32 z-40 max-w-xs text-left text-white">
-        <div className="animate-fade-in space-y-2">
-          {formattedSubtitle}
         </div>
       </div>
 
