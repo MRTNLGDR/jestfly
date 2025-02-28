@@ -39,10 +39,19 @@ interface SearchResultsProps {
 // Função auxiliar para verificar se o Json params tem a propriedade uid
 const hasUid = (params: Json | null | undefined): boolean => {
   if (!params) return false;
-  if (typeof params === 'object' && params !== null) {
+  if (typeof params === 'object' && params !== null && !Array.isArray(params)) {
     return 'uid' in params;
   }
   return false;
+};
+
+// Função para extrair o uid seguramente do params
+const getUidFromParams = (params: Json | null | undefined): string | null => {
+  if (!hasUid(params)) return null;
+  
+  // Se chegamos aqui, sabemos que params é um objeto com uid
+  const objParams = params as Record<string, unknown>;
+  return typeof objParams.uid === 'string' ? objParams.uid : null;
 };
 
 const SearchResults = ({ 
@@ -74,9 +83,11 @@ const SearchResults = ({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {searchResults.map((model) => {
         const isAlreadySaved = savedModels.some(saved => {
-          // Verificar se params é um objeto e se tem a propriedade uid
-          const paramsHasUid = hasUid(saved.params);
-          const uidMatches = paramsHasUid && typeof saved.params === 'object' && saved.params.uid === model.uid;
+          // Extrair o uid de params com segurança
+          const savedUid = getUidFromParams(saved.params);
+          
+          // Verificar se o uid corresponde ao modelo
+          const uidMatches = savedUid === model.uid;
           
           // Verificar se a URL corresponde
           const urlMatches = saved.url === model.viewerUrl || saved.url === model.embedUrl;
