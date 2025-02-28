@@ -16,6 +16,7 @@ export type Database = {
           is_active: boolean | null
           model_type: Database["public"]["Enums"]["model_type"]
           name: string
+          params: Json | null
           thumbnail_url: string | null
           updated_at: string
           url: string | null
@@ -26,6 +27,7 @@ export type Database = {
           is_active?: boolean | null
           model_type: Database["public"]["Enums"]["model_type"]
           name: string
+          params?: Json | null
           thumbnail_url?: string | null
           updated_at?: string
           url?: string | null
@@ -36,6 +38,7 @@ export type Database = {
           is_active?: boolean | null
           model_type?: Database["public"]["Enums"]["model_type"]
           name?: string
+          params?: Json | null
           thumbnail_url?: string | null
           updated_at?: string
           url?: string | null

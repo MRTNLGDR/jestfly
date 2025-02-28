@@ -5,12 +5,15 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Link } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { Settings, Loader2 } from "lucide-react";
 import { ModelParameters, defaultModelParams } from "@/types/model";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const sketchfabContainerRef = useRef<HTMLDivElement>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
+  const [loadingModel, setLoadingModel] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   
   // Carregar o título e subtítulo do localStorage
@@ -28,17 +31,59 @@ const Index = () => {
     return savedModel || "diamond";
   });
   
+  // Sketchfab URL para embedar
+  const [sketchfabUrl, setSketchfabUrl] = useState<string | null>(null);
+  
   // Carregar parâmetros do modelo do localStorage
   const [modelParams, setModelParams] = useState<ModelParameters>(() => {
     const savedParams = localStorage.getItem("modelParameters");
     return savedParams ? JSON.parse(savedParams) : defaultModelParams;
   });
 
+  // Carregar o modelo ativo do Supabase
   useEffect(() => {
+    const fetchActiveModel = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('models')
+          .select('*')
+          .eq('is_active', true)
+          .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (data) {
+          console.log("Modelo ativo encontrado:", data);
+          localStorage.setItem("preferredModel", data.model_type);
+          setCurrentModel(data.model_type);
+          
+          if (data.model_type === 'sketchfab' && data.url) {
+            setSketchfabUrl(data.url);
+            localStorage.setItem("sketchfabUrl", data.url);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao carregar modelo ativo:", error);
+      }
+    };
+    
+    fetchActiveModel();
+  }, []);
+
+  // Renderizar o modelo 3D ou o iframe do Sketchfab
+  useEffect(() => {
+    if (currentModel === 'sketchfab') {
+      // Se for um modelo do Sketchfab, não é necessário inicializar o Three.js
+      console.log("Usando modelo do Sketchfab:", sketchfabUrl);
+      setLoadingModel(false);
+      return;
+    }
+    
     if (!mountRef.current) return;
     
     setLoadingError(null);
     setModelLoaded(false);
+    setLoadingModel(true);
     
     console.log("Inicializando cena 3D");
     console.log("Modelo atual:", currentModel);
@@ -136,10 +181,12 @@ const Index = () => {
         model = diamond;
         scene.add(model);
         setModelLoaded(true);
+        setLoadingModel(false);
         console.log("Diamante criado com sucesso");
       } catch (error) {
         console.error("Erro ao criar diamante:", error);
         setLoadingError("Erro ao criar o modelo de diamante");
+        setLoadingModel(false);
       }
     };
     
@@ -179,10 +226,12 @@ const Index = () => {
         model = crystal;
         scene.add(model);
         setModelLoaded(true);
+        setLoadingModel(false);
         console.log("Cristal distorcido criado com sucesso");
       } catch (error) {
         console.error("Erro ao criar cristal:", error);
         setLoadingError("Erro ao criar o modelo de cristal");
+        setLoadingModel(false);
       }
     };
     
@@ -199,10 +248,12 @@ const Index = () => {
         model = sphere;
         scene.add(model);
         setModelLoaded(true);
+        setLoadingModel(false);
         console.log("Esfera criada com sucesso");
       } catch (error) {
         console.error("Erro ao criar esfera:", error);
         setLoadingError("Erro ao criar o modelo de esfera");
+        setLoadingModel(false);
       }
     };
     
@@ -219,10 +270,12 @@ const Index = () => {
         model = torus;
         scene.add(model);
         setModelLoaded(true);
+        setLoadingModel(false);
         console.log("Torus criado com sucesso");
       } catch (error) {
         console.error("Erro ao criar torus:", error);
         setLoadingError("Erro ao criar o modelo de anel");
+        setLoadingModel(false);
       }
     };
     
@@ -256,6 +309,7 @@ const Index = () => {
           model = newModel;
           scene.add(model);
           setModelLoaded(true);
+          setLoadingModel(false);
         },
         (xhr) => {
           console.log("Progresso:", (xhr.loaded / xhr.total * 100) + "% carregado");
@@ -263,6 +317,7 @@ const Index = () => {
         (error) => {
           console.error("Erro ao carregar modelo GLTF:", error);
           setLoadingError("Erro ao carregar o modelo 3D");
+          setLoadingModel(false);
         }
       );
     };
@@ -339,7 +394,7 @@ const Index = () => {
       }
       
       // Capturar ambiente
-      cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
+      const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
       cubeCamera.update(renderer, envScene);
       
       // Criar mapa de ambiente a partir da captura
@@ -440,9 +495,6 @@ const Index = () => {
     // Tentar carregar o mapa de ambiente ou usar o fallback
     tryLoadEnvMap();
     
-    // Variável para o cubeCamera (adicionado acima)
-    let cubeCamera: THREE.CubeCamera;
-    
     // Criar linha diagonal (semelhante ao visual da referência)
     const createDiagonalLine = () => {
       const lineMaterial = new THREE.LineBasicMaterial({ 
@@ -521,7 +573,7 @@ const Index = () => {
       
       if (touchTimeout) clearTimeout(touchTimeout);
       
-      if (mountRef.current) {
+      if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
       
@@ -529,6 +581,40 @@ const Index = () => {
       renderer.dispose();
     };
   }, [currentModel, modelParams]);
+  
+  // Efeito para lidar com o modelo do Sketchfab
+  useEffect(() => {
+    if (currentModel !== 'sketchfab' || !sketchfabContainerRef.current) return;
+    
+    // Se estiver carregando um modelo do Sketchfab, limpar e criar o iframe
+    const container = sketchfabContainerRef.current;
+    container.innerHTML = '';
+    
+    if (sketchfabUrl) {
+      const embedUrl = sketchfabUrl.replace('sketchfab.com/models', 'sketchfab.com/models/embed');
+      
+      // Criar iframe para o Sketchfab
+      const iframe = document.createElement('iframe');
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.allow = 'autoplay; fullscreen; vr';
+      iframe.src = embedUrl + '?autostart=1&transparent=1&ui_infos=0&ui_controls=0&ui_stop=0';
+      
+      container.appendChild(iframe);
+      setLoadingModel(false);
+    } else {
+      setLoadingError("URL do modelo Sketchfab não encontrada");
+      setLoadingModel(false);
+    }
+    
+    return () => {
+      // Cleanup
+      if (container) {
+        container.innerHTML = '';
+      }
+    };
+  }, [currentModel, sketchfabUrl]);
   
   // Verificar alterações nos parâmetros e textos salvos no localStorage
   useEffect(() => {
@@ -549,6 +635,14 @@ const Index = () => {
       if (savedModel && savedModel !== currentModel) {
         console.log("Atualizando tipo de modelo na página inicial:", savedModel);
         setCurrentModel(savedModel);
+        
+        // Se mudou para Sketchfab, verificar URL
+        if (savedModel === 'sketchfab') {
+          const url = localStorage.getItem("sketchfabUrl");
+          if (url) {
+            setSketchfabUrl(url);
+          }
+        }
       }
       
       // Verificar textos
@@ -610,9 +704,12 @@ const Index = () => {
       </div>
       
       {/* Loading indicator */}
-      {!modelLoaded && !loadingError && (
-        <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/90">
-          <div className="text-white text-xl">Carregando modelo...</div>
+      {loadingModel && (
+        <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/70 backdrop-blur-sm">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+            <div className="text-white text-xl">Carregando modelo...</div>
+          </div>
         </div>
       )}
       
@@ -630,8 +727,18 @@ const Index = () => {
         </div>
       )}
       
+      {/* Sketchfab container */}
+      {currentModel === 'sketchfab' && (
+        <div 
+          ref={sketchfabContainerRef} 
+          className="absolute inset-0 z-10 bg-transparent"
+        ></div>
+      )}
+      
       {/* 3D model container */}
-      <div ref={mountRef} className="absolute inset-0 z-10" />
+      {currentModel !== 'sketchfab' && (
+        <div ref={mountRef} className="absolute inset-0 z-10" />
+      )}
     </div>
   );
 };

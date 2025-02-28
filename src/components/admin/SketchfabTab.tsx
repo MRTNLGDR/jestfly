@@ -13,12 +13,23 @@ import {
   FileAxis3d, 
   Plus,
   X,
-  Eye
+  Eye,
+  ExternalLink,
+  ArrowUpRight,
+  Info
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SketchfabModel {
   uid: string;
@@ -42,6 +53,7 @@ interface SavedModel {
   thumbnail_url: string;
   is_active: boolean;
   created_at: string;
+  params?: Record<string, any>;
 }
 
 const SketchfabTab = ({ 
@@ -55,27 +67,33 @@ const SketchfabTab = ({
   const [searchResults, setSearchResults] = useState<SketchfabModel[]>([]);
   const [savedModels, setSavedModels] = useState<SavedModel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [loadingModels, setLoadingModels] = useState(true);
+  const [isSaving, setIsSaving] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"search" | "saved">("saved");
 
   // Carregar modelos salvos
   const fetchSavedModels = async () => {
+    setLoadingModels(true);
     try {
-      // Usando any aqui para contornar o problema de tipos com a nova tabela
       const { data, error } = await supabase
         .from('models')
         .select('*')
-        .order('created_at', { ascending: false }) as { data: SavedModel[] | null, error: any };
+        .eq('model_type', 'sketchfab')
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
+      
+      console.log("Modelos carregados:", data);
       setSavedModels(data || []);
     } catch (error) {
       console.error("Erro ao carregar modelos:", error);
       toast({
         variant: "destructive",
         title: "Erro ao carregar modelos",
-        description: error.message
+        description: "Não foi possível carregar os modelos do Sketchfab."
       });
+    } finally {
+      setLoadingModels(false);
     }
   };
 
@@ -88,11 +106,14 @@ const SketchfabTab = ({
     if (!searchTerm.trim()) return;
     
     setIsLoading(true);
+    setSearchResults([]);
     
     try {
       const response = await supabase.functions.invoke('sketchfab-fetch', {
         body: { searchTerm }
       });
+      
+      console.log("Resposta da função Edge:", response);
       
       if (response.error) throw new Error(response.error.message);
       
@@ -109,7 +130,7 @@ const SketchfabTab = ({
       toast({
         variant: "destructive",
         title: "Erro na busca",
-        description: error.message
+        description: "Não foi possível buscar modelos do Sketchfab. Tente novamente mais tarde."
       });
     } finally {
       setIsLoading(false);
@@ -130,9 +151,16 @@ const SketchfabTab = ({
     setIsLoading(true);
     
     try {
+      // Validar formato da URL
+      if (!directUrl.includes('sketchfab.com')) {
+        throw new Error("URL inválida. Por favor, utilize uma URL do Sketchfab.");
+      }
+      
       const response = await supabase.functions.invoke('sketchfab-fetch', {
         body: { modelUrl: directUrl }
       });
+      
+      console.log("Resposta da função Edge (URL direta):", response);
       
       if (response.error) throw new Error(response.error.message);
       
@@ -143,13 +171,14 @@ const SketchfabTab = ({
       const thumbnail = modelDetails.thumbnails?.images?.[0]?.url || "";
       
       const newModel = {
-        id: crypto.randomUUID(),
         name: modelDetails.name || "Modelo Sketchfab",
         model_type: "sketchfab",
         url: modelDetails.viewerUrl || modelDetails.embedUrl || directUrl,
         thumbnail_url: thumbnail,
         is_active: false,
-        created_at: new Date().toISOString()
+        params: {
+          originalUrl: directUrl
+        }
       };
       
       await saveModel(newModel);
@@ -169,19 +198,20 @@ const SketchfabTab = ({
 
   // Salvar modelo no banco de dados
   const saveModel = async (model: any) => {
-    setIsSaving(true);
+    setIsSaving(model.url || "saving");
     
     try {
-      // Usando any aqui para contornar o problema de tipos com a nova tabela
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('models')
         .insert({
           name: model.name,
-          model_type: 'sketchfab' as any,
+          model_type: 'sketchfab',
           url: model.url,
           thumbnail_url: model.thumbnail_url || "",
-          is_active: false
-        } as any);
+          is_active: false,
+          params: model.params || {}
+        })
+        .select();
       
       if (error) throw error;
       
@@ -199,10 +229,10 @@ const SketchfabTab = ({
       toast({
         variant: "destructive",
         title: "Erro ao salvar modelo",
-        description: error.message
+        description: "Não foi possível salvar o modelo. Tente novamente."
       });
     } finally {
-      setIsSaving(false);
+      setIsSaving(null);
     }
   };
 
@@ -215,7 +245,11 @@ const SketchfabTab = ({
       model_type: 'sketchfab',
       url: model.viewerUrl || model.embedUrl,
       thumbnail_url: thumbnail,
-      is_active: false
+      is_active: false,
+      params: {
+        originalUrl: model.viewerUrl,
+        uid: model.uid
+      }
     };
     
     await saveModel(newModel);
@@ -224,11 +258,10 @@ const SketchfabTab = ({
   // Excluir modelo
   const deleteModel = async (id: string) => {
     try {
-      // Usando any aqui para contornar o problema de tipos com a nova tabela
       const { error } = await supabase
         .from('models')
         .delete()
-        .eq('id', id) as any;
+        .eq('id', id);
       
       if (error) throw error;
       
@@ -245,7 +278,7 @@ const SketchfabTab = ({
       toast({
         variant: "destructive",
         title: "Erro ao excluir modelo",
-        description: error.message
+        description: "Não foi possível excluir o modelo. Tente novamente."
       });
     }
   };
@@ -254,17 +287,16 @@ const SketchfabTab = ({
   const activateModel = async (id: string, url: string) => {
     try {
       // Primeiro, desativar todos os modelos
-      // Usando any aqui para contornar o problema de tipos com a nova tabela
       await supabase
         .from('models')
-        .update({ is_active: false } as any)
-        .not('id', 'is', null) as any;
+        .update({ is_active: false })
+        .eq('model_type', 'sketchfab');
       
       // Depois, ativar o modelo selecionado
       const { error } = await supabase
         .from('models')
-        .update({ is_active: true } as any)
-        .eq('id', id) as any;
+        .update({ is_active: true })
+        .eq('id', id);
       
       if (error) throw error;
       
@@ -289,7 +321,7 @@ const SketchfabTab = ({
       toast({
         variant: "destructive",
         title: "Erro ao ativar modelo",
-        description: error.message
+        description: "Não foi possível definir este modelo como ativo. Tente novamente."
       });
     }
   };
@@ -317,6 +349,11 @@ const SketchfabTab = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {searchResults.map((model) => {
           const thumbnail = model.thumbnails?.images?.[0]?.url || "";
+          const isAlreadySaved = savedModels.some(saved => 
+            saved.params?.uid === model.uid || 
+            saved.url === model.viewerUrl || 
+            saved.url === model.embedUrl
+          );
           
           return (
             <Card key={model.uid} className="bg-gray-800/40 border-gray-700 overflow-hidden">
@@ -351,13 +388,24 @@ const SketchfabTab = ({
                 
                 <Button 
                   size="sm" 
-                  variant="outline"
-                  onClick={() => addModelFromSearch(model)}
-                  disabled={isSaving}
+                  variant={isAlreadySaved ? "secondary" : "outline"}
+                  onClick={() => !isAlreadySaved && addModelFromSearch(model)}
+                  disabled={isSaving === model.viewerUrl || isAlreadySaved}
                   className="h-8"
                 >
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={14} className="mr-1" />}
-                  Adicionar
+                  {isSaving === model.viewerUrl ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isAlreadySaved ? (
+                    <>
+                      <Check size={14} className="mr-1" />
+                      Salvo
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={14} className="mr-1" />
+                      Adicionar
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -369,11 +417,27 @@ const SketchfabTab = ({
 
   // Renderizar modelos salvos
   const renderSavedModels = () => {
+    if (loadingModels) {
+      return (
+        <div className="flex justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+        </div>
+      );
+    }
+    
     if (savedModels.length === 0) {
       return (
         <div className="text-center py-8 text-gray-400">
           <FileAxis3d className="h-12 w-12 mx-auto mb-2 opacity-50" />
           <p>Nenhum modelo salvo. Adicione modelos pela busca do Sketchfab.</p>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setActiveView("search")}
+            className="mt-4"
+          >
+            <Plus size={14} className="mr-1" /> Buscar Modelos
+          </Button>
         </div>
       );
     }
@@ -396,9 +460,9 @@ const SketchfabTab = ({
               )}
               
               {model.is_active && (
-                <div className="absolute top-2 right-2 bg-purple-500 text-white text-xs px-2 py-1 rounded-full">
+                <Badge className="absolute top-2 right-2 bg-purple-500">
                   Ativo
-                </div>
+                </Badge>
               )}
               
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-3">
@@ -406,42 +470,62 @@ const SketchfabTab = ({
               </div>
             </div>
             
-            <CardContent className="p-3 flex justify-between items-center">
-              <div className="flex space-x-2">
+            <CardContent className="p-3">
+              <div className="flex justify-between items-center">
+                <div className="flex space-x-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteModel(model.id)}
+                          className="h-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Excluir modelo</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <a 
+                          href={model.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-8 px-2 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-md"
+                        >
+                          <ExternalLink size={14} className="mr-1" />
+                          Ver no Sketchfab
+                        </a>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Abrir no Sketchfab</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                
                 <Button
                   size="sm"
-                  variant="ghost"
-                  onClick={() => deleteModel(model.id)}
-                  className="h-8 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  variant={model.is_active ? "default" : "outline"}
+                  onClick={() => activateModel(model.id, model.url)}
+                  className={`h-8 ${model.is_active ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+                  disabled={model.is_active}
                 >
-                  <Trash2 size={14} />
+                  {model.is_active ? (
+                    <>
+                      <Check size={14} className="mr-1" />
+                      Ativo
+                    </>
+                  ) : "Ativar"}
                 </Button>
-                
-                <a 
-                  href={model.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-400 hover:text-blue-300 flex items-center"
-                >
-                  <Eye size={14} className="mr-1" />
-                  Ver
-                </a>
               </div>
-              
-              <Button
-                size="sm"
-                variant={model.is_active ? "default" : "outline"}
-                onClick={() => activateModel(model.id, model.url)}
-                className={`h-8 ${model.is_active ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
-                disabled={model.is_active}
-              >
-                {model.is_active ? (
-                  <>
-                    <Check size={14} className="mr-1" />
-                    Ativo
-                  </>
-                ) : "Ativar"}
-              </Button>
             </CardContent>
           </Card>
         ))}
@@ -472,9 +556,10 @@ const SketchfabTab = ({
       {activeView === "search" && (
         <>
           <Card className="bg-gray-800/30 border-gray-700">
-            <CardContent className="p-4 space-y-4">
-              <h3 className="text-lg font-medium">Buscar Modelos</h3>
-              
+            <CardHeader>
+              <CardTitle className="text-lg font-medium">Buscar Modelos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 flex gap-2">
                   <Input
@@ -514,6 +599,14 @@ const SketchfabTab = ({
                   Importar Modelo
                 </Button>
               </div>
+              
+              <Alert className="bg-blue-900/20 border-blue-700/50">
+                <Info className="h-4 w-4 text-blue-400" />
+                <AlertTitle>Dica de uso</AlertTitle>
+                <AlertDescription className="text-sm text-gray-300">
+                  Você pode adicionar qualquer modelo do Sketchfab colando a URL da página do modelo ou fazendo uma busca por palavras-chave.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
           
