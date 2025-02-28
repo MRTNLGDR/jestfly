@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +16,13 @@ import {
   Check,
   X,
   Plus,
-  Folder
+  Folder,
+  ArrowLeft,
+  Diamond,
+  Circle,
+  CircleDot
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Admin = () => {
   const { toast } = useToast();
@@ -29,6 +34,14 @@ const Admin = () => {
   const [uploadedModels, setUploadedModels] = useState<{ name: string; file: File; preview?: string }[]>([]);
   const [isColorPickerOpen, setIsColorPickerOpen] = useState<string | null>(null);
   const [newModelName, setNewModelName] = useState("");
+  const [activeModel, setActiveModel] = useState(() => {
+    return localStorage.getItem("preferredModel") || "diamond";
+  });
+
+  // Salvar a preferência de modelo no localStorage quando mudar
+  useEffect(() => {
+    localStorage.setItem("preferredModel", activeModel);
+  }, [activeModel]);
 
   // Função para adicionar um novo modelo
   const handleModelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,12 +116,26 @@ const Admin = () => {
     }
   };
 
+  // Função para alterar o modelo ativo
+  const changeActiveModel = (modelType: string) => {
+    setActiveModel(modelType);
+    toast({
+      title: "Modelo alterado",
+      description: `O modelo da página inicial foi alterado para ${modelType}.`
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-      <header className="p-6 border-b border-white/10">
-        <h1 className="text-2xl font-semibold flex items-center">
-          <Settings className="mr-2" /> Painel de Administração
-        </h1>
+      <header className="p-6 border-b border-white/10 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="mr-4">
+            <ArrowLeft size={20} className="text-gray-400 hover:text-white transition-colors" />
+          </Link>
+          <h1 className="text-2xl font-semibold flex items-center">
+            <Settings className="mr-2" /> Painel de Administração
+          </h1>
+        </div>
       </header>
       
       <div className="container mx-auto p-6">
@@ -144,6 +171,41 @@ const Admin = () => {
                   onChange={handleModelUpload}
                 />
               </label>
+            </div>
+
+            {/* Seleção de modelo para a página inicial */}
+            <div className="p-4 bg-gray-800/50 rounded-lg">
+              <h3 className="text-xl font-medium mb-4">Modelo da Página Inicial</h3>
+              <p className="text-gray-400 mb-4">Selecione o modelo que será exibido na página inicial:</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div 
+                  className={`p-4 rounded-lg cursor-pointer flex flex-col items-center gap-3 transition-colors ${activeModel === 'diamond' ? 'bg-purple-600' : 'bg-gray-700/50 hover:bg-gray-700'}`}
+                  onClick={() => changeActiveModel('diamond')}
+                >
+                  <Diamond size={48} />
+                  <span>Diamante</span>
+                  {activeModel === 'diamond' && <Check size={16} className="mt-1" />}
+                </div>
+                
+                <div 
+                  className={`p-4 rounded-lg cursor-pointer flex flex-col items-center gap-3 transition-colors ${activeModel === 'sphere' ? 'bg-purple-600' : 'bg-gray-700/50 hover:bg-gray-700'}`}
+                  onClick={() => changeActiveModel('sphere')}
+                >
+                  <Circle size={48} />
+                  <span>Esfera</span>
+                  {activeModel === 'sphere' && <Check size={16} className="mt-1" />}
+                </div>
+                
+                <div 
+                  className={`p-4 rounded-lg cursor-pointer flex flex-col items-center gap-3 transition-colors ${activeModel === 'torus' ? 'bg-purple-600' : 'bg-gray-700/50 hover:bg-gray-700'}`}
+                  onClick={() => changeActiveModel('torus')}
+                >
+                  <CircleDot size={48} />
+                  <span>Anel</span>
+                  {activeModel === 'torus' && <Check size={16} className="mt-1" />}
+                </div>
+              </div>
             </div>
             
             <div className="p-4 bg-gray-800/50 rounded-lg">
@@ -198,12 +260,21 @@ const Admin = () => {
                           <h3 className="font-medium text-white">{model.name}</h3>
                           <p className="text-xs text-gray-400">{Math.round(model.file.size / 1024)} KB</p>
                         </div>
-                        <button
-                          onClick={() => removeModel(index)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
-                        >
-                          <X size={16} />
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => changeActiveModel('gltf')}
+                            className="p-2 text-gray-400 hover:text-green-500 hover:bg-green-500/10 rounded-full transition-colors"
+                            title="Usar na página inicial"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            onClick={() => removeModel(index)}
+                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -458,7 +529,7 @@ const Admin = () => {
                     <Label htmlFor="footerText">Texto do Rodapé</Label>
                     <Input 
                       id="footerText"
-                      defaultValue="© 2023 Seu Site. Todos os direitos reservados."
+                      defaultValue="© 2023 JESTFLY. Todos os direitos reservados."
                       className="mt-1 bg-gray-700/50 border-gray-600"
                     />
                   </div>
@@ -471,7 +542,7 @@ const Admin = () => {
                         <div className="flex gap-2">
                           <Input 
                             placeholder="URL" 
-                            defaultValue="https://instagram.com/seusite"
+                            defaultValue="https://instagram.com/jestfly"
                             className="max-w-[180px] bg-gray-700 border-gray-600"
                           />
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300">
@@ -486,7 +557,7 @@ const Admin = () => {
                         <div className="flex gap-2">
                           <Input 
                             placeholder="URL" 
-                            defaultValue="https://twitter.com/seusite"
+                            defaultValue="https://twitter.com/jestfly"
                             className="max-w-[180px] bg-gray-700 border-gray-600"
                           />
                           <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300">
@@ -524,7 +595,7 @@ const Admin = () => {
                   <Label htmlFor="siteName">Nome do Site</Label>
                   <Input 
                     id="siteName"
-                    defaultValue="Reflection 3D"
+                    defaultValue="JESTFLY"
                     className="mt-1 bg-gray-700/50 border-gray-600"
                   />
                 </div>
@@ -533,7 +604,7 @@ const Admin = () => {
                   <Label htmlFor="siteDescription">Descrição do Site</Label>
                   <Input 
                     id="siteDescription"
-                    defaultValue="Um site de visualização 3D com modelos interativos"
+                    defaultValue="Um site de visualização 3D com modelos interativos cristalinos"
                     className="mt-1 bg-gray-700/50 border-gray-600"
                   />
                 </div>
@@ -544,7 +615,7 @@ const Admin = () => {
                   <Label htmlFor="metaTitle">Título da Meta Tag</Label>
                   <Input 
                     id="metaTitle"
-                    defaultValue="Reflection 3D - Visualizações 3D Incríveis"
+                    defaultValue="JESTFLY - Visualizações 3D Cristalinas"
                     className="mt-1 bg-gray-700/50 border-gray-600"
                   />
                 </div>
@@ -553,7 +624,7 @@ const Admin = () => {
                   <Label htmlFor="metaDescription">Descrição da Meta Tag</Label>
                   <Input 
                     id="metaDescription"
-                    defaultValue="Explore visualizações 3D de alta qualidade com interatividade total"
+                    defaultValue="Explore visualizações 3D cristalinas com efeitos de refração e reflexão perfeitos"
                     className="mt-1 bg-gray-700/50 border-gray-600"
                   />
                 </div>

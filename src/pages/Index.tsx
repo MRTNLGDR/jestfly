@@ -10,30 +10,11 @@ import { Settings } from "lucide-react";
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
-  const [currentModel, setCurrentModel] = useState("diamond");
-  const [uploadedModel, setUploadedModel] = useState<File | null>(null);
-  const [uploadedModelUrl, setUploadedModelUrl] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Criar URL para o arquivo carregado
-  useEffect(() => {
-    if (uploadedModel) {
-      const objectUrl = URL.createObjectURL(uploadedModel);
-      setUploadedModelUrl(objectUrl);
-      
-      // Limpar a URL quando o componente for desmontado
-      return () => {
-        URL.revokeObjectURL(objectUrl);
-      };
-    }
-  }, [uploadedModel]);
-
-  // Carregar o modelo se a URL mudar
-  useEffect(() => {
-    if (uploadedModelUrl && currentModel === "uploaded") {
-      setModelLoaded(false);
-    }
-  }, [uploadedModelUrl, currentModel]);
+  // Usar a preferência de modelo do localStorage ou o padrão (diamond)
+  const [currentModel, setCurrentModel] = useState(() => {
+    const savedModel = localStorage.getItem("preferredModel");
+    return savedModel || "diamond";
+  });
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -48,18 +29,17 @@ const Index = () => {
       0.1,
       1000
     );
-    camera.position.z = 3;
+    camera.position.z = 5; // Aumentado para mostrar mais do modelo
     
-    // Renderer setup
+    // Renderer setup com alpha para transparência
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true,
-      alpha: true 
+      alpha: true
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1;
-    // Fix for newer Three.js versions
+    renderer.toneMappingExposure = 1.5; // Aumentado para mais brilho
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     mountRef.current.appendChild(renderer.domElement);
     
@@ -67,56 +47,59 @@ const Index = () => {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
+    controls.autoRotate = true; // Habilitar rotação automática
+    controls.autoRotateSpeed = 1.5; // Velocidade de rotação
     
-    // Material para o modelo 3D
+    // Material mais avançado para cristal com maior refração
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
-      metalness: 0.1,
-      roughness: 0.05,
-      transmission: 0.95, // Glass-like transparency
-      thickness: 0.5,
-      envMapIntensity: 1.5,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.1,
-      ior: 2.5, // High IOR for diamond-like refraction
-      reflectivity: 1
+      metalness: 0.2,
+      roughness: 0.01, // Mais liso para maior reflexão
+      transmission: 0.98, // Quase totalmente transparente
+      thickness: 1.0, // Aumentado para maior efeito de refração
+      envMapIntensity: 2.5, // Reflexão mais intensa
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.01,
+      ior: 2.75, // Índice de refração aumentado (diamante é ~2.4)
+      reflectivity: 1.0,
+      iridescence: 0.3, // Adiciona efeito arco-íris sutil
+      iridescenceIOR: 1.3
     });
     
     // Inicialmente criamos um objeto vazio para representar nosso modelo
     let model = new THREE.Object3D();
     scene.add(model);
     
-    // Podemos usar diferentes geometrias ou carregar modelos 3D externos
-    
-    // OPÇÃO 1: Usar geometria básica do Three.js (exemplo com diamante)
+    // Função para criar o diamante
     const createDiamondGeometry = () => {
-      // Diamond geometry usando polyhedron
+      // Diamond geometry mais detalhada
       const vertices = [
         // Top point
-        0, 1, 0,
+        0, 2, 0,
         // Middle points - create a circular pattern
-        ...Array.from({ length: 8 }, (_, i) => {
-          const angle = (i / 8) * Math.PI * 2;
-          const x = Math.cos(angle) * 0.5;
-          const z = Math.sin(angle) * 0.5;
+        ...Array.from({ length: 12 }, (_, i) => {
+          const angle = (i / 12) * Math.PI * 2;
+          const x = Math.cos(angle) * 1.0;
+          const z = Math.sin(angle) * 1.0;
           return [x, 0, z];
         }).flat(),
         // Bottom point
-        0, -1, 0,
+        0, -2, 0,
       ];
       
       const indices = [];
       // Top faces
-      for (let i = 1; i < 9; i++) {
-        indices.push(0, i, i === 8 ? 1 : i + 1);
+      for (let i = 1; i < 13; i++) {
+        indices.push(0, i, i === 12 ? 1 : i + 1);
       }
       // Middle faces
-      for (let i = 1; i < 9; i++) {
-        indices.push(i, 9, i === 8 ? 1 : i + 1);
+      for (let i = 1; i < 13; i++) {
+        indices.push(i, 13, i === 12 ? 1 : i + 1);
       }
       
-      const geometry = new THREE.PolyhedronGeometry(vertices, indices, 1, 4);
+      const geometry = new THREE.PolyhedronGeometry(vertices, indices, 2.5, 5);
       const diamond = new THREE.Mesh(geometry, material);
+      diamond.scale.set(1.5, 1.5, 1.5); // Maior para cobrir mais da tela
       
       // Limpar o modelo atual e adicionar o novo
       scene.remove(model);
@@ -125,9 +108,9 @@ const Index = () => {
       setModelLoaded(true);
     };
     
-    // OPÇÃO 2: Usar uma esfera
+    // Função para criar esfera
     const createSphereModel = () => {
-      const geometry = new THREE.SphereGeometry(1, 32, 32);
+      const geometry = new THREE.SphereGeometry(2.5, 64, 64); // Maior e mais detalhada
       const sphere = new THREE.Mesh(geometry, material);
       
       // Limpar o modelo atual e adicionar o novo
@@ -137,9 +120,9 @@ const Index = () => {
       setModelLoaded(true);
     };
     
-    // OPÇÃO 3: Usar um torus (anel)
+    // Função para criar torus
     const createTorusModel = () => {
-      const geometry = new THREE.TorusGeometry(0.7, 0.3, 16, 100);
+      const geometry = new THREE.TorusGeometry(2, 0.7, 32, 128); // Maior e mais detalhado
       const torus = new THREE.Mesh(geometry, material);
       
       // Limpar o modelo atual e adicionar o novo
@@ -149,15 +132,13 @@ const Index = () => {
       setModelLoaded(true);
     };
     
-    // OPÇÃO 4: Carregar um modelo GLTF externo
+    // Função para carregar GLTF
     const loadGLTFModel = (url: string) => {
       console.log("Carregando modelo:", url);
       
       const loader = new GLTFLoader();
       loader.load(
-        // URL do modelo
         url,
-        // Callback chamado quando o modelo é carregado
         (gltf) => {
           console.log("Modelo carregado com sucesso:", gltf);
           
@@ -167,10 +148,10 @@ const Index = () => {
           // Ajustar o tamanho e materiais do modelo carregado
           const newModel = gltf.scene;
           
-          // Ajuste a escala conforme necessário
-          newModel.scale.set(1, 1, 1);
+          // Aumentar a escala para cobrir mais da tela
+          newModel.scale.set(2.0, 2.0, 2.0);
           
-          // Opcionalmente, aplicar material a todos os objetos do modelo
+          // Aplicar material cristalino a todos os objetos
           newModel.traverse((object) => {
             if (object instanceof THREE.Mesh) {
               object.material = material;
@@ -182,18 +163,16 @@ const Index = () => {
           scene.add(model);
           setModelLoaded(true);
         },
-        // Callback de progresso do carregamento
         (xhr) => {
           console.log("Progresso:", (xhr.loaded / xhr.total * 100) + "% carregado");
         },
-        // Callback de erro
         (error) => {
           console.error("Erro ao carregar modelo:", error);
         }
       );
     };
     
-    // Carregar modelo baseado no estado atual
+    // Carregar modelo baseado no estado atual (vindo do Admin)
     switch (currentModel) {
       case "diamond":
         createDiamondGeometry();
@@ -205,27 +184,16 @@ const Index = () => {
         createTorusModel();
         break;
       case "gltf":
-        // Substitua pelo caminho do seu modelo na pasta public
         loadGLTFModel('/seu-modelo.gltf');
-        break;
-      case "uploaded":
-        // Usar o modelo carregado pelo usuário
-        if (uploadedModelUrl) {
-          loadGLTFModel(uploadedModelUrl);
-        } else {
-          // Fallback para o diamante se não houver modelo carregado
-          createDiamondGeometry();
-        }
         break;
       default:
         createDiamondGeometry();
     }
     
-    // Load HDR environment map
+    // Load HDR environment map para reflexões realistas
     const rgbeLoader = new RGBELoader();
     rgbeLoader.setDataType(THREE.FloatType);
     
-    // Using a public HDR file - replace with your desired HDR file
     rgbeLoader.load('/environment.hdr', (texture) => {
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
       pmremGenerator.compileEquirectangularShader();
@@ -237,29 +205,30 @@ const Index = () => {
       pmremGenerator.dispose();
     });
     
-    // Lighting
+    // Iluminação aprimorada para destacar reflexões e refrações
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
     
-    // Add point lights in different positions for sparkles
-    const colors = [0xffffff, 0xfff0dd, 0xddeeff];
+    // Luzes adicionais para reflexos especulares
+    const colors = [0xffffff, 0xffccd5, 0xd5ffff, 0xffffcc];
     const positions = [
-      [2, 1, 1],
-      [-2, -1, 1],
-      [0, -2, -2]
+      [3, 2, 2],
+      [-3, -2, 2],
+      [0, -3, -3],
+      [3, 0, -2]
     ];
     
     positions.forEach((position, i) => {
-      const light = new THREE.PointLight(colors[i], 1, 10);
+      const light = new THREE.PointLight(colors[i], 1.2, 15);
       light.position.set(position[0], position[1], position[2]);
       scene.add(light);
     });
     
-    // Handle window resize
+    // Resize handler
     const handleResize = () => {
       if (!mountRef.current) return;
       
@@ -275,8 +244,7 @@ const Index = () => {
       requestAnimationFrame(animate);
       
       if (model) {
-        model.rotation.y += 0.005;
-        model.rotation.x += 0.0025;
+        // A rotação agora é feita pelos OrbitControls (autoRotate)
       }
       
       controls.update();
@@ -292,44 +260,13 @@ const Index = () => {
         mountRef.current.removeChild(renderer.domElement);
       }
       
-      // Dispose resources
       scene.clear();
       renderer.dispose();
     };
-  }, [currentModel, uploadedModelUrl]);
-  
-  // Funções para mudar o modelo
-  const handleChangeModel = (modelType: string) => {
-    console.log("Mudando para modelo:", modelType);
-    setModelLoaded(false); // Mostrar indicador de carregamento
-    setCurrentModel(modelType);
-  };
-  
-  // Função para tratar o upload de arquivo
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      console.log("Arquivo selecionado:", file);
-      
-      // Verificar se o arquivo é um GLTF ou GLB
-      if (file.name.endsWith('.gltf') || file.name.endsWith('.glb')) {
-        setUploadedModel(file);
-        handleChangeModel('uploaded');
-      } else {
-        alert('Por favor, selecione um arquivo GLTF ou GLB válido.');
-      }
-    }
-  };
-  
-  // Função para abrir o seletor de arquivo
-  const openFileSelector = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
+  }, [currentModel]);
   
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-gray-900 to-black">
       {/* Admin Link */}
       <div className="absolute top-4 right-4 z-30">
         <Link 
@@ -343,64 +280,13 @@ const Index = () => {
 
       {/* Content overlay */}
       <div className="relative z-20 flex flex-col items-center justify-center h-full text-white">
-        <div className="animate-fade-in">
+        <div className="animate-fade-in text-center">
           <p className="text-sm uppercase tracking-wider mb-2 opacity-80">Experience brilliance</p>
-          <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-6">Reflection</h1>
-          <p className="max-w-md text-center text-lg opacity-80">
-            A stunning 3D representation with perfect clarity and exceptional brilliance
+          <h1 className="text-5xl md:text-8xl font-light tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-300 to-purple-300">JESTFLY</h1>
+          <p className="max-w-md text-center text-lg opacity-80 mx-auto">
+            A stunning 3D representation with perfect clarity and exceptional brilliance. 
+            The crystal refracts and reflects light, creating a mesmerizing display.
           </p>
-          
-          {/* Controles para escolher o modelo */}
-          <div className="flex flex-wrap gap-3 justify-center mt-8">
-            <button 
-              className={`px-4 py-2 rounded-md ${currentModel === 'diamond' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => handleChangeModel('diamond')}
-            >
-              Diamante
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md ${currentModel === 'sphere' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => handleChangeModel('sphere')}
-            >
-              Esfera
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md ${currentModel === 'torus' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => handleChangeModel('torus')}
-            >
-              Anel
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md ${currentModel === 'gltf' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => handleChangeModel('gltf')}
-            >
-              Modelo GLTF
-            </button>
-            <button 
-              className={`px-4 py-2 rounded-md ${currentModel === 'uploaded' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={openFileSelector}
-            >
-              Carregar Modelo
-            </button>
-            
-            {/* Input para upload de arquivo (escondido) */}
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              className="hidden"
-              accept=".gltf,.glb"
-              onChange={handleFileUpload}
-            />
-          </div>
-          
-          {/* Exibir o nome do arquivo carregado, se houver */}
-          {uploadedModel && (
-            <div className="mt-3 text-center">
-              <p className="text-sm opacity-80">
-                Modelo carregado: {uploadedModel.name}
-              </p>
-            </div>
-          )}
         </div>
       </div>
       
@@ -411,7 +297,7 @@ const Index = () => {
         </div>
       )}
       
-      {/* Diamond canvas container */}
+      {/* 3D model container */}
       <div ref={mountRef} className="absolute inset-0 z-10" />
     </div>
   );
