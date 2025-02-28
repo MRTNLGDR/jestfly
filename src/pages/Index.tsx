@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -31,7 +32,8 @@ const Index = () => {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1;
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    // Fix for newer Three.js versions
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     mountRef.current.appendChild(renderer.domElement);
     
     // Create orbit controls for interaction
@@ -39,35 +41,7 @@ const Index = () => {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     
-    // Diamond geometry
-    // Using a custom polyhedron for better diamond shape
-    const vertices = [
-      // Top point
-      0, 1, 0,
-      // Middle points - create a circular pattern
-      ...Array.from({ length: 8 }, (_, i) => {
-        const angle = (i / 8) * Math.PI * 2;
-        const x = Math.cos(angle) * 0.5;
-        const z = Math.sin(angle) * 0.5;
-        return [x, 0, z];
-      }).flat(),
-      // Bottom point
-      0, -1, 0,
-    ];
-    
-    const indices = [];
-    // Top faces
-    for (let i = 1; i < 9; i++) {
-      indices.push(0, i, i === 8 ? 1 : i + 1);
-    }
-    // Middle faces
-    for (let i = 1; i < 9; i++) {
-      indices.push(i, 9, i === 8 ? 1 : i + 1);
-    }
-    
-    const geometry = new THREE.PolyhedronGeometry(vertices, indices, 1, 4);
-    
-    // Diamond material - We'll update the environment map after loading
+    // Material para o modelo 3D
     const material = new THREE.MeshPhysicalMaterial({
       color: 0xffffff,
       metalness: 0.1,
@@ -81,9 +55,102 @@ const Index = () => {
       reflectivity: 1
     });
     
-    // Create diamond mesh
-    const diamond = new THREE.Mesh(geometry, material);
-    scene.add(diamond);
+    // Inicialmente criamos um objeto vazio para representar nosso modelo
+    let model = new THREE.Object3D();
+    scene.add(model);
+    
+    // Podemos usar diferentes geometrias ou carregar modelos 3D externos
+    
+    // OPÇÃO 1: Usar geometria básica do Three.js (exemplo com diamante)
+    const createDiamondGeometry = () => {
+      // Diamond geometry usando polyhedron
+      const vertices = [
+        // Top point
+        0, 1, 0,
+        // Middle points - create a circular pattern
+        ...Array.from({ length: 8 }, (_, i) => {
+          const angle = (i / 8) * Math.PI * 2;
+          const x = Math.cos(angle) * 0.5;
+          const z = Math.sin(angle) * 0.5;
+          return [x, 0, z];
+        }).flat(),
+        // Bottom point
+        0, -1, 0,
+      ];
+      
+      const indices = [];
+      // Top faces
+      for (let i = 1; i < 9; i++) {
+        indices.push(0, i, i === 8 ? 1 : i + 1);
+      }
+      // Middle faces
+      for (let i = 1; i < 9; i++) {
+        indices.push(i, 9, i === 8 ? 1 : i + 1);
+      }
+      
+      const geometry = new THREE.PolyhedronGeometry(vertices, indices, 1, 4);
+      const diamond = new THREE.Mesh(geometry, material);
+      
+      // Limpar o modelo atual e adicionar o novo
+      scene.remove(model);
+      model = diamond;
+      scene.add(model);
+    };
+    
+    // OPÇÃO 2: Usar uma esfera
+    const createSphereModel = () => {
+      const geometry = new THREE.SphereGeometry(1, 32, 32);
+      const sphere = new THREE.Mesh(geometry, material);
+      
+      // Limpar o modelo atual e adicionar o novo
+      scene.remove(model);
+      model = sphere;
+      scene.add(model);
+    };
+    
+    // OPÇÃO 3: Usar um torus (anel)
+    const createTorusModel = () => {
+      const geometry = new THREE.TorusGeometry(0.7, 0.3, 16, 100);
+      const torus = new THREE.Mesh(geometry, material);
+      
+      // Limpar o modelo atual e adicionar o novo
+      scene.remove(model);
+      model = torus;
+      scene.add(model);
+    };
+    
+    // OPÇÃO 4: Carregar um modelo GLTF externo
+    const loadGLTFModel = (url) => {
+      const loader = new GLTFLoader();
+      loader.load(url, (gltf) => {
+        // Limpar o modelo atual
+        scene.remove(model);
+        
+        // Ajustar o tamanho e materiais do modelo carregado
+        const newModel = gltf.scene;
+        newModel.scale.set(1, 1, 1); // Ajustar escala conforme necessário
+        
+        // Opcionalmente, aplicar material a todos os objetos do modelo
+        newModel.traverse((object) => {
+          if (object.isMesh) {
+            object.material = material;
+          }
+        });
+        
+        // Definir como o modelo atual
+        model = newModel;
+        scene.add(model);
+      });
+    };
+    
+    // Por padrão, criar o diamante
+    createDiamondGeometry();
+    
+    // Para demonstração, você pode descomentar uma das linhas abaixo
+    // para usar um modelo diferente:
+    // createSphereModel();
+    // createTorusModel();
+    // loadGLTFModel('/path/to/your/model.gltf'); // Substitua pelo caminho do seu modelo
     
     // Load HDR environment map
     const rgbeLoader = new RGBELoader();
@@ -138,8 +205,10 @@ const Index = () => {
     const animate = () => {
       requestAnimationFrame(animate);
       
-      diamond.rotation.y += 0.005;
-      diamond.rotation.x += 0.0025;
+      if (model) {
+        model.rotation.y += 0.005;
+        model.rotation.x += 0.0025;
+      }
       
       controls.update();
       renderer.render(scene, camera);
@@ -155,8 +224,7 @@ const Index = () => {
       }
       
       // Dispose resources
-      geometry.dispose();
-      material.dispose();
+      scene.clear();
       renderer.dispose();
     };
   }, []);
