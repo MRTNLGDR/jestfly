@@ -29,6 +29,7 @@ const Index = () => {
   const [loadingModel, setLoadingModel] = useState(true);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const frontCrystalRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   
   // Carregar o título e subtítulo do localStorage
   const [titleText, setTitleText] = useState(() => {
@@ -54,6 +55,94 @@ const Index = () => {
     const savedParams = localStorage.getItem("modelParameters");
     return savedParams ? JSON.parse(savedParams) : defaultModelParams;
   });
+
+  // Efeito para aplicar a distorção do texto
+  useEffect(() => {
+    const titleElement = titleRef.current;
+    if (!titleElement) return;
+
+    const createFragmentedText = () => {
+      const originalText = titleText;
+      const fragmentCount = 10; // Número de fragmentos
+      
+      // Limpar o elemento de título
+      titleElement.innerHTML = '';
+      
+      // Criar uma série de divs para os fragmentos
+      for (let i = 0; i < originalText.length; i++) {
+        const char = originalText[i];
+        
+        // Para cada caractere, criar vários fragmentos sobrepostos com distorções diferentes
+        const charContainer = document.createElement('span');
+        charContainer.style.position = 'relative';
+        charContainer.style.display = 'inline-block';
+        
+        for (let j = 0; j < fragmentCount; j++) {
+          const fragment = document.createElement('span');
+          fragment.textContent = char;
+          fragment.style.position = 'absolute';
+          fragment.style.left = '0';
+          fragment.style.top = '0';
+          fragment.style.color = '#d1174a'; // Cor base vermelho
+          
+          // Aplicar distorções aleatórias leves
+          const skewX = Math.random() * 10 - 5;
+          const skewY = Math.random() * 10 - 5;
+          const offsetX = Math.random() * 6 - 3;
+          const offsetY = Math.random() * 6 - 3;
+          const rotate = Math.random() * 10 - 5;
+          
+          fragment.style.transform = `translate(${offsetX}px, ${offsetY}px) skew(${skewX}deg, ${skewY}deg) rotate(${rotate}deg)`;
+          fragment.style.opacity = (0.6 + Math.random() * 0.4).toString();
+          fragment.style.zIndex = j.toString();
+          fragment.style.mixBlendMode = 'screen';
+          fragment.style.textShadow = `0 0 ${Math.random() * 3}px rgba(255,255,255,0.5)`;
+          
+          charContainer.appendChild(fragment);
+        }
+        
+        // Adicionar o caractere base (que será visível)
+        const baseChar = document.createElement('span');
+        baseChar.textContent = char;
+        baseChar.style.position = 'relative';
+        baseChar.style.zIndex = fragmentCount.toString();
+        baseChar.style.color = '#d1174a'; // Cor base vermelho
+        charContainer.appendChild(baseChar);
+        
+        titleElement.appendChild(charContainer);
+      }
+    };
+    
+    createFragmentedText();
+    
+    // Criar uma animação suave para os fragmentos
+    let frameId: number;
+    const animateFragments = () => {
+      const fragments = titleElement.querySelectorAll('span > span:not(:last-child)');
+      
+      fragments.forEach((fragment) => {
+        const el = fragment as HTMLElement;
+        
+        // Sutilmente alterar a transformação ao longo do tempo
+        const skewX = Math.random() * 10 - 5;
+        const skewY = Math.random() * 10 - 5;
+        const offsetX = Math.random() * 6 - 3;
+        const offsetY = Math.random() * 6 - 3;
+        const rotate = Math.random() * 10 - 5;
+        
+        el.style.transform = `translate(${offsetX}px, ${offsetY}px) skew(${skewX}deg, ${skewY}deg) rotate(${rotate}deg)`;
+        el.style.opacity = (0.6 + Math.random() * 0.4).toString();
+      });
+      
+      frameId = requestAnimationFrame(animateFragments);
+    };
+    
+    animateFragments();
+    
+    return () => {
+      cancelAnimationFrame(frameId);
+    };
+  }, [titleText]);
 
   // Configurar o cristal flutuante na frente
   useEffect(() => {
@@ -646,7 +735,10 @@ const Index = () => {
     <div className="relative h-screen w-full overflow-hidden bg-black">
       {/* Logo/Title overlay - COLOCADO ATRÁS (z-10) */}
       <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-        <h1 className="text-7xl sm:text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
+        <h1 
+          ref={titleRef}
+          className="text-7xl sm:text-9xl md:text-[12rem] font-bold tracking-tighter leading-none"
+        >
           {titleText}
         </h1>
       </div>
@@ -656,6 +748,42 @@ const Index = () => {
         <div className="animate-fade-in space-y-2">
           {formattedSubtitle}
         </div>
+      </div>
+
+      {/* Cristal para distorção de texto */}
+      <div className="absolute inset-0 z-30 pointer-events-none">
+        <div 
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full"
+          style={{
+            background: "radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%)",
+            mixBlendMode: "overlay",
+          }}
+        ></div>
+        
+        {/* Efeitos de corte e distorção */}
+        <div 
+          className="absolute top-[40%] left-[45%] w-[20%] h-[30%]"
+          style={{
+            clipPath: "polygon(0 0, 100% 20%, 80% 100%, 20% 80%)",
+            background: "radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)",
+            backdropFilter: "blur(2px) hue-rotate(15deg)",
+            WebkitBackdropFilter: "blur(2px) hue-rotate(15deg)",
+            mixBlendMode: "overlay",
+            transform: "rotate(15deg)",
+          }}
+        ></div>
+        
+        <div 
+          className="absolute top-[30%] left-[35%] w-[25%] h-[40%]"
+          style={{
+            clipPath: "polygon(20% 0, 100% 30%, 80% 100%, 0 70%)",
+            background: "radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
+            backdropFilter: "blur(3px) hue-rotate(-15deg)",
+            WebkitBackdropFilter: "blur(3px) hue-rotate(-15deg)",
+            mixBlendMode: "overlay",
+            transform: "rotate(-10deg)",
+          }}
+        ></div>
       </div>
 
       {/* Sketchfab container - mostrado apenas quando o modelo for do Sketchfab */}
