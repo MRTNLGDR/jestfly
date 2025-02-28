@@ -36,6 +36,7 @@ const Index = () => {
 
     // Scene setup
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000); // Fundo preto sólido
     
     // Camera setup
     const camera = new THREE.PerspectiveCamera(
@@ -44,7 +45,7 @@ const Index = () => {
       0.1,
       1000
     );
-    camera.position.z = 5; // Aumentado para mostrar mais do modelo
+    camera.position.z = 6; // Aumentado para mostrar mais do modelo
     
     // Renderer setup com alpha para transparência
     const renderer = new THREE.WebGLRenderer({ 
@@ -63,22 +64,23 @@ const Index = () => {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.autoRotate = true; // Habilitar rotação automática
-    controls.autoRotateSpeed = 1.5; // Velocidade de rotação
+    controls.autoRotateSpeed = 0.8; // Velocidade de rotação mais lenta
+    controls.enableZoom = false; // Desativar zoom para manter a composição
     
-    // Material configurável baseado nos parâmetros
+    // Material configurável baseado nos parâmetros - mais transparente e reflexivo
     const material = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(modelParams.color),
       metalness: modelParams.metalness,
-      roughness: modelParams.roughness,
-      transmission: modelParams.transmission,
+      roughness: 0.005, // Mais liso para maior reflexão
+      transmission: 0.95, // Mais transparente
       thickness: modelParams.thickness,
-      envMapIntensity: modelParams.envMapIntensity,
-      clearcoat: modelParams.clearcoat,
-      clearcoatRoughness: modelParams.clearcoatRoughness,
-      ior: modelParams.ior,
-      reflectivity: modelParams.reflectivity,
-      iridescence: modelParams.iridescence,
-      iridescenceIOR: modelParams.iridescenceIOR
+      envMapIntensity: 3.5, // Aumentar intensidade da reflexão
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.01,
+      ior: 2.75, // Índice de refração alto para maior distorção
+      reflectivity: 1.0,
+      iridescence: 0.5, // Aumentar efeito iridescente
+      iridescenceIOR: 1.3
     });
     
     // Inicialmente criamos um objeto vazio para representar nosso modelo
@@ -95,8 +97,8 @@ const Index = () => {
           // Top point
           0, 2, 0,
           // Middle points - create a circular pattern
-          ...Array.from({ length: 12 }, (_, i) => {
-            const angle = (i / 12) * Math.PI * 2;
+          ...Array.from({ length: 18 }, (_, i) => {
+            const angle = (i / 18) * Math.PI * 2;
             const x = Math.cos(angle) * 1.0;
             const z = Math.sin(angle) * 1.0;
             return [x, 0, z];
@@ -107,17 +109,17 @@ const Index = () => {
         
         const indices = [];
         // Top faces
-        for (let i = 1; i < 13; i++) {
-          indices.push(0, i, i === 12 ? 1 : i + 1);
+        for (let i = 1; i < 19; i++) {
+          indices.push(0, i, i === 18 ? 1 : i + 1);
         }
         // Middle faces
-        for (let i = 1; i < 13; i++) {
-          indices.push(i, 13, i === 12 ? 1 : i + 1);
+        for (let i = 1; i < 19; i++) {
+          indices.push(i, 19, i === 18 ? 1 : i + 1);
         }
         
-        const geometry = new THREE.PolyhedronGeometry(vertices, indices, 2.5, 5);
+        const geometry = new THREE.PolyhedronGeometry(vertices, indices, 2.5, 6);
         const diamond = new THREE.Mesh(geometry, material);
-        diamond.scale.set(1.5, 1.5, 1.5); // Maior para cobrir mais da tela
+        diamond.scale.set(1.8, 1.8, 1.8); // Maior para cobrir mais da tela
         
         // Limpar o modelo atual e adicionar o novo
         scene.remove(model);
@@ -128,6 +130,49 @@ const Index = () => {
       } catch (error) {
         console.error("Erro ao criar diamante:", error);
         setLoadingError("Erro ao criar o modelo de diamante");
+      }
+    };
+    
+    // Função para criar efeito de cristal distorcido
+    const createCrystalGeometry = () => {
+      console.log("Criando modelo de cristal distorcido");
+      
+      try {
+        // Criar geometria base
+        const geometry = new THREE.IcosahedronGeometry(2, 3);
+        
+        // Distorcer os vértices para dar um efeito de cristal irregular
+        const positionAttribute = geometry.getAttribute('position');
+        const vertex = new THREE.Vector3();
+        
+        for (let i = 0; i < positionAttribute.count; i++) {
+          vertex.fromBufferAttribute(positionAttribute, i);
+          
+          // Aplicar distorção baseada em noise simplex (simulado com Math.sin)
+          const distortionFactor = 0.2;
+          const noise = Math.sin(vertex.x * 5) * Math.sin(vertex.y * 3) * Math.sin(vertex.z * 7);
+          
+          vertex.x += noise * distortionFactor;
+          vertex.y += noise * distortionFactor;
+          vertex.z += noise * distortionFactor;
+          
+          positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+        }
+        
+        geometry.computeVertexNormals(); // Recalcular normais após distorção
+        
+        const crystal = new THREE.Mesh(geometry, material);
+        crystal.scale.set(1.2, 1.2, 1.2);
+        
+        // Limpar o modelo atual e adicionar o novo
+        scene.remove(model);
+        model = crystal;
+        scene.add(model);
+        setModelLoaded(true);
+        console.log("Cristal distorcido criado com sucesso");
+      } catch (error) {
+        console.error("Erro ao criar cristal:", error);
+        setLoadingError("Erro ao criar o modelo de cristal");
       }
     };
     
@@ -215,6 +260,7 @@ const Index = () => {
     // Função para criar um ambiente básico quando o HDR falhar
     const createBasicEnvironment = () => {
       console.log("Criando ambiente básico");
+      
       // Criar um ambiente simples como fallback
       const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
       cubeRenderTarget.texture.type = THREE.HalfFloatType;
@@ -222,12 +268,71 @@ const Index = () => {
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
       pmremGenerator.compileCubemapShader();
       
+      // Criar uma cena de ambiente com gradiente
       const envScene = new THREE.Scene();
-      envScene.background = new THREE.Color(0x2266cc);
       
-      const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
+      // Gradiente vertical para o fundo
+      const topColor = new THREE.Color(0x000000); // Preto no topo
+      const bottomColor = new THREE.Color(0x330011); // Vermelho escuro embaixo
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 2;
+      canvas.height = 256;
+      const context = canvas.getContext('2d');
+      if (context) {
+        const gradient = context.createLinearGradient(0, 0, 0, 256);
+        gradient.addColorStop(0, topColor.getStyle());
+        gradient.addColorStop(1, bottomColor.getStyle());
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 2, 256);
+        
+        const gradientTexture = new THREE.CanvasTexture(canvas);
+        gradientTexture.colorSpace = THREE.SRGBColorSpace;
+        
+        // Adicionar linhas diagonais para simular refletividade do modelo
+        const diagonalCanvas = document.createElement('canvas');
+        diagonalCanvas.width = 512;
+        diagonalCanvas.height = 512;
+        const diagContext = diagonalCanvas.getContext('2d');
+        if (diagContext) {
+          diagContext.fillStyle = '#000000';
+          diagContext.fillRect(0, 0, 512, 512);
+          
+          // Desenhar linhas diagonais em vermelho
+          diagContext.strokeStyle = '#FF0033';
+          diagContext.lineWidth = 4;
+          for (let i = -512; i < 512; i += 60) {
+            diagContext.beginPath();
+            diagContext.moveTo(i, 0);
+            diagContext.lineTo(i + 512, 512);
+            diagContext.stroke();
+          }
+          
+          const linesTexture = new THREE.CanvasTexture(diagonalCanvas);
+          linesTexture.wrapS = THREE.RepeatWrapping;
+          linesTexture.wrapT = THREE.RepeatWrapping;
+          linesTexture.repeat.set(1, 1);
+          
+          // Combinar os dois fundos
+          const bgMaterial = new THREE.MeshBasicMaterial({
+            map: linesTexture,
+            side: THREE.BackSide
+          });
+          
+          const bgSphere = new THREE.Mesh(
+            new THREE.SphereGeometry(100, 32, 32),
+            bgMaterial
+          );
+          
+          envScene.add(bgSphere);
+        }
+      }
+      
+      // Capturar ambiente
+      cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
       cubeCamera.update(renderer, envScene);
       
+      // Criar mapa de ambiente a partir da captura
       const envMap = pmremGenerator.fromCubemap(cubeRenderTarget.texture).texture;
       scene.environment = envMap;
       pmremGenerator.dispose();
@@ -235,36 +340,24 @@ const Index = () => {
       console.log("Ambiente básico criado");
     };
     
-    // Carregar modelo baseado no estado atual (vindo do Admin)
-    try {
-      switch (currentModel) {
-        case "diamond":
-          createDiamondGeometry();
-          break;
-        case "sphere":
-          createSphereModel();
-          break;
-        case "torus":
-          createTorusModel();
-          break;
-        case "gltf":
-          // Usar fallback se o modelo GLTF não puder ser carregado
-          try {
-            loadGLTFModel('/seu-modelo.gltf');
-          } catch (error) {
-            console.error("Erro ao carregar modelo GLTF, usando diamante como fallback:", error);
-            createDiamondGeometry();
-          }
-          break;
-        default:
-          createDiamondGeometry();
-      }
-    } catch (error) {
-      console.error("Erro ao carregar modelo:", error);
-      setLoadingError("Erro ao carregar o modelo 3D");
-      // Tentar criar um modelo básico como fallback
-      createDiamondGeometry();
-    }
+    // Vamos usar o modelo de cristal distorcido por padrão para a estética desejada
+    createCrystalGeometry();
+    
+    // Adicionar evento para detectar cliques ou toques no cristal
+    // Isso fará o cristal girar mais rápido temporariamente
+    let touchTimeout: number | null = null;
+    const handleTouch = () => {
+      controls.autoRotateSpeed = 5.0; // Girar mais rápido ao tocar
+      
+      // Resetar velocidade após um tempo
+      if (touchTimeout) clearTimeout(touchTimeout);
+      touchTimeout = window.setTimeout(() => {
+        controls.autoRotateSpeed = 0.8; // Voltar à velocidade normal
+      }, 2000);
+    };
+    
+    window.addEventListener('click', handleTouch);
+    window.addEventListener('touchstart', handleTouch);
     
     // Load HDR environment map para reflexões realistas
     const rgbeLoader = new RGBELoader();
@@ -322,19 +415,42 @@ const Index = () => {
       tryNextPath();
     };
     
+    // Tentar carregar o mapa de ambiente ou usar o fallback
     tryLoadEnvMap();
     
-    // Iluminação básica que sempre será adicionada
+    // Variável para o cubeCamera (adicionado acima)
+    let cubeCamera: THREE.CubeCamera;
+    
+    // Criar linha diagonal (semelhante ao visual da referência)
+    const createDiagonalLine = () => {
+      const lineMaterial = new THREE.LineBasicMaterial({ 
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.7
+      });
+      
+      const points = [];
+      points.push(new THREE.Vector3(-20, 15, -15));
+      points.push(new THREE.Vector3(20, -10, -15));
+      
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(lineGeometry, lineMaterial);
+      scene.add(line);
+    };
+    
+    createDiagonalLine();
+    
     // Iluminação aprimorada para destacar reflexões e refrações
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, modelParams.lightIntensity);
+    // Luz principal direcional
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
     
-    // Luzes adicionais para reflexos especulares
-    const colors = [0xffffff, 0xffccd5, 0xd5ffff, 0xffffcc];
+    // Luzes coloridas para criar efeitos interessantes
+    const colors = [0xff3366, 0xffccd5, 0xd5ffff, 0xffffcc];
     const positions = [
       [3, 2, 2],
       [-3, -2, 2],
@@ -343,7 +459,7 @@ const Index = () => {
     ];
     
     positions.forEach((position, i) => {
-      const light = new THREE.PointLight(colors[i], modelParams.lightIntensity * 0.8, 15);
+      const light = new THREE.PointLight(colors[i], 2.0, 15);
       light.position.set(position[0], position[1], position[2]);
       scene.add(light);
     });
@@ -364,7 +480,9 @@ const Index = () => {
       requestAnimationFrame(animate);
       
       if (model) {
-        // A rotação agora é feita pelos OrbitControls (autoRotate)
+        // Pulsar levemente o modelo
+        const pulseFactor = Math.sin(Date.now() * 0.001) * 0.03 + 1;
+        model.scale.set(pulseFactor * 1.2, pulseFactor * 1.2, pulseFactor * 1.2);
       }
       
       controls.update();
@@ -376,6 +494,11 @@ const Index = () => {
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('click', handleTouch);
+      window.removeEventListener('touchstart', handleTouch);
+      
+      if (touchTimeout) clearTimeout(touchTimeout);
+      
       if (mountRef.current) {
         mountRef.current.removeChild(renderer.domElement);
       }
@@ -416,45 +539,55 @@ const Index = () => {
   }, [modelParams, currentModel]);
   
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-gray-900 to-black">
+    <div className="relative h-screen w-full overflow-hidden bg-black">
       {/* Admin Link */}
       <div className="absolute top-4 right-4 z-30">
         <Link 
           to="/admin" 
-          className="flex items-center gap-2 px-3 py-2 bg-black/30 hover:bg-black/50 rounded-md text-white transition-colors border border-white/10"
+          className="flex items-center gap-2 px-3 py-2 bg-black/70 hover:bg-black/90 rounded-md text-white transition-colors border border-white/10"
         >
           <Settings size={16} />
           Admin
         </Link>
       </div>
 
+      {/* Logo/Title overlay */}
+      <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+        <h1 className="text-9xl md:text-[12rem] font-bold tracking-tighter text-red-600 leading-none opacity-90">
+          JESTFLY
+        </h1>
+      </div>
+
       {/* Content overlay */}
-      <div className="relative z-20 flex flex-col items-center justify-center h-full text-white">
-        <div className="animate-fade-in text-center">
-          <p className="text-sm uppercase tracking-wider mb-2 opacity-80">Experience brilliance</p>
-          <h1 className="text-5xl md:text-8xl font-light tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-300 to-purple-300">JESTFLY</h1>
-          <p className="max-w-md text-center text-lg opacity-80 mx-auto">
-            A stunning 3D representation with perfect clarity and exceptional brilliance. 
-            The crystal refracts and reflects light, creating a mesmerizing display.
+      <div className="absolute left-16 bottom-32 z-20 max-w-xs text-left text-white">
+        <div className="animate-fade-in space-y-2">
+          <p className="text-sm uppercase tracking-widest opacity-80">
+            It was the year
+          </p>
+          <p className="text-sm uppercase tracking-widest opacity-80">
+            2076. The substance
+          </p>
+          <p className="text-sm uppercase tracking-widest opacity-80">
+            had arrived.
           </p>
         </div>
       </div>
       
       {/* Loading indicator */}
       {!modelLoaded && !loadingError && (
-        <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/50">
+        <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/90">
           <div className="text-white text-xl">Carregando modelo...</div>
         </div>
       )}
       
       {/* Error message */}
       {loadingError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/70">
-          <div className="text-red-400 text-2xl mb-4">Erro de carregamento</div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/90">
+          <div className="text-red-500 text-2xl mb-4">Erro de carregamento</div>
           <div className="text-white text-xl mb-6">{loadingError}</div>
           <Link 
             to="/admin" 
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-white transition-colors"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-white transition-colors"
           >
             Ir para o painel de Admin
           </Link>
