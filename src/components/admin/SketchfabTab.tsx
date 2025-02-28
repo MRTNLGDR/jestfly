@@ -238,6 +238,38 @@ const SketchfabTab = ({ changeActiveModel }: SketchfabTabProps) => {
     }
   };
 
+  // Função que será chamada quando um modelo for importado a partir do SearchForm
+  const handleModelImport = () => {
+    // Recarregar os modelos salvos para atualizar a lista
+    const fetchSavedModels = async () => {
+      try {
+        setLoadingModels(true);
+        const { data, error } = await supabase
+          .from('models')
+          .select('*')
+          .eq('model_type', 'sketchfab')
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          throw error;
+        }
+        
+        setSavedModels(data || []);
+      } catch (error) {
+        console.error("Erro ao recarregar modelos:", error);
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    
+    fetchSavedModels();
+  };
+
+  // Função para lidar com os resultados da busca
+  const handleSearchResults = (results: any[]) => {
+    setSearchResults(results);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -271,10 +303,10 @@ const SketchfabTab = ({ changeActiveModel }: SketchfabTabProps) => {
           <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "search" | "saved")}>
             <TabsContent value="search" className="m-0 pt-4">
               <SearchForm 
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onSearch={searchSketchfabModels}
+                onSearchResults={handleSearchResults}
+                onModelImport={handleModelImport}
                 isLoading={isLoading}
+                setIsLoading={setIsLoading}
               />
               
               <div className="mt-6">

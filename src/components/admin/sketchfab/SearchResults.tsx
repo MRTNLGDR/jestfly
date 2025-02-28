@@ -1,6 +1,7 @@
 
 import { Loader2, FileAxis3d } from "lucide-react";
 import ModelCard from "./ModelCard";
+import { Json } from "@/integrations/supabase/types";
 
 interface SketchfabModel {
   uid: string;
@@ -20,11 +21,11 @@ interface SavedModel {
   id: string;
   name: string;
   model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
-  url: string;
-  thumbnail_url: string;
-  is_active: boolean;
+  url: string | null;
+  thumbnail_url: string | null;
+  is_active: boolean | null;
   created_at: string;
-  params?: Record<string, any>;
+  params?: Json | null;
 }
 
 interface SearchResultsProps {

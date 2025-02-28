@@ -4,16 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Check, ExternalLink, FileAxis3d, Trash2 } from "lucide-react";
+import { Json } from "@/integrations/supabase/types";
 
 interface SavedModel {
   id: string;
   name: string;
   model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
-  url: string;
-  thumbnail_url: string;
-  is_active: boolean;
+  url: string | null;
+  thumbnail_url: string | null;
+  is_active: boolean | null;
   created_at: string;
-  params?: Record<string, any>;
+  params?: Json | null;
 }
 
 interface SavedModelCardProps {
@@ -74,7 +75,7 @@ const SavedModelCard = ({ model, onDelete, onActivate }: SavedModelCardProps) =>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <a 
-                    href={model.url} 
+                    href={model.url || "#"} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center h-8 px-2 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-md"
@@ -93,9 +94,9 @@ const SavedModelCard = ({ model, onDelete, onActivate }: SavedModelCardProps) =>
           <Button
             size="sm"
             variant={model.is_active ? "default" : "outline"}
-            onClick={() => onActivate(model.id, model.url)}
+            onClick={() => model.url && onActivate(model.id, model.url)}
             className={`h-8 ${model.is_active ? 'bg-purple-600/80 backdrop-blur-md hover:bg-purple-700/80' : 'bg-black/20 backdrop-blur-md border-white/10 hover:bg-white/10'}`}
-            disabled={model.is_active}
+            disabled={model.is_active || !model.url}
           >
             {model.is_active ? (
               <>
