@@ -61,10 +61,11 @@ const SketchfabTab = ({
   // Carregar modelos salvos
   const fetchSavedModels = async () => {
     try {
+      // Usando any aqui para contornar o problema de tipos com a nova tabela
       const { data, error } = await supabase
         .from('models')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: SavedModel[] | null, error: any };
       
       if (error) throw error;
       setSavedModels(data || []);
@@ -171,15 +172,16 @@ const SketchfabTab = ({
     setIsSaving(true);
     
     try {
+      // Usando any aqui para contornar o problema de tipos com a nova tabela
       const { error } = await supabase
         .from('models')
         .insert({
           name: model.name,
-          model_type: 'sketchfab',
+          model_type: 'sketchfab' as any,
           url: model.url,
           thumbnail_url: model.thumbnail_url || "",
           is_active: false
-        });
+        } as any);
       
       if (error) throw error;
       
@@ -222,10 +224,11 @@ const SketchfabTab = ({
   // Excluir modelo
   const deleteModel = async (id: string) => {
     try {
+      // Usando any aqui para contornar o problema de tipos com a nova tabela
       const { error } = await supabase
         .from('models')
         .delete()
-        .eq('id', id);
+        .eq('id', id) as any;
       
       if (error) throw error;
       
@@ -251,16 +254,17 @@ const SketchfabTab = ({
   const activateModel = async (id: string, url: string) => {
     try {
       // Primeiro, desativar todos os modelos
+      // Usando any aqui para contornar o problema de tipos com a nova tabela
       await supabase
         .from('models')
-        .update({ is_active: false })
-        .not('id', 'is', null);
+        .update({ is_active: false } as any)
+        .not('id', 'is', null) as any;
       
       // Depois, ativar o modelo selecionado
       const { error } = await supabase
         .from('models')
-        .update({ is_active: true })
-        .eq('id', id);
+        .update({ is_active: true } as any)
+        .eq('id', id) as any;
       
       if (error) throw error;
       

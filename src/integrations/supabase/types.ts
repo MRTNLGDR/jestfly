@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      models: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          model_type: Database["public"]["Enums"]["model_type"]
+          name: string
+          thumbnail_url: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          model_type: Database["public"]["Enums"]["model_type"]
+          name: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          model_type?: Database["public"]["Enums"]["model_type"]
+          name?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -300,6 +333,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "creator" | "user"
+      model_type: "diamond" | "sphere" | "torus" | "crystal" | "sketchfab"
       product_type: "nft" | "music" | "merch" | "collectible"
     }
     CompositeTypes: {
