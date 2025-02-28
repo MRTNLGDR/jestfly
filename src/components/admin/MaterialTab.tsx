@@ -95,9 +95,6 @@ const MaterialTab = ({
       wireframe: showWireframe
     });
 
-    // Criar wireframe adicional quando necessário
-    let wireframeMesh: THREE.Mesh | null = null;
-
     // Criar modelo com base no tipo selecionado
     let geometry: THREE.BufferGeometry;
     
@@ -142,7 +139,7 @@ const MaterialTab = ({
         opacity: 0.15
       });
       const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-      wireframeMesh = wireframe;
+      // Correto: wireframe é agora um LineSegments, não um Mesh, então não precisamos atribuir a wireframeMesh
       scene.add(wireframe);
     }
 
