@@ -14,7 +14,8 @@ import {
   Image,
   Layers,
   Monitor,
-  Eye
+  Eye,
+  Cube
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ModelParameters, defaultModelParams } from "@/types/model";
@@ -26,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import ElementsTab from "@/components/admin/ElementsTab";
 import LayoutTab from "@/components/admin/LayoutTab";
+import SketchfabTab from "@/components/admin/SketchfabTab";
 
 const Admin = () => {
   const { toast } = useToast();
@@ -52,6 +54,9 @@ const Admin = () => {
   const [activeModel, setActiveModel] = useState(() => {
     return localStorage.getItem("preferredModel") || "diamond";
   });
+  const [sketchfabUrl, setSketchfabUrl] = useState(() => {
+    return localStorage.getItem("sketchfabUrl") || "";
+  });
   
   // Estados para os parâmetros do modelo
   const [modelParams, setModelParams] = useState<ModelParameters>(() => {
@@ -72,6 +77,13 @@ const Admin = () => {
   useEffect(() => {
     localStorage.setItem("preferredModel", activeModel);
   }, [activeModel]);
+  
+  // Salvar a URL do Sketchfab quando mudar
+  useEffect(() => {
+    if (sketchfabUrl) {
+      localStorage.setItem("sketchfabUrl", sketchfabUrl);
+    }
+  }, [sketchfabUrl]);
   
   // Salvar parâmetros do modelo no localStorage quando mudarem
   useEffect(() => {
@@ -116,9 +128,15 @@ const Admin = () => {
   };
 
   // Função para alterar o modelo ativo
-  const changeActiveModel = (modelType: string) => {
+  const changeActiveModel = (modelType: string, modelUrl?: string) => {
     setActiveModel(modelType);
     localStorage.setItem("preferredModel", modelType);
+    
+    // Se for um modelo do Sketchfab, salvar a URL
+    if (modelType === 'sketchfab' && modelUrl) {
+      setSketchfabUrl(modelUrl);
+      localStorage.setItem("sketchfabUrl", modelUrl);
+    }
     
     toast({
       title: "Modelo alterado",
@@ -212,6 +230,10 @@ const Admin = () => {
                       <FileAxis3d size={16} /> 
                       <span className="hidden md:inline">Modelos 3D</span>
                     </TabsTrigger>
+                    <TabsTrigger value="sketchfab" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
+                      <Cube size={16} /> 
+                      <span className="hidden md:inline">Sketchfab</span>
+                    </TabsTrigger>
                     <TabsTrigger value="material" className="w-full justify-start gap-2 px-3 data-[state=active]:bg-primary data-[state=active]:text-white">
                       <Droplet size={16} /> 
                       <span className="hidden md:inline">Material</span>
@@ -259,6 +281,20 @@ const Admin = () => {
                             className="mt-auto text-sm px-3 py-1.5 bg-purple-700/50 hover:bg-purple-700 rounded-md transition-colors"
                           >
                             Configurar
+                          </button>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-700/30">
+                        <CardContent className="p-6 flex flex-col">
+                          <Cube className="mb-4 text-indigo-400" size={24} />
+                          <h3 className="text-lg font-medium mb-1">Sketchfab</h3>
+                          <p className="text-sm text-gray-400 mb-4">Adicione modelos direto do Sketchfab</p>
+                          <button 
+                            onClick={() => setActiveTab("sketchfab")}
+                            className="mt-auto text-sm px-3 py-1.5 bg-indigo-700/50 hover:bg-indigo-700 rounded-md transition-colors"
+                          >
+                            Explorar
                           </button>
                         </CardContent>
                       </Card>
@@ -318,6 +354,13 @@ const Admin = () => {
                     newModelName={newModelName}
                     setNewModelName={setNewModelName}
                     activeModel={activeModel}
+                    changeActiveModel={changeActiveModel}
+                  />
+                </TabsContent>
+                
+                {/* Tab do Sketchfab */}
+                <TabsContent value="sketchfab" className="mt-0">
+                  <SketchfabTab 
                     changeActiveModel={changeActiveModel}
                   />
                 </TabsContent>
