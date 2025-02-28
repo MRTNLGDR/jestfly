@@ -366,82 +366,26 @@ const Index = () => {
       console.log("Criando ambiente básico");
       
       // Criar um ambiente simples como fallback
-      const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
-      cubeRenderTarget.texture.type = THREE.HalfFloatType;
-      
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
-      pmremGenerator.compileCubemapShader();
+      pmremGenerator.compileEquirectangularShader();
       
-      // Criar uma cena de ambiente com gradiente
+      // Criar uma cena de ambiente simples
       const envScene = new THREE.Scene();
+      envScene.background = new THREE.Color(0x111122);
       
-      // Gradiente vertical para o fundo
-      const topColor = new THREE.Color(0x000000); // Preto no topo
-      const bottomColor = new THREE.Color(0x330011); // Vermelho escuro embaixo
-      
-      const canvas = document.createElement('canvas');
-      canvas.width = 2;
-      canvas.height = 256;
-      const context = canvas.getContext('2d');
-      if (context) {
-        const gradient = context.createLinearGradient(0, 0, 0, 256);
-        gradient.addColorStop(0, topColor.getStyle());
-        gradient.addColorStop(1, bottomColor.getStyle());
-        context.fillStyle = gradient;
-        context.fillRect(0, 0, 2, 256);
-        
-        const gradientTexture = new THREE.CanvasTexture(canvas);
-        gradientTexture.colorSpace = THREE.SRGBColorSpace;
-        
-        // Adicionar linhas diagonais para simular refletividade do modelo
-        const diagonalCanvas = document.createElement('canvas');
-        diagonalCanvas.width = 512;
-        diagonalCanvas.height = 512;
-        const diagContext = diagonalCanvas.getContext('2d');
-        if (diagContext) {
-          diagContext.fillStyle = '#000000';
-          diagContext.fillRect(0, 0, 512, 512);
-          
-          // Desenhar linhas diagonais em vermelho
-          diagContext.strokeStyle = '#FF0033';
-          diagContext.lineWidth = 4;
-          for (let i = -512; i < 512; i += 60) {
-            diagContext.beginPath();
-            diagContext.moveTo(i, 0);
-            diagContext.lineTo(i + 512, 512);
-            diagContext.stroke();
-          }
-          
-          const linesTexture = new THREE.CanvasTexture(diagonalCanvas);
-          linesTexture.wrapS = THREE.RepeatWrapping;
-          linesTexture.wrapT = THREE.RepeatWrapping;
-          linesTexture.repeat.set(1, 1);
-          
-          // Combinar os dois fundos
-          const bgMaterial = new THREE.MeshBasicMaterial({
-            map: linesTexture,
-            side: THREE.BackSide
-          });
-          
-          const bgSphere = new THREE.Mesh(
-            new THREE.SphereGeometry(100, 32, 32),
-            bgMaterial
-          );
-          
-          envScene.add(bgSphere);
-        }
-      }
-      
-      // Capturar ambiente
+      // Criar um cubo para reflexões
+      const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256);
       const cubeCamera = new THREE.CubeCamera(0.1, 1000, cubeRenderTarget);
       cubeCamera.update(renderer, envScene);
       
-      // Criar mapa de ambiente a partir da captura
+      // Criar mapa de ambiente
       const envMap = pmremGenerator.fromCubemap(cubeRenderTarget.texture).texture;
+      
+      // Aplicar à cena
       scene.environment = envMap;
       pmremGenerator.dispose();
       
-      console.log("Ambiente básico criado");
+      console.log("Ambiente básico criado com sucesso");
     };
 
     // Selecionar o modelo correto com base na preferência
@@ -475,64 +419,8 @@ const Index = () => {
     window.addEventListener('click', handleTouch);
     window.addEventListener('touchstart', handleTouch);
     
-    // Load HDR environment map para reflexões realistas
-    const rgbeLoader = new RGBELoader();
-    rgbeLoader.setDataType(THREE.FloatType);
-    
-    // Tentar diferentes caminhos de ambiente
-    const tryLoadEnvMap = () => {
-      // Lista de possíveis caminhos para o HDR
-      const paths = [
-        '/environment.hdr',
-        '/public/environment.hdr',
-        '/envmap/environment.hdr',
-        '/hdr/environment.hdr'
-      ];
-      
-      let loaded = false;
-      
-      // Tentar cada caminho
-      const tryNextPath = (index = 0) => {
-        if (index >= paths.length) {
-          console.warn("Não foi possível carregar nenhum mapa de ambiente, usando ambiente básico");
-          createBasicEnvironment();
-          return;
-        }
-        
-        console.log(`Tentando carregar ambiente HDR de: ${paths[index]}`);
-        
-        rgbeLoader.load(
-          paths[index],
-          (texture) => {
-            if (loaded) return; // Evitar carregar múltiplos ambientes
-            loaded = true;
-            
-            console.log(`Ambiente HDR carregado com sucesso de: ${paths[index]}`);
-            
-            const pmremGenerator = new THREE.PMREMGenerator(renderer);
-            pmremGenerator.compileEquirectangularShader();
-            
-            const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-            
-            scene.environment = envMap;
-            texture.dispose();
-            pmremGenerator.dispose();
-          },
-          undefined,
-          () => {
-            console.warn(`Falha ao carregar ambiente HDR de: ${paths[index]}`);
-            // Tentar o próximo caminho
-            tryNextPath(index + 1);
-          }
-        );
-      };
-      
-      // Iniciar a tentativa de carregamento
-      tryNextPath();
-    };
-    
-    // Tentar carregar o mapa de ambiente ou usar o fallback
-    tryLoadEnvMap();
+    // Criar ambiente básico diretamente em vez de tentar carregar HDR
+    createBasicEnvironment();
     
     // Criar linha diagonal (semelhante ao visual da referência)
     const createDiagonalLine = () => {
