@@ -264,10 +264,17 @@ const Index = () => {
     };
   }, [currentModel]);
   
+  // Funções para mudar o modelo
+  const handleChangeModel = (modelType: string) => {
+    console.log("Mudando para modelo:", modelType);
+    setModelLoaded(false); // Mostrar indicador de carregamento
+    setCurrentModel(modelType);
+  };
+  
   return (
     <div className="relative h-screen w-full overflow-hidden">
       {/* Content overlay */}
-      <div className="relative z-0 flex flex-col items-center justify-center h-full text-white">
+      <div className="relative z-20 flex flex-col items-center justify-center h-full text-white">
         <div className="animate-fade-in">
           <p className="text-sm uppercase tracking-wider mb-2 opacity-80">Experience brilliance</p>
           <h1 className="text-5xl md:text-7xl font-light tracking-tight mb-6">Reflection</h1>
@@ -279,25 +286,25 @@ const Index = () => {
           <div className="flex gap-3 justify-center mt-8">
             <button 
               className={`px-4 py-2 rounded-md ${currentModel === 'diamond' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => setCurrentModel('diamond')}
+              onClick={() => handleChangeModel('diamond')}
             >
               Diamante
             </button>
             <button 
               className={`px-4 py-2 rounded-md ${currentModel === 'sphere' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => setCurrentModel('sphere')}
+              onClick={() => handleChangeModel('sphere')}
             >
               Esfera
             </button>
             <button 
               className={`px-4 py-2 rounded-md ${currentModel === 'torus' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => setCurrentModel('torus')}
+              onClick={() => handleChangeModel('torus')}
             >
               Anel
             </button>
             <button 
               className={`px-4 py-2 rounded-md ${currentModel === 'gltf' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
-              onClick={() => setCurrentModel('gltf')}
+              onClick={() => handleChangeModel('gltf')}
             >
               Modelo GLTF
             </button>
@@ -307,7 +314,7 @@ const Index = () => {
       
       {/* Loading indicator */}
       {!modelLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50">
+        <div className="absolute inset-0 flex items-center justify-center z-30 bg-black/50">
           <div className="text-white text-xl">Carregando modelo...</div>
         </div>
       )}
