@@ -47,7 +47,7 @@ const SavedModels = ({
           variant="outline" 
           size="sm"
           onClick={onSwitchToSearch}
-          className="mt-4"
+          className="mt-4 backdrop-blur-md bg-white/5 border-white/10 hover:bg-white/10"
         >
           <Plus size={14} className="mr-1" /> Buscar Modelos
         </Button>

@@ -158,41 +158,41 @@ const SearchForm = ({ onSearchResults, onModelImport, isLoading, setIsLoading }:
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar modelos (ex: crystal, diamond, car...)"
-            className="bg-gray-900/60 border-gray-700 flex-1"
+            className="bg-black/40 backdrop-blur-md border-white/10 text-white flex-1"
             onKeyDown={(e) => e.key === 'Enter' && searchSketchfabModels()}
           />
           <Button 
             onClick={searchSketchfabModels}
             disabled={isLoading || !searchTerm.trim()}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600/90 hover:bg-indigo-700 backdrop-blur-md"
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search size={16} />}
           </Button>
         </div>
       </div>
       
-      <Separator className="bg-gray-700" />
+      <Separator className="bg-white/10" />
       
-      <h3 className="text-lg font-medium">URL Direta</h3>
+      <h3 className="text-lg font-medium text-white/90">URL Direta</h3>
       <div className="flex flex-col sm:flex-row gap-3">
         <Input
           value={directUrl}
           onChange={(e) => setDirectUrl(e.target.value)}
           placeholder="Cole a URL do Sketchfab (ex: https://sketchfab.com/models/...)"
-          className="bg-gray-900/60 border-gray-700 flex-1"
+          className="bg-black/40 backdrop-blur-md border-white/10 text-white flex-1"
           onKeyDown={(e) => e.key === 'Enter' && fetchModelByUrl()}
         />
         <Button 
           onClick={fetchModelByUrl}
           disabled={isLoading || !directUrl.trim()}
-          className="bg-indigo-600 hover:bg-indigo-700 whitespace-nowrap"
+          className="bg-indigo-600/90 hover:bg-indigo-700 backdrop-blur-md whitespace-nowrap"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download size={16} className="mr-2" />}
           Importar Modelo
         </Button>
       </div>
       
-      <Alert className="bg-blue-900/20 border-blue-700/50">
+      <Alert className="neo-blur bg-blue-900/20 border-blue-500/30">
         <Info className="h-4 w-4 text-blue-400" />
         <AlertTitle>Dica de uso</AlertTitle>
         <AlertDescription className="text-sm text-gray-300">

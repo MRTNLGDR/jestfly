@@ -6,7 +6,6 @@ import { FileAxis3d, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 
 // Import our new components
 import SearchForm from "./sketchfab/SearchForm";
@@ -214,17 +213,23 @@ const SketchfabTab = ({
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-semibold flex items-center gap-2">
+        <h2 className="text-2xl font-semibold flex items-center gap-2 text-white">
           <FileAxis3d className="text-indigo-400" size={24} />
           Modelos do Sketchfab
         </h2>
         
         <Tabs value={activeView} onValueChange={(value) => setActiveView(value as "search" | "saved")}>
-          <TabsList>
-            <TabsTrigger value="saved" className="data-[state=active]:bg-purple-600">
+          <TabsList className="neo-blur bg-black/40 border border-white/10">
+            <TabsTrigger 
+              value="saved" 
+              className="data-[state=active]:bg-purple-600/80 data-[state=active]:text-white data-[state=inactive]:text-white/70"
+            >
               Meus Modelos
             </TabsTrigger>
-            <TabsTrigger value="search" className="data-[state=active]:bg-purple-600">
+            <TabsTrigger 
+              value="search" 
+              className="data-[state=active]:bg-purple-600/80 data-[state=active]:text-white data-[state=inactive]:text-white/70"
+            >
               Buscar Novos
             </TabsTrigger>
           </TabsList>
@@ -233,9 +238,9 @@ const SketchfabTab = ({
       
       {activeView === "search" && (
         <>
-          <Card className="bg-gray-800/30 border-gray-700">
+          <Card className="neo-blur bg-black/20 border-white/10">
             <CardHeader>
-              <CardTitle className="text-lg font-medium">Buscar Modelos</CardTitle>
+              <CardTitle className="text-lg font-medium text-white/90">Buscar Modelos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <SearchForm 
@@ -247,8 +252,8 @@ const SketchfabTab = ({
             </CardContent>
           </Card>
           
-          <div className="bg-gray-800/30 border border-gray-700 rounded-lg p-4">
-            <h3 className="text-lg font-medium mb-4">Resultados da Busca</h3>
+          <div className="neo-blur bg-black/20 border border-white/10 rounded-lg p-4">
+            <h3 className="text-lg font-medium mb-4 text-white/90">Resultados da Busca</h3>
             <SearchResults
               isLoading={isLoading}
               searchResults={searchResults}
@@ -261,13 +266,14 @@ const SketchfabTab = ({
       )}
       
       {activeView === "saved" && (
-        <div className="bg-gray-800/30 border border-gray-700 rounded-lg p-4">
+        <div className="neo-blur bg-black/20 border border-white/10 rounded-lg p-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">Meus Modelos Sketchfab</h3>
+            <h3 className="text-lg font-medium text-white/90">Meus Modelos Sketchfab</h3>
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => setActiveView("search")}
+              className="neo-blur bg-white/5 border-white/10 hover:bg-white/10 text-white"
             >
               <Plus size={14} className="mr-1" /> Adicionar Novo
             </Button>

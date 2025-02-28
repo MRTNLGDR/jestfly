@@ -202,8 +202,8 @@ const Admin = () => {
           <Link to="/" className="mr-1 sm:mr-2 md:mr-4">
             <ArrowLeft size={16} className="text-gray-400 hover:text-white transition-colors" />
           </Link>
-          <h1 className="text-base sm:text-lg md:text-2xl font-semibold flex items-center gap-2 truncate">
-            <Settings className="hidden md:inline mr-2" size={20} /> 
+          <h1 className="text-base sm:text-lg md:text-2xl font-semibold flex items-center gap-2 truncate text-gradient">
+            <Settings className="hidden md:inline mr-2 glow-sm" size={20} /> 
             Painel de Admin
           </h1>
         </div>
@@ -211,7 +211,7 @@ const Admin = () => {
         <div className="flex gap-2">
           <Link 
             to="/" 
-            className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 bg-gray-800 hover:bg-gray-700 rounded-md text-xs sm:text-sm text-white transition-colors"
+            className="flex items-center gap-1 px-2 py-1 md:px-3 md:py-2 neo-blur hover:bg-white/10 rounded-md text-xs sm:text-sm text-white transition-colors"
           >
             <Eye size={14} />
             <span className="hidden sm:inline">Visualizar Site</span>
@@ -223,7 +223,7 @@ const Admin = () => {
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           {/* Sidebar com tabs */}
           <div className="w-full md:w-56 lg:w-64 mb-4 md:mb-0 sticky top-[73px] md:top-[85px] self-start">
-            <Card className="bg-black/30 border-gray-800">
+            <Card className="neo-blur border-white/10">
               <CardContent className="p-2 sm:p-3">
                 <Tabs 
                   value={activeTab} 
@@ -233,56 +233,56 @@ const Admin = () => {
                   <TabsList className="grid grid-cols-4 md:grid-cols-1 gap-1 bg-transparent h-auto">
                     <TabsTrigger 
                       value="dashboard" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <LayoutDashboard size={14} /> 
                       <span className="hidden md:inline">Dashboard</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="models" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <FileAxis3d size={14} /> 
                       <span className="hidden md:inline">Modelos 3D</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="sketchfab" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <Box size={14} /> 
                       <span className="hidden md:inline">Sketchfab</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="material" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <Droplet size={14} /> 
                       <span className="hidden md:inline">Material</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="elements" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <Layers size={14} /> 
                       <span className="hidden md:inline">Elementos</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="layout" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <Monitor size={14} /> 
                       <span className="hidden md:inline">Layout</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="colors" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <Palette size={14} /> 
                       <span className="hidden md:inline">Cores</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="settings" 
-                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-white"
+                      className="flex items-center justify-center md:justify-start gap-2 px-2 py-1.5 md:py-2 text-xs sm:text-sm bg-black/30 text-white/70 data-[state=active]:bg-purple-600/80 data-[state=active]:text-white hover:bg-white/10 transition-all"
                     >
                       <Settings size={14} /> 
                       <span className="hidden md:inline">Config</span>
@@ -295,67 +295,67 @@ const Admin = () => {
           
           {/* Conteúdo principal */}
           <div className="flex-1">
-            <Card className="bg-black/30 border-gray-800">
+            <Card className="neo-blur border-white/10">
               <CardContent className="p-3 sm:p-4 md:p-6">
                 <Tabs value={activeTab} className="w-full">
                   {/* Conteúdo do Dashboard */}
                   <TabsContent value="dashboard" className="mt-0">
                     <div className="space-y-4 md:space-y-6">
                       <div className="flex justify-between items-center">
-                        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Dashboard</h2>
+                        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gradient">Dashboard</h2>
                       </div>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                        <Card className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 border-purple-700/30">
+                        <Card className="glass-morphism bg-purple-900/20 hover:bg-purple-900/30 transition-all">
                           <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
-                            <Box className="mb-3 md:mb-4 text-purple-400" size={20} />
-                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Modelos 3D</h3>
+                            <Box className="mb-3 md:mb-4 text-purple-400 glow-purple" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1 text-white/90">Modelos 3D</h3>
                             <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Gerencie os modelos 3D da página inicial</p>
                             <button 
                               onClick={() => setActiveTab("models")}
-                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-purple-700/50 hover:bg-purple-700 rounded-md transition-colors"
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-purple-700/50 hover:bg-purple-700 rounded-md transition-colors backdrop-blur-md"
                             >
                               Configurar
                             </button>
                           </CardContent>
                         </Card>
                         
-                        <Card className="bg-gradient-to-br from-indigo-900/50 to-indigo-800/30 border-indigo-700/30">
+                        <Card className="glass-morphism bg-indigo-900/20 hover:bg-indigo-900/30 transition-all">
                           <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
-                            <Box className="mb-3 md:mb-4 text-indigo-400" size={20} />
-                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Sketchfab</h3>
+                            <Box className="mb-3 md:mb-4 text-indigo-400 glow-blue" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1 text-white/90">Sketchfab</h3>
                             <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Adicione modelos direto do Sketchfab</p>
                             <button 
                               onClick={() => setActiveTab("sketchfab")}
-                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-indigo-700/50 hover:bg-indigo-700 rounded-md transition-colors"
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-indigo-700/50 hover:bg-indigo-700 rounded-md transition-colors backdrop-blur-md"
                             >
                               Explorar
                             </button>
                           </CardContent>
                         </Card>
                         
-                        <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-blue-700/30">
+                        <Card className="glass-morphism bg-blue-900/20 hover:bg-blue-900/30 transition-all">
                           <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
-                            <Type className="mb-3 md:mb-4 text-blue-400" size={20} />
-                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Textos</h3>
+                            <Type className="mb-3 md:mb-4 text-blue-400 glow-blue" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1 text-white/90">Textos</h3>
                             <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Edite os títulos e textos do site</p>
                             <button 
                               onClick={() => setActiveTab("elements")}
-                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-blue-700/50 hover:bg-blue-700 rounded-md transition-colors"
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-blue-700/50 hover:bg-blue-700 rounded-md transition-colors backdrop-blur-md"
                             >
                               Editar
                             </button>
                           </CardContent>
                         </Card>
                         
-                        <Card className="bg-gradient-to-br from-red-900/50 to-red-800/30 border-red-700/30">
+                        <Card className="glass-morphism bg-red-900/20 hover:bg-red-900/30 transition-all">
                           <CardContent className="p-3 sm:p-4 md:p-6 flex flex-col">
-                            <Image className="mb-3 md:mb-4 text-red-400" size={20} />
-                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1">Aparência</h3>
+                            <Image className="mb-3 md:mb-4 text-red-400 glow-red" size={20} />
+                            <h3 className="text-sm sm:text-base md:text-lg font-medium mb-1 text-white/90">Aparência</h3>
                             <p className="text-xs sm:text-sm text-gray-400 mb-3 md:mb-4">Personalize cores e tema do site</p>
                             <button 
                               onClick={() => setActiveTab("colors")}
-                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-red-700/50 hover:bg-red-700 rounded-md transition-colors"
+                              className="mt-auto text-xs sm:text-sm px-2 py-1 md:px-3 md:py-1.5 bg-red-700/50 hover:bg-red-700 rounded-md transition-colors backdrop-blur-md"
                             >
                               Personalizar
                             </button>
@@ -363,11 +363,11 @@ const Admin = () => {
                         </Card>
                       </div>
                       
-                      <div className="bg-gray-800/30 rounded-lg p-3 sm:p-4 md:p-6">
-                        <h3 className="text-sm sm:text-base md:text-lg font-medium mb-2 md:mb-4">Visualização Rápida</h3>
-                        <div className="aspect-video relative bg-black rounded-lg overflow-hidden border border-gray-800">
+                      <div className="glass-morphism p-3 sm:p-4 md:p-6 rounded-lg">
+                        <h3 className="text-sm sm:text-base md:text-lg font-medium mb-2 md:mb-4 text-white/90">Visualização Rápida</h3>
+                        <div className="aspect-video relative bg-black rounded-lg overflow-hidden border border-white/10">
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter text-red-600 leading-none opacity-90 px-4 text-center">
+                            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter text-red-600 leading-none opacity-90 px-4 text-center glow-red">
                               {titleText}
                             </h1>
                           </div>

@@ -24,28 +24,28 @@ interface SavedModelCardProps {
 
 const SavedModelCard = ({ model, onDelete, onActivate }: SavedModelCardProps) => {
   return (
-    <Card className={`overflow-hidden border-2 ${model.is_active ? 'border-purple-500' : 'border-gray-700'} bg-gray-800/40`}>
-      <div className="aspect-video relative bg-gray-800 overflow-hidden">
+    <Card className={`overflow-hidden border-2 ${model.is_active ? 'border-purple-500/70' : 'border-white/10'} neo-blur bg-black/40 backdrop-blur-xl hover:bg-black/50 transition-all`}>
+      <div className="aspect-video relative bg-black/60 overflow-hidden">
         {model.thumbnail_url ? (
           <img
             src={model.thumbnail_url}
             alt={model.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover hover:scale-105 transition-transform"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-900">
+          <div className="w-full h-full flex items-center justify-center bg-black/80">
             <FileAxis3d className="h-12 w-12 text-gray-600" />
           </div>
         )}
         
         {model.is_active && (
-          <Badge className="absolute top-2 right-2 bg-purple-500">
+          <Badge className="absolute top-2 right-2 bg-purple-600/90 backdrop-blur-md">
             Ativo
           </Badge>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-3">
-          <h3 className="text-sm font-medium text-white truncate">{model.name}</h3>
+        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent flex flex-col justify-end p-3">
+          <h3 className="text-sm font-medium text-white/90 truncate">{model.name}</h3>
         </div>
       </div>
       
@@ -64,7 +64,7 @@ const SavedModelCard = ({ model, onDelete, onActivate }: SavedModelCardProps) =>
                     <Trash2 size={14} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="neo-blur bg-black/80 border-white/10">
                   <p>Excluir modelo</p>
                 </TooltipContent>
               </Tooltip>
@@ -83,7 +83,7 @@ const SavedModelCard = ({ model, onDelete, onActivate }: SavedModelCardProps) =>
                     Ver no Sketchfab
                   </a>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent className="neo-blur bg-black/80 border-white/10">
                   <p>Abrir no Sketchfab</p>
                 </TooltipContent>
               </Tooltip>
@@ -94,7 +94,7 @@ const SavedModelCard = ({ model, onDelete, onActivate }: SavedModelCardProps) =>
             size="sm"
             variant={model.is_active ? "default" : "outline"}
             onClick={() => onActivate(model.id, model.url)}
-            className={`h-8 ${model.is_active ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+            className={`h-8 ${model.is_active ? 'bg-purple-600/80 backdrop-blur-md hover:bg-purple-700/80' : 'bg-black/20 backdrop-blur-md border-white/10 hover:bg-white/10'}`}
             disabled={model.is_active}
           >
             {model.is_active ? (
