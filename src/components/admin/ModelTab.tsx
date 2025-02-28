@@ -13,12 +13,25 @@ import {
   Folder,
   Diamond,
   Circle,
-  CircleDot
+  CircleDot,
+  Loader2
 } from "lucide-react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ModelParameters } from "@/types/model";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+
+interface SavedModel {
+  id: string;
+  name: string;
+  model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+  url: string;
+  thumbnail_url: string;
+  is_active: boolean;
+  created_at: string;
+  params?: Record<string, any>;
+}
 
 interface ModelTabProps {
   uploadedModels: Array<{ name: string; file: File; preview?: string }>;
@@ -39,10 +52,92 @@ const ModelTab = ({
 }: ModelTabProps) => {
   const { toast } = useToast();
   const previewRef = useRef<HTMLDivElement>(null);
+  const [savedModels, setSavedModels] = useState<SavedModel[]>([]);
+  const [loadingModels, setLoadingModels] = useState(true);
   const [modelParams, setModelParams] = useState<ModelParameters>(() => {
     const savedParams = localStorage.getItem("modelParameters");
     return savedParams ? JSON.parse(savedParams) : null;
   });
+
+  // Carregar modelos salvos do banco de dados
+  useEffect(() => {
+    const fetchSavedModels = async () => {
+      try {
+        setLoadingModels(true);
+        const { data, error } = await supabase
+          .from('models')
+          .select('*')
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          throw error;
+        }
+        
+        console.log("Modelos carregados:", data);
+        setSavedModels(data || []);
+      } catch (error) {
+        console.error("Erro ao carregar modelos:", error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar modelos",
+          description: "Não foi possível carregar os modelos do banco de dados."
+        });
+      } finally {
+        setLoadingModels(false);
+      }
+    };
+    
+    fetchSavedModels();
+  }, [toast]);
+
+  // Ativar um modelo (definir como modelo ativo)
+  const activateModel = async (id: string, modelType: string) => {
+    try {
+      // Primeiro, desativar todos os modelos
+      await supabase
+        .from('models')
+        .update({ is_active: false })
+        .not('id', 'is', null);
+      
+      // Depois, ativar o modelo selecionado
+      const { error } = await supabase
+        .from('models')
+        .update({ is_active: true })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Atualizar a interface
+      const updatedModels = savedModels.map(model => ({
+        ...model,
+        is_active: model.id === id
+      }));
+      
+      setSavedModels(updatedModels);
+      
+      // Chamar a função para mudar o modelo ativo na página inicial
+      changeActiveModel(modelType);
+      
+      toast({
+        title: "Modelo ativo",
+        description: "Este modelo agora é exibido na página inicial"
+      });
+      
+      // Se for um modelo do Sketchfab, também salvar a URL no localStorage
+      const model = savedModels.find(m => m.id === id);
+      if (model && model.model_type === 'sketchfab' && model.url) {
+        localStorage.setItem("sketchfabUrl", model.url);
+      }
+      
+    } catch (error) {
+      console.error("Erro ao ativar modelo:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao ativar modelo",
+        description: "Não foi possível definir este modelo como ativo."
+      });
+    }
+  };
 
   // Função para adicionar um novo modelo
   const handleModelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,7 +413,7 @@ const ModelTab = ({
           <h3 className="text-lg font-medium mb-4">Modelo da Página Inicial</h3>
           <p className="text-gray-400 mb-4">Selecione o modelo que será exibido na página inicial:</p>
           
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
             <div 
               className={`p-4 rounded-lg cursor-pointer flex flex-col items-center gap-3 transition-colors ${activeModel === 'diamond' ? 'bg-purple-600' : 'bg-gray-700/50 hover:bg-gray-700'}`}
               onClick={() => changeActiveModel('diamond')}
@@ -355,6 +450,61 @@ const ModelTab = ({
               {activeModel === 'crystal' && <Check size={16} className="mt-1" />}
             </div>
           </div>
+          
+          {/* Modelos salvos no banco de dados */}
+          <h3 className="text-lg font-medium mb-4">Modelos do Banco de Dados</h3>
+          
+          {loadingModels ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+            </div>
+          ) : savedModels.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {savedModels.map((model) => (
+                <div 
+                  key={model.id}
+                  className={`bg-gray-700/50 p-4 rounded-lg border ${model.is_active ? 'border-purple-500' : 'border-gray-600'} hover:bg-gray-700 transition-colors`}
+                >
+                  <div className="h-40 mb-3 bg-gray-800 rounded flex items-center justify-center overflow-hidden">
+                    {model.thumbnail_url ? (
+                      <img 
+                        src={model.thumbnail_url} 
+                        alt={model.name} 
+                        className="h-full object-contain" 
+                      />
+                    ) : (
+                      <FileAxis3d size={48} className="text-gray-500" />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h4 className="font-medium text-sm">{model.name}</h4>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400">{model.model_type}</span>
+                      <div className="flex gap-1">
+                        {model.is_active ? (
+                          <div className="px-2 py-1 bg-purple-600 text-white rounded-md text-xs flex items-center">
+                            <Check size={12} className="mr-1" /> Ativo
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => activateModel(model.id, model.model_type)}
+                            className="px-2 py-1 bg-gray-600 hover:bg-purple-600 text-white rounded-md text-xs transition-colors"
+                          >
+                            Ativar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 bg-gray-800/30 rounded-lg border border-gray-700">
+              <Folder className="h-12 w-12 mx-auto mb-2 text-gray-500" />
+              <p className="text-gray-400">Nenhum modelo salvo no banco de dados</p>
+            </div>
+          )}
         </CardContent>
       </Card>
       
