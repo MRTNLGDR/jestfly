@@ -20,9 +20,47 @@ import {
   ArrowLeft,
   Diamond,
   Circle,
-  CircleDot
+  CircleDot,
+  Lightbulb,
+  Droplet,
+  Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Slider } from "@/components/ui/slider";
+
+// Interface para os parâmetros do modelo 3D
+interface ModelParameters {
+  color: string;
+  metalness: number;
+  roughness: number;
+  transmission: number;
+  thickness: number;
+  envMapIntensity: number;
+  clearcoat: number;
+  clearcoatRoughness: number;
+  ior: number;
+  reflectivity: number;
+  iridescence: number;
+  iridescenceIOR: number;
+  lightIntensity: number;
+}
+
+// Valores padrão para os parâmetros
+const defaultModelParams: ModelParameters = {
+  color: "#ffffff",
+  metalness: 0.2,
+  roughness: 0.01,
+  transmission: 0.98,
+  thickness: 1.0,
+  envMapIntensity: 2.5,
+  clearcoat: 1.0,
+  clearcoatRoughness: 0.01,
+  ior: 2.75,
+  reflectivity: 1.0,
+  iridescence: 0.3,
+  iridescenceIOR: 1.3,
+  lightIntensity: 1.5
+};
 
 const Admin = () => {
   const { toast } = useToast();
@@ -37,11 +75,22 @@ const Admin = () => {
   const [activeModel, setActiveModel] = useState(() => {
     return localStorage.getItem("preferredModel") || "diamond";
   });
+  
+  // Estados para os parâmetros do modelo
+  const [modelParams, setModelParams] = useState<ModelParameters>(() => {
+    const savedParams = localStorage.getItem("modelParameters");
+    return savedParams ? JSON.parse(savedParams) : defaultModelParams;
+  });
 
   // Salvar a preferência de modelo no localStorage quando mudar
   useEffect(() => {
     localStorage.setItem("preferredModel", activeModel);
   }, [activeModel]);
+  
+  // Salvar parâmetros do modelo no localStorage quando mudarem
+  useEffect(() => {
+    localStorage.setItem("modelParameters", JSON.stringify(modelParams));
+  }, [modelParams]);
 
   // Função para adicionar um novo modelo
   const handleModelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +144,16 @@ const Admin = () => {
     document.documentElement.style.setProperty('--accent', accentColor);
   };
 
+  // Função para salvar as configurações do modelo
+  const saveModelSettings = () => {
+    localStorage.setItem("modelParameters", JSON.stringify(modelParams));
+    
+    toast({
+      title: "Configurações do modelo salvas",
+      description: "Os parâmetros do modelo 3D foram atualizados com sucesso."
+    });
+  };
+
   // Função para remover um modelo
   const removeModel = (index: number) => {
     const newModels = [...uploadedModels];
@@ -124,6 +183,23 @@ const Admin = () => {
       description: `O modelo da página inicial foi alterado para ${modelType}.`
     });
   };
+  
+  // Função para atualizar um parâmetro do modelo
+  const updateModelParam = (param: keyof ModelParameters, value: number | string) => {
+    setModelParams(prev => ({
+      ...prev,
+      [param]: value
+    }));
+  };
+  
+  // Função para restaurar os valores padrão
+  const resetModelParams = () => {
+    setModelParams(defaultModelParams);
+    toast({
+      title: "Parâmetros resetados",
+      description: "Os parâmetros do modelo foram restaurados para os valores padrão."
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
@@ -144,11 +220,11 @@ const Admin = () => {
             <TabsTrigger value="models" className="flex items-center gap-2">
               <FileAxis3d size={18} /> Modelos 3D
             </TabsTrigger>
+            <TabsTrigger value="material" className="flex items-center gap-2">
+              <Droplet size={18} /> Material e Efeitos
+            </TabsTrigger>
             <TabsTrigger value="colors" className="flex items-center gap-2">
               <Palette size={18} /> Cores e Temas
-            </TabsTrigger>
-            <TabsTrigger value="layout" className="flex items-center gap-2">
-              <LayoutTemplate size={18} /> Layout
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings size={18} /> Configurações
@@ -280,6 +356,252 @@ const Admin = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </TabsContent>
+          
+          {/* Tab de Material e Efeitos */}
+          <TabsContent value="material" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-semibold">Material e Efeitos Visuais</h2>
+              <div className="flex gap-2">
+                <Button onClick={resetModelParams} variant="outline">
+                  Resetar
+                </Button>
+                <Button onClick={saveModelSettings} className="bg-purple-600 hover:bg-purple-700">
+                  Salvar Configurações
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6 p-6 bg-gray-800/50 rounded-lg">
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <Label className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: modelParams.color }}></div>
+                      Cor do Modelo
+                    </Label>
+                    <div 
+                      className="w-8 h-8 rounded cursor-pointer border border-white/20"
+                      style={{ backgroundColor: modelParams.color }}
+                      onClick={() => toggleColorPicker('modelColor')}
+                    />
+                  </div>
+                  {isColorPickerOpen === 'modelColor' && (
+                    <div className="mt-2 p-3 bg-gray-700 rounded-lg">
+                      <HexColorPicker 
+                        color={modelParams.color} 
+                        onChange={(color) => updateModelParam('color', color)} 
+                      />
+                      <div className="mt-2 flex gap-2">
+                        <Input 
+                          value={modelParams.color} 
+                          onChange={(e) => updateModelParam('color', e.target.value)}
+                          className="bg-gray-800 border-gray-600"
+                        />
+                        <Button 
+                          size="sm" 
+                          onClick={() => setIsColorPickerOpen(null)}
+                          className="bg-gray-600 hover:bg-gray-500"
+                        >
+                          <Check size={16} />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label className="flex items-center gap-2">
+                      <Lightbulb size={16} className="text-yellow-400" />
+                      Intensidade da Luz
+                    </Label>
+                    <span className="text-sm text-gray-400">{modelParams.lightIntensity.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0.1} 
+                    max={5} 
+                    step={0.1} 
+                    value={[modelParams.lightIntensity]} 
+                    onValueChange={(values) => updateModelParam('lightIntensity', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Metalicidade</Label>
+                    <span className="text-sm text-gray-400">{modelParams.metalness.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={1} 
+                    step={0.01} 
+                    value={[modelParams.metalness]} 
+                    onValueChange={(values) => updateModelParam('metalness', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Rugosidade</Label>
+                    <span className="text-sm text-gray-400">{modelParams.roughness.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={1} 
+                    step={0.01} 
+                    value={[modelParams.roughness]} 
+                    onValueChange={(values) => updateModelParam('roughness', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Transmissão</Label>
+                    <span className="text-sm text-gray-400">{modelParams.transmission.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={1} 
+                    step={0.01} 
+                    value={[modelParams.transmission]} 
+                    onValueChange={(values) => updateModelParam('transmission', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Espessura</Label>
+                    <span className="text-sm text-gray-400">{modelParams.thickness.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={5} 
+                    step={0.1} 
+                    value={[modelParams.thickness]} 
+                    onValueChange={(values) => updateModelParam('thickness', values[0])}
+                    className="my-4"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-6 p-6 bg-gray-800/50 rounded-lg">
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label className="flex items-center gap-2">
+                      <Sparkles size={16} className="text-blue-400" />
+                      Intensidade do Mapa Env
+                    </Label>
+                    <span className="text-sm text-gray-400">{modelParams.envMapIntensity.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={5} 
+                    step={0.1} 
+                    value={[modelParams.envMapIntensity]} 
+                    onValueChange={(values) => updateModelParam('envMapIntensity', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Camada Clara</Label>
+                    <span className="text-sm text-gray-400">{modelParams.clearcoat.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={1} 
+                    step={0.01} 
+                    value={[modelParams.clearcoat]} 
+                    onValueChange={(values) => updateModelParam('clearcoat', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Rugosidade da Camada Clara</Label>
+                    <span className="text-sm text-gray-400">{modelParams.clearcoatRoughness.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={1} 
+                    step={0.01} 
+                    value={[modelParams.clearcoatRoughness]} 
+                    onValueChange={(values) => updateModelParam('clearcoatRoughness', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Índice de Refração (IOR)</Label>
+                    <span className="text-sm text-gray-400">{modelParams.ior.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={1} 
+                    max={3.5} 
+                    step={0.01} 
+                    value={[modelParams.ior]} 
+                    onValueChange={(values) => updateModelParam('ior', values[0])}
+                    className="my-4"
+                  />
+                  <p className="text-xs text-gray-400">
+                    Referência: Vidro (1.5), Diamante (2.4), Água (1.3)
+                  </p>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Refletividade</Label>
+                    <span className="text-sm text-gray-400">{modelParams.reflectivity.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={1} 
+                    step={0.01} 
+                    value={[modelParams.reflectivity]} 
+                    onValueChange={(values) => updateModelParam('reflectivity', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>Efeito Iridescente</Label>
+                    <span className="text-sm text-gray-400">{modelParams.iridescence.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={0} 
+                    max={1} 
+                    step={0.01} 
+                    value={[modelParams.iridescence]} 
+                    onValueChange={(values) => updateModelParam('iridescence', values[0])}
+                    className="my-4"
+                  />
+                </div>
+                
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <Label>IOR Iridescente</Label>
+                    <span className="text-sm text-gray-400">{modelParams.iridescenceIOR.toFixed(2)}</span>
+                  </div>
+                  <Slider 
+                    min={1} 
+                    max={2.5} 
+                    step={0.01} 
+                    value={[modelParams.iridescenceIOR]} 
+                    onValueChange={(values) => updateModelParam('iridescenceIOR', values[0])}
+                    className="my-4"
+                  />
+                </div>
+              </div>
             </div>
           </TabsContent>
           
@@ -439,147 +761,6 @@ const Admin = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          {/* Tab de Layout */}
-          <TabsContent value="layout" className="space-y-6">
-            <h2 className="text-2xl font-semibold">Configurações de Layout</h2>
-            <p className="text-gray-400">Configure o layout do site, menus, e elementos visuais.</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 bg-gray-800/50 rounded-lg">
-                <h3 className="text-xl font-medium mb-4">Cabeçalho</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="logoImage">Logo do Site</Label>
-                    <div className="mt-1 flex items-center gap-2">
-                      <div className="h-12 w-12 bg-gray-700 rounded flex items-center justify-center text-gray-400">
-                        Logo
-                      </div>
-                      <Button variant="outline" size="sm" className="bg-transparent border-gray-600">
-                        Alterar Logo
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <Separator className="my-4 bg-gray-700" />
-                  
-                  <div>
-                    <Label>Itens do Menu</Label>
-                    <div className="mt-2 space-y-2">
-                      <div className="p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
-                        <span>Início</span>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <span className="sr-only">Mover</span>
-                            ⋮
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300">
-                            <X size={14} />
-                            <span className="sr-only">Remover</span>
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
-                        <span>Sobre</span>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <span className="sr-only">Mover</span>
-                            ⋮
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300">
-                            <X size={14} />
-                            <span className="sr-only">Remover</span>
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
-                        <span>Admin</span>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <span className="sr-only">Mover</span>
-                            ⋮
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300">
-                            <X size={14} />
-                            <span className="sr-only">Remover</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input placeholder="Novo item de menu" className="bg-gray-700/50 border-gray-600" />
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                        <Plus size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-4 bg-gray-800/50 rounded-lg">
-                <h3 className="text-xl font-medium mb-4">Rodapé</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="footerText">Texto do Rodapé</Label>
-                    <Input 
-                      id="footerText"
-                      defaultValue="© 2023 JESTFLY. Todos os direitos reservados."
-                      className="mt-1 bg-gray-700/50 border-gray-600"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Redes Sociais</Label>
-                    <div className="mt-2 space-y-2">
-                      <div className="p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
-                        <span>Instagram</span>
-                        <div className="flex gap-2">
-                          <Input 
-                            placeholder="URL" 
-                            defaultValue="https://instagram.com/jestfly"
-                            className="max-w-[180px] bg-gray-700 border-gray-600"
-                          />
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300">
-                            <X size={14} />
-                            <span className="sr-only">Remover</span>
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="p-2 bg-gray-700/50 rounded-lg flex justify-between items-center">
-                        <span>Twitter</span>
-                        <div className="flex gap-2">
-                          <Input 
-                            placeholder="URL" 
-                            defaultValue="https://twitter.com/jestfly"
-                            className="max-w-[180px] bg-gray-700 border-gray-600"
-                          />
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:text-red-300">
-                            <X size={14} />
-                            <span className="sr-only">Remover</span>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 mt-2">
-                      <Input placeholder="Nova rede social" className="bg-gray-700/50 border-gray-600" />
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                        <Plus size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                <Button className="w-full mt-4 bg-purple-600 hover:bg-purple-700">
-                  Salvar Configurações de Layout
-                </Button>
               </div>
             </div>
           </TabsContent>

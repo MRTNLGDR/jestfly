@@ -7,6 +7,40 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Link } from "react-router-dom";
 import { Settings } from "lucide-react";
 
+// Interface para os parâmetros do modelo 3D
+interface ModelParameters {
+  color: string;
+  metalness: number;
+  roughness: number;
+  transmission: number;
+  thickness: number;
+  envMapIntensity: number;
+  clearcoat: number;
+  clearcoatRoughness: number;
+  ior: number;
+  reflectivity: number;
+  iridescence: number;
+  iridescenceIOR: number;
+  lightIntensity: number;
+}
+
+// Valores padrão para os parâmetros
+const defaultModelParams: ModelParameters = {
+  color: "#ffffff",
+  metalness: 0.2,
+  roughness: 0.01,
+  transmission: 0.98,
+  thickness: 1.0,
+  envMapIntensity: 2.5,
+  clearcoat: 1.0,
+  clearcoatRoughness: 0.01,
+  ior: 2.75,
+  reflectivity: 1.0,
+  iridescence: 0.3,
+  iridescenceIOR: 1.3,
+  lightIntensity: 1.5
+};
+
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
@@ -14,6 +48,12 @@ const Index = () => {
   const [currentModel, setCurrentModel] = useState(() => {
     const savedModel = localStorage.getItem("preferredModel");
     return savedModel || "diamond";
+  });
+  
+  // Carregar parâmetros do modelo do localStorage
+  const [modelParams, setModelParams] = useState<ModelParameters>(() => {
+    const savedParams = localStorage.getItem("modelParameters");
+    return savedParams ? JSON.parse(savedParams) : defaultModelParams;
   });
 
   useEffect(() => {
@@ -39,7 +79,7 @@ const Index = () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.5; // Aumentado para mais brilho
+    renderer.toneMappingExposure = modelParams.lightIntensity;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     mountRef.current.appendChild(renderer.domElement);
     
@@ -50,20 +90,20 @@ const Index = () => {
     controls.autoRotate = true; // Habilitar rotação automática
     controls.autoRotateSpeed = 1.5; // Velocidade de rotação
     
-    // Material mais avançado para cristal com maior refração
+    // Material configurável baseado nos parâmetros
     const material = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0.2,
-      roughness: 0.01, // Mais liso para maior reflexão
-      transmission: 0.98, // Quase totalmente transparente
-      thickness: 1.0, // Aumentado para maior efeito de refração
-      envMapIntensity: 2.5, // Reflexão mais intensa
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.01,
-      ior: 2.75, // Índice de refração aumentado (diamante é ~2.4)
-      reflectivity: 1.0,
-      iridescence: 0.3, // Adiciona efeito arco-íris sutil
-      iridescenceIOR: 1.3
+      color: new THREE.Color(modelParams.color),
+      metalness: modelParams.metalness,
+      roughness: modelParams.roughness,
+      transmission: modelParams.transmission,
+      thickness: modelParams.thickness,
+      envMapIntensity: modelParams.envMapIntensity,
+      clearcoat: modelParams.clearcoat,
+      clearcoatRoughness: modelParams.clearcoatRoughness,
+      ior: modelParams.ior,
+      reflectivity: modelParams.reflectivity,
+      iridescence: modelParams.iridescence,
+      iridescenceIOR: modelParams.iridescenceIOR
     });
     
     // Inicialmente criamos um objeto vazio para representar nosso modelo
@@ -209,7 +249,7 @@ const Index = () => {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, modelParams.lightIntensity);
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
     
@@ -223,7 +263,7 @@ const Index = () => {
     ];
     
     positions.forEach((position, i) => {
-      const light = new THREE.PointLight(colors[i], 1.2, 15);
+      const light = new THREE.PointLight(colors[i], modelParams.lightIntensity * 0.8, 15);
       light.position.set(position[0], position[1], position[2]);
       scene.add(light);
     });
@@ -263,7 +303,37 @@ const Index = () => {
       scene.clear();
       renderer.dispose();
     };
-  }, [currentModel]);
+  }, [currentModel, modelParams]);
+  
+  // Verificar alterações nos parâmetros salvos no localStorage
+  useEffect(() => {
+    const checkForUpdates = () => {
+      const savedParams = localStorage.getItem("modelParameters");
+      if (savedParams) {
+        const newParams = JSON.parse(savedParams);
+        // Comparar com os parâmetros atuais para ver se precisa atualizar
+        if (JSON.stringify(newParams) !== JSON.stringify(modelParams)) {
+          setModelParams(newParams);
+        }
+      }
+      
+      const savedModel = localStorage.getItem("preferredModel");
+      if (savedModel && savedModel !== currentModel) {
+        setCurrentModel(savedModel);
+      }
+    };
+    
+    // Verificar a cada segundo por mudanças nos parâmetros (para quando admin estiver aberto em outra aba)
+    const interval = setInterval(checkForUpdates, 1000);
+    
+    // Adicionar event listener para o evento storage
+    window.addEventListener('storage', checkForUpdates);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', checkForUpdates);
+    };
+  }, [modelParams, currentModel]);
   
   return (
     <div className="relative h-screen w-full overflow-hidden bg-gradient-to-br from-gray-900 to-black">
