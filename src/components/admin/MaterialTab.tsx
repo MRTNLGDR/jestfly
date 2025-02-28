@@ -20,14 +20,11 @@ import {
   Upload, 
   Droplet,
   ImageIcon,
-  LucideIcon, 
   Info,
   LoaderIcon,
-  MountainSnow,
   Palette,
   Aperture,
   Layers,
-  SunMedium,
   CheckCircle2
 } from "lucide-react";
 import { ModelParameters, defaultModelParams, materialPresets, environmentPresets } from "@/types/model";
@@ -75,6 +72,20 @@ const MaterialTab = ({
   const [materialRef, setMaterialRef] = useState<THREE.MeshPhysicalMaterial | null>(null);
   const [customModel, setCustomModel] = useState<THREE.BufferGeometry | null>(null);
   
+  // Função adaptada para lidar com diferentes tipos de valores
+  const handleUpdateModelParam = (param: keyof ModelParameters, value: string | number | boolean) => {
+    // Para propriedades booleanas, use um método separado ou converta antes
+    if (typeof value === "boolean") {
+      // Algumas propriedades são booleanas e precisam ser tratadas de forma diferente
+      // Neste exemplo, atualizamos o modelParams diretamente
+      const newParams = { ...modelParams, [param]: value };
+      updateModelParam(param, value ? 1 : 0); // Convertendo boolean para número
+    } else {
+      // Para string e number, podemos passar diretamente
+      updateModelParam(param, value);
+    }
+  };
+  
   // Aplicar um preset de material
   const applyPreset = (presetId: string) => {
     const preset = materialPresets.find(p => p.id === presetId);
@@ -87,7 +98,13 @@ const MaterialTab = ({
     
     // Atualizar cada parâmetro individualmente para garantir que os componentes da UI atualizem
     Object.entries(updatedParams).forEach(([key, value]) => {
-      updateModelParam(key as keyof ModelParameters, value);
+      // Apenas atualize se o valor não for um boolean
+      if (typeof value !== "boolean") {
+        updateModelParam(key as keyof ModelParameters, value as string | number);
+      } else {
+        // Se for boolean, use a função adaptada
+        handleUpdateModelParam(key as keyof ModelParameters, value as boolean);
+      }
     });
     
     setToastMessage(`Preset de material "${preset.name}" aplicado com sucesso!`);
@@ -325,10 +342,16 @@ const MaterialTab = ({
     renderer.setSize(previewRef.current.clientWidth, previewRef.current.clientHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = modelParams.lightIntensity;
-    renderer.outputEncoding = THREE.sRGBEncoding;
+    
+    // Atualização: propriedades descontinuadas no Three.js r150+
+    // Substituir outputEncoding por outputColorSpace
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.physicallyCorrectLights = true;
+    
+    // Atualização: physicallyCorrectLights foi substituído por useLegacyLights em versões recentes
+    // e posteriormente removido completamente, agora é o comportamento padrão
+    
     setRendererRef(renderer);
     
     previewRef.current.appendChild(renderer.domElement);
@@ -504,7 +527,7 @@ const MaterialTab = ({
                     size="sm" 
                     variant="outline" 
                     className="h-7 px-2 text-xs bg-white/5 border-white/10 hover:bg-white/10"
-                    onClick={() => updateModelParam("wireframe", !modelParams.wireframe)}
+                    onClick={() => handleUpdateModelParam("wireframe", !modelParams.wireframe)}
                   >
                     {modelParams.wireframe ? <EyeOff size={14} className="mr-1" /> : <Eye size={14} className="mr-1" />}
                     {modelParams.wireframe ? "Ocultar Wireframe" : "Mostrar Wireframe"}
@@ -858,7 +881,7 @@ const MaterialTab = ({
                       <Switch
                         id="wireframe"
                         checked={modelParams.wireframe}
-                        onCheckedChange={(checked) => updateModelParam("wireframe", checked)}
+                        onCheckedChange={(checked) => handleUpdateModelParam("wireframe", checked)}
                       />
                     </div>
                     
@@ -903,7 +926,7 @@ const MaterialTab = ({
                       <Switch
                         id="transparent"
                         checked={modelParams.transparent}
-                        onCheckedChange={(checked) => updateModelParam("transparent", checked)}
+                        onCheckedChange={(checked) => handleUpdateModelParam("transparent", checked)}
                       />
                     </div>
                   
