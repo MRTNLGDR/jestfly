@@ -9,6 +9,29 @@ const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [modelLoaded, setModelLoaded] = useState(false);
   const [currentModel, setCurrentModel] = useState("diamond");
+  const [uploadedModel, setUploadedModel] = useState<File | null>(null);
+  const [uploadedModelUrl, setUploadedModelUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Criar URL para o arquivo carregado
+  useEffect(() => {
+    if (uploadedModel) {
+      const objectUrl = URL.createObjectURL(uploadedModel);
+      setUploadedModelUrl(objectUrl);
+      
+      // Limpar a URL quando o componente for desmontado
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    }
+  }, [uploadedModel]);
+
+  // Carregar o modelo se a URL mudar
+  useEffect(() => {
+    if (uploadedModelUrl && currentModel === "uploaded") {
+      setModelLoaded(false);
+    }
+  }, [uploadedModelUrl, currentModel]);
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -180,8 +203,17 @@ const Index = () => {
         createTorusModel();
         break;
       case "gltf":
-        // Substitua '/seu-modelo.gltf' pelo caminho do seu modelo
+        // Substitua pelo caminho do seu modelo na pasta public
         loadGLTFModel('/seu-modelo.gltf');
+        break;
+      case "uploaded":
+        // Usar o modelo carregado pelo usuário
+        if (uploadedModelUrl) {
+          loadGLTFModel(uploadedModelUrl);
+        } else {
+          // Fallback para o diamante se não houver modelo carregado
+          createDiamondGeometry();
+        }
         break;
       default:
         createDiamondGeometry();
@@ -262,13 +294,36 @@ const Index = () => {
       scene.clear();
       renderer.dispose();
     };
-  }, [currentModel]);
+  }, [currentModel, uploadedModelUrl]);
   
   // Funções para mudar o modelo
   const handleChangeModel = (modelType: string) => {
     console.log("Mudando para modelo:", modelType);
     setModelLoaded(false); // Mostrar indicador de carregamento
     setCurrentModel(modelType);
+  };
+  
+  // Função para tratar o upload de arquivo
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      console.log("Arquivo selecionado:", file);
+      
+      // Verificar se o arquivo é um GLTF ou GLB
+      if (file.name.endsWith('.gltf') || file.name.endsWith('.glb')) {
+        setUploadedModel(file);
+        handleChangeModel('uploaded');
+      } else {
+        alert('Por favor, selecione um arquivo GLTF ou GLB válido.');
+      }
+    }
+  };
+  
+  // Função para abrir o seletor de arquivo
+  const openFileSelector = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
   
   return (
@@ -283,7 +338,7 @@ const Index = () => {
           </p>
           
           {/* Controles para escolher o modelo */}
-          <div className="flex gap-3 justify-center mt-8">
+          <div className="flex flex-wrap gap-3 justify-center mt-8">
             <button 
               className={`px-4 py-2 rounded-md ${currentModel === 'diamond' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
               onClick={() => handleChangeModel('diamond')}
@@ -308,7 +363,31 @@ const Index = () => {
             >
               Modelo GLTF
             </button>
+            <button 
+              className={`px-4 py-2 rounded-md ${currentModel === 'uploaded' ? 'bg-white text-black' : 'bg-black/30 text-white border border-white/30'}`}
+              onClick={openFileSelector}
+            >
+              Carregar Modelo
+            </button>
+            
+            {/* Input para upload de arquivo (escondido) */}
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              className="hidden"
+              accept=".gltf,.glb"
+              onChange={handleFileUpload}
+            />
           </div>
+          
+          {/* Exibir o nome do arquivo carregado, se houver */}
+          {uploadedModel && (
+            <div className="mt-3 text-center">
+              <p className="text-sm opacity-80">
+                Modelo carregado: {uploadedModel.name}
+              </p>
+            </div>
+          )}
         </div>
       </div>
       
