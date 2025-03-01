@@ -67,14 +67,6 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
       </div>
       
-      {/* Main title without card behind */}
-      <div className="absolute z-10 flex items-center justify-center w-full h-full">
-        <h1 className="text-[5rem] sm:text-[8rem] md:text-[12rem] lg:text-[16rem] font-bold tracking-tighter text-white/20"
-            style={{ letterSpacing: '-0.05em' }}>
-          {title}
-        </h1>
-      </div>
-      
       {/* Crystal with z-index to appear in front of the title */}
       <div className="hero-crystal relative z-20 w-full h-3/4 flex items-center justify-center">
         <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl h-full">
