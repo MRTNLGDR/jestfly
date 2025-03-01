@@ -9,25 +9,26 @@ import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
 
 function App() {
-  // Crystal parameters with customized values for enhanced hyper-realistic effect
+  // Crystal parameters with customized values for enhanced futuristic effect
   const crystalParams = {
     ...defaultModelParams,
     color: "#ffffff", // Pure white base color for better refraction
-    metalness: 0.1, // Slight metalness for better reflections
+    metalness: 0.2, // Slight metalness for better reflections
     roughness: 0.01, // Ultra smooth surface for crisp reflections
-    transmission: 0.99, // Near perfect transmission for glass effect
+    transmission: 0.98, // Near perfect transmission for glass effect
     thickness: 0.8, // Increased thickness for more internal refraction
-    envMapIntensity: 3.0, // Boosted reflections to showcase neon environment
+    envMapIntensity: 5.0, // Boosted reflections to showcase neon environment
     clearcoat: 1.0, // Maximum clearcoat for extra glossiness
     clearcoatRoughness: 0.0, // Perfect clearcoat smoothness
-    ior: 2.33, // Higher index of refraction for diamond-like effect
-    iridescence: 0.9, // Strong iridescence for color shifts
-    iridescenceIOR: 1.8, // Enhanced iridescence refraction
+    ior: 2.5, // Higher index of refraction for diamond-like effect
+    iridescence: 1.0, // Strong iridescence for color shifts
+    iridescenceIOR: 2.0, // Enhanced iridescence refraction
     transparent: true,
-    opacity: 0.75, // Reduced opacity for better text visibility
+    opacity: 0.8, // Reduced opacity for better visual effect
     reflectivity: 1.0, // Maximum reflectivity
-    emissiveIntensity: 0.05, // Slight emission for added glow
-    emissiveColor: "#8B5CF6" // Subtle purple emission color
+    emissiveIntensity: 0.08, // Slight emission for added glow
+    emissiveColor: "#8B5CF6", // Subtle purple emission color
+    lightIntensity: 5.0 // Brighter lights to enhance the model
   };
   
   // Gallery images
@@ -52,18 +53,31 @@ function App() {
         <Routes>
           <Route path="/" element={
             <>
-              {/* Hero section with hyper-realistic 3D crystal and purple title */}
+              {/* Hero section with futuristic crystal and Nike-inspired layout */}
               <CrystalHero 
                 title="JESTFLY" 
-                subtitle="Descubra efeitos de vidro hiper-realista"
+                subtitle="FUTURE.TECH"
                 crystalParams={crystalParams}
               />
+              
+              {/* Quick facts marquee like Nike's site */}
+              <div className="w-full bg-black py-4 border-t border-b border-white/10 overflow-hidden">
+                <div className="marquee-container">
+                  <div className="marquee-content">
+                    QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS
+                  </div>
+                </div>
+              </div>
               
               {/* Gallery section with small crystal overlays */}
               <CrystalGallery images={galleryImages} />
               
-              {/* Cyber menu at the bottom of the screen */}
-              <CyberMenu items={menuItems} />
+              {/* Footer text */}
+              <div className="w-full py-6 flex justify-between px-8 text-white/70 text-xs uppercase tracking-widest bg-black/80">
+                <div>DON'T.RUN</div>
+                <div>JESTFLY.CNCPT</div>
+                <div>JUST.FLY</div>
+              </div>
             </>
           } />
           
