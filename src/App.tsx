@@ -12,7 +12,11 @@ import EventsSection from './components/EventsSection';
 import ConnectionSection from './components/ConnectionSection';
 import ShopPreview from './components/ShopPreview';
 import Footer from './components/Footer';
-import RoadmapSection from './components/RoadmapSection'; // Import the new component
+import RoadmapSection from './components/RoadmapSection';
+import { AuthProvider } from './contexts/AuthContext';
+import Auth from './pages/Auth';
+import Profile from './pages/Profile';
+import { Toaster } from './components/ui/toaster';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -49,59 +53,67 @@ function App() {
     { label: 'Início', href: '/' },
     { label: 'Galeria', href: '/galeria' },
     { label: 'Sobre', href: '/sobre' },
+    { label: 'Profile', href: '/profile' },
     { label: 'Admin', href: '/admin' },
   ];
   
   return (
-    <Router>
-      <div className="app">
-        <GlassHeader />
-        <Routes>
-          <Route path="/" element={
-            <>
-              {/* Hero section with futuristic crystal and Nike-inspired layout */}
-              <CrystalHero 
-                title="JESTFLY" 
-                subtitle="FUTURE.TECH"
-                crystalParams={crystalParams}
-              />
-              
-              {/* Quick facts marquee like Nike's site */}
-              <div className="w-full bg-black py-4 border-t border-b border-white/10 overflow-hidden">
-                <div className="marquee-container">
-                  <div className="marquee-content">
-                    QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS
+    <AuthProvider>
+      <Router>
+        <div className="app">
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/" element={
+              <>
+                <GlassHeader />
+                {/* Hero section with futuristic crystal and Nike-inspired layout */}
+                <CrystalHero 
+                  title="JESTFLY" 
+                  subtitle="FUTURE.TECH"
+                  crystalParams={crystalParams}
+                />
+                
+                {/* Quick facts marquee like Nike's site */}
+                <div className="w-full bg-black py-4 border-t border-b border-white/10 overflow-hidden">
+                  <div className="marquee-container">
+                    <div className="marquee-content">
+                      QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* NFT Section */}
-              <NFTSection />
-              
-              {/* Events Section */}
-              <EventsSection />
-              
-              {/* Gallery section with small crystal overlays */}
-              <CrystalGallery images={galleryImages} />
-              
-              {/* Shop Categories Preview */}
-              <ShopPreview />
-              
-              {/* NEW: Roadmap Section */}
-              <RoadmapSection />
-              
-              {/* Connection/Newsletter Section */}
-              <ConnectionSection />
-              
-              {/* Footer */}
-              <Footer />
-            </>
-          } />
+                
+                {/* NFT Section */}
+                <NFTSection />
+                
+                {/* Events Section */}
+                <EventsSection />
+                
+                {/* Gallery section with small crystal overlays */}
+                <CrystalGallery images={galleryImages} />
+                
+                {/* Shop Categories Preview */}
+                <ShopPreview />
+                
+                {/* Roadmap Section */}
+                <RoadmapSection />
+                
+                {/* Connection/Newsletter Section */}
+                <ConnectionSection />
+                
+                {/* Footer */}
+                <Footer />
+              </>
+            } />
+            
+            <Route path="/admin" element={<AdminPanel />} />
+          </Routes>
           
-          <Route path="/admin" element={<AdminPanel />} />
-        </Routes>
-      </div>
-    </Router>
+          <CyberMenu items={menuItems} />
+          <Toaster />
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
