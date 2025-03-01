@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Cube, Layers, Palette, Image, Video, Package, Brush } from 'lucide-react';
+import { Box, Layers, Palette, Image, Video, Package, Brush } from 'lucide-react';
 import NFTModel from '../components/NFTModel';
 
 const ResourcesPage: React.FC = () => {
@@ -11,7 +10,7 @@ const ResourcesPage: React.FC = () => {
     {
       title: '3D Models',
       description: 'Premium 3D models for your creative projects',
-      icon: <Cube className="h-10 w-10 text-purple-500" />,
+      icon: <Box className="h-10 w-10 text-purple-500" />,
       modelType: '001',
       bgColor: 'from-purple-900/20 to-indigo-900/30',
       link: '/templates/models'

@@ -11,10 +11,10 @@ import RoadmapSection from '../components/RoadmapSection';
 import Footer from '../components/Footer';
 import ArtistShowcase from '../components/ArtistShowcase';
 import JestCoinTicker from '../components/JestCoinTicker';
-import { ModelParams } from '../types/modelParameters';
+import { ModelParameters } from '../types/modelParameters';
 
 interface HomePageProps {
-  crystalParams: ModelParams;
+  crystalParams: ModelParameters;
   galleryImages: { src: string; alt: string; crystalPosition: 'default' | 'bottom-left' | 'center' }[];
 }
 
@@ -41,7 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({ crystalParams, galleryImages }) => 
           </div>
         </div>
         <div className="hero-crystal">
-          <CrystalHero params={crystalParams} />
+          <CrystalHero crystalParams={crystalParams} />
         </div>
       </section>
 
