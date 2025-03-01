@@ -9,7 +9,7 @@ import ModelGallery from '../components/admin/ModelGallery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Separator } from '../components/ui/separator';
 import GlassHeader from '../components/GlassHeader';
-import JestCoinManager from '../components/admin/JestCoinManager';
+import JestCoinManager from '../components/admin/jest-coin/JestCoinManager';
 import RaffleManager from '../components/admin/RaffleManager';
 
 const AdminPanel = () => {
