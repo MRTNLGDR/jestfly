@@ -1,272 +1,223 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 export const AuthForm: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, signUp } = useAuth();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Login state
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: '',
-  });
-  
-  // Register state
-  const [registerData, setRegisterData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    username: '',
-    fullName: '',
-  });
-
-  const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLoginData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setRegisterData(prev => ({ ...prev, [name]: value }));
-  };
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    try {
-      const { error } = await signIn(loginData.email, loginData.password);
-      
-      if (error) {
-        toast({
-          title: "Login failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
-      }
-    } catch (err) {
+    if (!email || !password) {
       toast({
-        title: "Login failed",
-        description: "An unexpected error occurred",
-        variant: "destructive",
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Validate passwords match
-    if (registerData.password !== registerData.confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match",
-        variant: "destructive",
-      });
-      setIsLoading(false);
       return;
     }
     
+    setIsSubmitting(true);
+    
     try {
-      const { error } = await signUp(
-        registerData.email, 
-        registerData.password, 
-        {
-          username: registerData.username,
-          full_name: registerData.fullName
-        }
-      );
+      const { error } = await signIn(email, password);
       
       if (error) {
         toast({
-          title: "Registration failed",
-          description: error.message,
-          variant: "destructive",
+          title: "Authentication Error",
+          description: error.message || "Failed to sign in",
+          variant: "destructive"
         });
-      } else {
-        toast({
-          title: "Registration successful",
-          description: "Please check your email to verify your account",
-        });
+        return;
       }
-    } catch (err) {
+      
       toast({
-        title: "Registration failed",
+        title: "Success!",
+        description: "You've been logged in successfully"
+      });
+      
+      navigate('/');
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "Authentication Error",
         description: "An unexpected error occurred",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password || !fullName) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await signUp(email, password, { full_name: fullName });
+      
+      if (error) {
+        toast({
+          title: "Registration Error",
+          description: error.message || "Failed to create account",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      toast({
+        title: "Account Created",
+        description: "Your account has been created successfully. Please check your email for verification."
+      });
+      
+      setActiveTab('login');
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast({
+        title: "Registration Error",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <Card className="w-full max-w-md mx-auto neo-blur border-white/10">
-      <Tabs defaultValue="login">
-        <CardHeader>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
-          </TabsList>
-          <CardDescription className="mt-2 text-center">
-            Join the JESTFLY community
-          </CardDescription>
-        </CardHeader>
+    <Card className="w-full max-w-md p-6 bg-black/40 backdrop-blur-md border-gray-800">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="login">Login</TabsTrigger>
+          <TabsTrigger value="register">Register</TabsTrigger>
+        </TabsList>
         
-        <CardContent>
-          <TabsContent value="login">
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
+        <TabsContent value="login">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">Email</label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
+                className="bg-black/50"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium">Password</label>
+              <div className="relative">
                 <Input
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  value={loginData.email}
-                  onChange={handleLoginChange}
-                  required
-                  className="bg-black/40 border-white/20"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
+                  className="bg-black/50 pr-10"
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
-              
-              <div className="space-y-2">
-                <Input
-                  name="password"
-                  type="password"
-                  placeholder="Password"
-                  value={loginData.password}
-                  onChange={handleLoginChange}
-                  required
-                  className="bg-black/40 border-white/20"
-                />
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-purple-600 hover:bg-purple-700"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Logging in...' : 'Login'}
-              </Button>
-            </form>
-          </TabsContent>
-          
-          <TabsContent value="register">
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-2">
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  value={registerData.email}
-                  onChange={handleRegisterChange}
-                  required
-                  className="bg-black/40 border-white/20"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Input
-                  name="username"
-                  type="text"
-                  placeholder="Username"
-                  value={registerData.username}
-                  onChange={handleRegisterChange}
-                  required
-                  className="bg-black/40 border-white/20"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Input
-                  name="fullName"
-                  type="text"
-                  placeholder="Full Name"
-                  value={registerData.fullName}
-                  onChange={handleRegisterChange}
-                  required
-                  className="bg-black/40 border-white/20"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Input
-                  name="password"
-                  type="password"
-                  placeholder="Password"
-                  value={registerData.password}
-                  onChange={handleRegisterChange}
-                  required
-                  className="bg-black/40 border-white/20"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Input
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Confirm Password"
-                  value={registerData.confirmPassword}
-                  onChange={handleRegisterChange}
-                  required
-                  className="bg-black/40 border-white/20"
-                />
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="w-full bg-purple-600 hover:bg-purple-700"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating Account...' : 'Register'}
-              </Button>
-            </form>
-          </TabsContent>
-        </CardContent>
+            </div>
+            
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
+            </Button>
+          </form>
+        </TabsContent>
         
-        <CardFooter className="flex flex-col space-y-4">
-          <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
+        <TabsContent value="register">
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="register-email" className="text-sm font-medium">Email</label>
+              <Input
+                id="register-email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
+                className="bg-black/50"
+              />
             </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-background px-2 text-white/60">
-                or continue with
-              </span>
+            
+            <div className="space-y-2">
+              <label htmlFor="fullName" className="text-sm font-medium">Full Name</label>
+              <Input
+                id="fullName"
+                type="text"
+                placeholder="Enter your full name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                disabled={isSubmitting}
+                className="bg-black/50"
+              />
             </div>
-          </div>
-          
-          <div className="flex gap-2 w-full">
-            <Button 
-              variant="outline" 
-              className="w-full bg-black/40 border-white/20 hover:bg-white/10"
-              disabled={isLoading}
-            >
-              Google
+            
+            <div className="space-y-2">
+              <label htmlFor="register-password" className="text-sm font-medium">Password</label>
+              <div className="relative">
+                <Input
+                  id="register-password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isSubmitting}
+                  className="bg-black/50 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full bg-black/40 border-white/20 hover:bg-white/10"
-              disabled={isLoading}
-            >
-              Discord
-            </Button>
-          </div>
-        </CardFooter>
+          </form>
+        </TabsContent>
       </Tabs>
     </Card>
   );

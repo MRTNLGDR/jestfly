@@ -1,218 +1,236 @@
 
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import GlassHeader from '@/components/GlassHeader';
-import { User, Settings, LogOut, Image, Mail } from 'lucide-react';
+import Footer from '@/components/Footer';
 
-const Profile: React.FC = () => {
-  const { user, profile, signOut, refreshProfile, isLoading } = useAuth();
-  const { toast } = useToast();
-  const [isUpdating, setIsUpdating] = useState(false);
+const Profile = () => {
+  const { user, profile, isLoading, signOut, refreshProfile } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
     fullName: '',
+    username: '',
     bio: '',
+    avatarUrl: ''
   });
-  
-  // Update form data when profile loads
-  React.useEffect(() => {
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
     if (profile) {
       setFormData({
-        username: profile.username || '',
         fullName: profile.full_name || '',
+        username: profile.username || '',
         bio: profile.bio || '',
+        avatarUrl: profile.avatar_url || ''
       });
     }
   }, [profile]);
-  
+
   // Redirect to login if not authenticated
   if (!isLoading && !user) {
     return <Navigate to="/auth" replace />;
   }
-  
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUpdating(true);
+
+  const handleSave = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
     
     try {
       const { error } = await supabase
         .from('profiles')
         .update({
-          username: formData.username,
           full_name: formData.fullName,
+          username: formData.username,
           bio: formData.bio,
-          updated_at: new Date().toISOString(),
+          avatar_url: formData.avatarUrl,
+          updated_at: new Date().toISOString()
         })
-        .eq('id', user?.id);
+        .eq('id', user.id);
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       await refreshProfile();
       
       toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated",
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated."
       });
+      
+      setIsEditing(false);
     } catch (error: any) {
+      console.error('Error updating profile:', error);
       toast({
-        title: "Update failed",
+        title: "Error",
         description: error.message || "Failed to update profile",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
-      setIsUpdating(false);
+      setIsSaving(false);
     }
   };
-  
+
+  const handleLogout = async () => {
+    await signOut();
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out."
+    });
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
         <div className="w-12 h-12 border-t-2 border-purple-500 rounded-full animate-spin"></div>
+        <p className="mt-4 text-white/60">Loading profile...</p>
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-black">
       <GlassHeader />
       
-      <div className="container mx-auto px-4 pt-24 pb-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Left sidebar */}
-            <div className="w-full md:w-1/3">
-              <Card className="neo-blur border-white/10 bg-black/40 overflow-hidden">
-                <CardHeader className="pb-2">
-                  <CardTitle>Account</CardTitle>
-                  <CardDescription>Manage your account settings</CardDescription>
-                </CardHeader>
-                
-                <CardContent className="pt-6">
-                  <div className="flex flex-col items-center">
-                    <div className="w-24 h-24 rounded-full bg-purple-900/30 flex items-center justify-center mb-4 border border-white/10">
-                      {profile?.avatar_url ? (
-                        <img 
-                          src={profile.avatar_url} 
-                          alt="Avatar" 
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <User className="w-10 h-10 text-white/60" />
-                      )}
+      <main className="container max-w-4xl mx-auto px-4 py-12">
+        <div className="flex flex-col items-center justify-center">
+          <Avatar className="w-24 h-24 mb-6">
+            {profile?.avatar_url ? (
+              <AvatarImage src={profile.avatar_url} alt={profile?.full_name || 'User'} />
+            ) : (
+              <AvatarFallback className="bg-purple-900 text-xl">
+                {profile?.full_name?.charAt(0) || profile?.username?.charAt(0) || 'U'}
+              </AvatarFallback>
+            )}
+          </Avatar>
+          
+          <Card className="w-full bg-black/40 backdrop-blur-md border-gray-800">
+            <CardHeader>
+              <CardTitle className="text-center">Your Profile</CardTitle>
+              <CardDescription className="text-center">
+                View and manage your JESTFLY profile
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              {isEditing ? (
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="fullName" className="block text-sm font-medium mb-1">Full Name</label>
+                    <Input
+                      id="fullName"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      className="bg-black/50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="username" className="block text-sm font-medium mb-1">Username</label>
+                    <Input
+                      id="username"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      className="bg-black/50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="bio" className="block text-sm font-medium mb-1">Bio</label>
+                    <Textarea
+                      id="bio"
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleChange}
+                      rows={4}
+                      className="bg-black/50"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="avatarUrl" className="block text-sm font-medium mb-1">Avatar URL</label>
+                    <Input
+                      id="avatarUrl"
+                      name="avatarUrl"
+                      value={formData.avatarUrl}
+                      onChange={handleChange}
+                      className="bg-black/50"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-4 pt-4">
+                    <Button onClick={handleSave} disabled={isSaving} className="flex-1">
+                      {isSaving ? 'Saving...' : 'Save Changes'}
+                    </Button>
+                    <Button variant="secondary" onClick={() => setIsEditing(false)} className="flex-1">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">Email</h3>
+                      <p className="mt-1">{user?.email}</p>
                     </div>
                     
-                    <h3 className="text-xl font-medium">{profile?.username || 'User'}</h3>
-                    <p className="text-white/60 text-sm mt-1">{user?.email}</p>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">Full Name</h3>
+                      <p className="mt-1">{profile?.full_name || 'Not set'}</p>
+                    </div>
                     
-                    <div className="w-full mt-6 space-y-2">
-                      <Button variant="outline" className="w-full justify-start bg-black/40 border-white/20 hover:bg-white/10">
-                        <Settings size={16} className="mr-2" />
-                        Account Settings
-                      </Button>
-                      
-                      <Button variant="outline" className="w-full justify-start bg-black/40 border-white/20 hover:bg-white/10">
-                        <Image size={16} className="mr-2" />
-                        Change Avatar
-                      </Button>
-                      
-                      <Button variant="outline" className="w-full justify-start bg-black/40 border-white/20 hover:bg-white/10">
-                        <Mail size={16} className="mr-2" />
-                        Email Preferences
-                      </Button>
-                      
-                      <Button 
-                        variant="destructive" 
-                        className="w-full justify-start mt-4"
-                        onClick={signOut}
-                      >
-                        <LogOut size={16} className="mr-2" />
-                        Sign Out
-                      </Button>
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">Username</h3>
+                      <p className="mt-1">{profile?.username || 'Not set'}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-400">Member Since</h3>
+                      <p className="mt-1">
+                        {profile?.created_at
+                          ? new Date(profile.created_at).toLocaleDateString()
+                          : 'Unknown'}
+                      </p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Main content */}
-            <div className="w-full md:w-2/3">
-              <Card className="neo-blur border-white/10 bg-black/40">
-                <CardHeader>
-                  <CardTitle>Profile Information</CardTitle>
-                  <CardDescription>Update your profile details</CardDescription>
-                </CardHeader>
-                
-                <form onSubmit={handleUpdateProfile}>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <label htmlFor="username" className="text-sm font-medium text-white/70">
-                        Username
-                      </label>
-                      <Input
-                        id="username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        className="bg-black/40 border-white/20"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="fullName" className="text-sm font-medium text-white/70">
-                        Full Name
-                      </label>
-                      <Input
-                        id="fullName"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleChange}
-                        className="bg-black/40 border-white/20"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="bio" className="text-sm font-medium text-white/70">
-                        Bio
-                      </label>
-                      <textarea
-                        id="bio"
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleChange}
-                        rows={4}
-                        className="w-full rounded-md bg-black/40 border-white/20 p-3 text-sm"
-                      />
-                    </div>
-                  </CardContent>
                   
-                  <CardFooter>
-                    <Button 
-                      type="submit" 
-                      className="bg-purple-600 hover:bg-purple-700"
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? 'Saving...' : 'Save Changes'}
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">Bio</h3>
+                    <p className="mt-1">{profile?.bio || 'No bio yet'}</p>
+                  </div>
+                  
+                  <div className="flex space-x-4 pt-4">
+                    <Button onClick={() => setIsEditing(true)} className="flex-1">
+                      Edit Profile
                     </Button>
-                  </CardFooter>
-                </form>
-              </Card>
-            </div>
-          </div>
+                    <Button variant="destructive" onClick={handleLogout} className="flex-1">
+                      Logout
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </main>
+      
+      <Footer />
     </div>
   );
 };
