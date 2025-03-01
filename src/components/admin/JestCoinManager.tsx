@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Coins, User, ArrowUpRight, ArrowDownRight, Users, Search } from 'lucide-react';
+import { Coins, User, ArrowUpRight, ArrowDownRight, Users, Search, CircleDollarSign, ArrowRight } from 'lucide-react';
 
 const JestCoinManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,6 +27,19 @@ const JestCoinManager: React.FC = () => {
     { id: 'user4', username: 'sarahw', fullName: 'Sarah Wilson', email: 'sarah@example.com', balance: 300, joined: '2023-09-15T00:00:00' },
     { id: 'user5', username: 'roberta', fullName: 'Robert Adams', email: 'robert@example.com', balance: 850, joined: '2023-09-20T00:00:00' }
   ];
+  
+  // Current exchange rates
+  const jestCoinValue = {
+    usd: 0.25, // $0.25 USD per JestCoin
+    eth: 0.0000125 // ETH per JestCoin
+  };
+  
+  // Total JestCoins in circulation
+  const totalJestCoins = 3500;
+  
+  // Calculate total market cap
+  const marketCapUsd = totalJestCoins * jestCoinValue.usd;
+  const marketCapEth = totalJestCoins * jestCoinValue.eth;
   
   // Filter users based on search term
   const filteredUsers = users.filter(user => 
@@ -49,7 +62,7 @@ const JestCoinManager: React.FC = () => {
   
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-gradient-to-br from-yellow-900/40 to-yellow-800/20 border-yellow-700/30">
           <CardContent className="flex items-center p-6">
             <div className="bg-yellow-500/20 p-3 rounded-full mr-4">
@@ -57,7 +70,33 @@ const JestCoinManager: React.FC = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-white/60">Total JestCoins</p>
-              <h3 className="text-2xl font-bold">3,500</h3>
+              <h3 className="text-2xl font-bold">{totalJestCoins.toLocaleString()}</h3>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-green-900/40 to-green-800/20 border-green-700/30">
+          <CardContent className="flex items-center p-6">
+            <div className="bg-green-500/20 p-3 rounded-full mr-4">
+              <CircleDollarSign className="h-8 w-8 text-green-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/60">JestCoin Value</p>
+              <h3 className="text-2xl font-bold">${jestCoinValue.usd.toFixed(2)}</h3>
+              <p className="text-xs text-white/40 mt-1">{jestCoinValue.eth.toFixed(7)} ETH</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-purple-900/40 to-purple-800/20 border-purple-700/30">
+          <CardContent className="flex items-center p-6">
+            <div className="bg-purple-500/20 p-3 rounded-full mr-4">
+              <ArrowRight className="h-8 w-8 text-purple-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white/60">Market Cap</p>
+              <h3 className="text-2xl font-bold">${marketCapUsd.toLocaleString()}</h3>
+              <p className="text-xs text-white/40 mt-1">{marketCapEth.toFixed(4)} ETH</p>
             </div>
           </CardContent>
         </Card>
@@ -70,18 +109,7 @@ const JestCoinManager: React.FC = () => {
             <div>
               <p className="text-sm font-medium text-white/60">Active Users</p>
               <h3 className="text-2xl font-bold">52</h3>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-green-900/40 to-green-800/20 border-green-700/30">
-          <CardContent className="flex items-center p-6">
-            <div className="bg-green-500/20 p-3 rounded-full mr-4">
-              <ArrowUpRight className="h-8 w-8 text-green-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white/60">Redemption Rate</p>
-              <h3 className="text-2xl font-bold">68%</h3>
+              <p className="text-xs text-white/40 mt-1">({((52 / 100) * 100).toFixed(0)}% growth)</p>
             </div>
           </CardContent>
         </Card>
@@ -104,6 +132,8 @@ const JestCoinManager: React.FC = () => {
                   <TableRow>
                     <TableHead>User</TableHead>
                     <TableHead>Amount</TableHead>
+                    <TableHead>Value (USD)</TableHead>
+                    <TableHead>Value (ETH)</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Reason</TableHead>
                     <TableHead>Date</TableHead>
@@ -122,6 +152,12 @@ const JestCoinManager: React.FC = () => {
                           )}
                           {transaction.amount}
                         </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        ${(transaction.amount * jestCoinValue.usd).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {(transaction.amount * jestCoinValue.eth).toFixed(6)}
                       </TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs ${
@@ -217,6 +253,8 @@ const JestCoinManager: React.FC = () => {
                     <TableHead>Full Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Balance</TableHead>
+                    <TableHead>Value (USD)</TableHead>
+                    <TableHead>Value (ETH)</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -229,6 +267,12 @@ const JestCoinManager: React.FC = () => {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <span className="font-mono font-bold">{user.balance}</span>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-green-400">
+                        ${(user.balance * jestCoinValue.usd).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm text-purple-400">
+                        {(user.balance * jestCoinValue.eth).toFixed(6)}
                       </TableCell>
                       <TableCell>{new Date(user.joined).toLocaleDateString()}</TableCell>
                       <TableCell>
