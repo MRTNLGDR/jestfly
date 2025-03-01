@@ -35,7 +35,7 @@ function App() {
   
   return (
     <div className="app">
-      {/* Hero section with hyper-realistic 3D crystal */}
+      {/* Hero section with hyper-realistic 3D crystal and purple title */}
       <CrystalHero 
         title="JESTFLY" 
         subtitle="Descubra efeitos de vidro hiper-realista"

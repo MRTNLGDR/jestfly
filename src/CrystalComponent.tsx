@@ -69,8 +69,8 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
     scene.add(edgeLight2);
     
     // Create classic faceted crystal geometry - using diamond-like shape
-    // Using DiamondGeometry with more pronounced facets
-    const geometry = new THREE.OctahedronGeometry(1, 2); // Change to octahedron for classic diamond look
+    // Using OctahedronGeometry with more pronounced facets
+    const geometry = new THREE.OctahedronGeometry(1, 2); // Octahedron for classic diamond look
     
     // Load environment map for reflections
     const cubeTextureLoader = new THREE.CubeTextureLoader();
