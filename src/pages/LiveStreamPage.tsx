@@ -1,561 +1,236 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import React, { useState } from 'react';
+import { Video, User, Users, Instagram } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../components/ui/tooltip';
 import Footer from '../components/Footer';
-import { 
-  Video, Mic, MicOff, Camera, CameraOff, 
-  Cast, Facebook, Instagram, Youtube, 
-  MessageSquare, Users, Settings, Info
-} from 'lucide-react';
-import { supabase } from '../integrations/supabase/client';
-
-interface Comment {
-  id: string;
-  platform: 'facebook' | 'instagram' | 'youtube' | 'app';
-  author: string;
-  content: string;
-  timestamp: Date;
-  avatar?: string;
-}
-
-const MOCK_COMMENTS: Comment[] = [
-  {
-    id: '1',
-    platform: 'facebook',
-    author: 'Mark Johnson',
-    content: 'Awesome set! 🔥',
-    timestamp: new Date(Date.now() - 120000),
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
-  },
-  {
-    id: '2',
-    platform: 'instagram',
-    author: 'dj_maria',
-    content: 'Love the new tracks!',
-    timestamp: new Date(Date.now() - 80000),
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-  },
-  {
-    id: '3',
-    platform: 'youtube',
-    author: 'ElectroFan99',
-    content: 'What\'s the name of this track?',
-    timestamp: new Date(Date.now() - 45000),
-    avatar: 'https://randomuser.me/api/portraits/men/67.jpg',
-  },
-  {
-    id: '4',
-    platform: 'app',
-    author: 'JESTFLYer',
-    content: 'Streaming quality is amazing!',
-    timestamp: new Date(Date.now() - 20000),
-    avatar: 'https://randomuser.me/api/portraits/women/22.jpg',
-  },
-];
 
 const LiveStreamPage: React.FC = () => {
-  const { t } = useLanguage();
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [isMicOn, setIsMicOn] = useState(true);
-  const [isCameraOn, setIsCameraOn] = useState(true);
-  const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [viewers, setViewers] = useState({ facebook: 0, instagram: 0, youtube: 0, app: 0 });
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  
-  useEffect(() => {
-    // Initialize with mock comments
-    setComments(MOCK_COMMENTS);
-    
-    // Mock viewer counts
-    const viewerInterval = setInterval(() => {
-      setViewers(prev => ({
-        facebook: prev.facebook + (Math.random() > 0.5 ? 1 : 0),
-        instagram: prev.instagram + (Math.random() > 0.5 ? 1 : 0),
-        youtube: prev.youtube + (Math.random() > 0.5 ? 1 : 0),
-        app: prev.app + (Math.random() > 0.7 ? 1 : 0),
-      }));
-    }, 5000);
-    
-    // Mock comment stream
-    const commentInterval = setInterval(() => {
-      if (isStreaming) {
-        const platforms = ['facebook', 'instagram', 'youtube', 'app'] as const;
-        const randomPlatform = platforms[Math.floor(Math.random() * platforms.length)];
-        
-        const newComment: Comment = {
-          id: Date.now().toString(),
-          platform: randomPlatform,
-          author: `User${Math.floor(Math.random() * 1000)}`,
-          content: [
-            'Great music!', 
-            'Love the vibes!', 
-            'Where\'s your next show?', 
-            '🔥🔥🔥', 
-            'Can you play some techno?',
-            'Greetings from Brazil!',
-            'This drop is insane',
-            'Following you now!'
-          ][Math.floor(Math.random() * 8)],
-          timestamp: new Date(),
-          avatar: `https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 70)}.jpg`,
-        };
-        
-        setComments(prev => [newComment, ...prev].slice(0, 50));
-      }
-    }, 8000);
-    
-    return () => {
-      clearInterval(viewerInterval);
-      clearInterval(commentInterval);
-      stopMediaStream();
-    };
-  }, [isStreaming]);
-  
-  const startMediaStream = async () => {
-    try {
-      const constraints = {
-        audio: isMicOn,
-        video: isCameraOn ? { width: 1280, height: 720 } : false
+  const [isLive, setIsLive] = useState(true);
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, user: 'Fan123', message: 'Love the new tracks!', time: '2:05 PM' },
+    { id: 2, user: 'MusicLover42', message: 'When is the album dropping?', time: '2:06 PM' },
+    { id: 3, user: 'JestFlyFan', message: '🔥🔥🔥', time: '2:08 PM' },
+    { id: 4, user: 'BeatMaster', message: 'That bass line is incredible', time: '2:10 PM' },
+    { id: 5, user: 'Melody_Queen', message: 'Greetings from Brazil! 🇧🇷', time: '2:12 PM' },
+  ]);
+  const [newMessage, setNewMessage] = useState('');
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newMessage.trim()) {
+      const newMsg = {
+        id: chatMessages.length + 1,
+        user: 'You',
+        message: newMessage,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      mediaStreamRef.current = stream;
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error accessing media devices:', error);
-      return false;
+      setChatMessages([...chatMessages, newMsg]);
+      setNewMessage('');
     }
   };
-  
-  const stopMediaStream = () => {
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      mediaStreamRef.current = null;
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-    }
-  };
-  
-  const toggleStreaming = async () => {
-    if (!isStreaming) {
-      // Start streaming
-      const success = await startMediaStream();
-      if (success) {
-        setIsStreaming(true);
-      }
-    } else {
-      // Stop streaming
-      stopMediaStream();
-      setIsStreaming(false);
-    }
-  };
-  
-  const togglePlatform = (platform: string) => {
-    setConnectedPlatforms(prev => 
-      prev.includes(platform)
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
-    );
-  };
-  
-  const toggleMic = () => {
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getAudioTracks().forEach(track => {
-        track.enabled = !isMicOn;
-      });
-    }
-    setIsMicOn(!isMicOn);
-  };
-  
-  const toggleCamera = () => {
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getVideoTracks().forEach(track => {
-        track.enabled = !isCameraOn;
-      });
-    }
-    setIsCameraOn(!isCameraOn);
-  };
-  
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'facebook':
-        return <Facebook className="h-5 w-5" />;
-      case 'instagram':
-        return <Instagram className="h-5 w-5" />;
-      case 'youtube':
-        return <Youtube className="h-5 w-5" />;
-      default:
-        return <MessageSquare className="h-5 w-5" />;
-    }
-  };
-  
-  const formatTimestamp = (date: Date) => {
-    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  };
-  
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-blue-900 text-white">
-      <div className="container mx-auto pt-32 px-4 pb-20">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4">{t('live.title')}</h1>
-          <p className="text-xl text-blue-300 mb-2">{t('live.connect')}</p>
-          <p className="text-white/70 max-w-2xl mx-auto">{t('live.platforms')}</p>
+    <div className="min-h-screen bg-black text-white pt-20">
+      <div className="container mx-auto px-4 pb-20">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold">JESTFLY Livestream</h1>
+          {isLive ? (
+            <div className="flex items-center">
+              <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-2"></span>
+              <span className="text-red-500 font-medium">LIVE NOW</span>
+            </div>
+          ) : (
+            <div className="text-gray-500">Offline</div>
+          )}
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main stream area */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden">
-              <div className="aspect-video bg-black relative">
-                {isStreaming ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
+          {/* Main video stream */}
+          <div className="lg:col-span-2">
+            <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden">
+              <div className="aspect-video">
+                {isLive ? (
+                  <img 
+                    src="/assets/imagem1.jpg" 
+                    alt="Livestream" 
                     className="w-full h-full object-cover"
-                  ></video>
+                  />
                 ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <Cast className="h-20 w-20 text-white/20 mb-4" />
-                    <p className="text-white/50 text-lg">Your stream will appear here</p>
+                  <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                    <div className="text-center">
+                      <Video className="mx-auto mb-3 text-gray-600" size={48} />
+                      <p className="text-gray-400">Stream is currently offline</p>
+                      <p className="text-gray-500 text-sm mt-2">Check back later or subscribe for notifications</p>
+                    </div>
                   </div>
-                )}
-                
-                {/* Stream info overlay */}
-                {isStreaming && (
-                  <>
-                    <div className="absolute top-4 left-4 bg-black/50 px-3 py-1 rounded-full flex items-center">
-                      <span className="h-3 w-3 rounded-full bg-red-500 animate-pulse mr-2"></span>
-                      <span className="text-sm font-medium">LIVE</span>
-                    </div>
-                    
-                    <div className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full flex items-center">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span className="text-sm font-medium">
-                        {Object.values(viewers).reduce((a, b) => a + b, 0)} viewers
-                      </span>
-                    </div>
-                  </>
                 )}
               </div>
               
-              <div className="p-4 flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    onClick={toggleMic}
-                    variant="outline"
-                    className={`border ${isMicOn ? 'border-blue-500' : 'border-red-500'}`}
-                    size="sm"
-                  >
-                    {isMicOn ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-                  </Button>
-                  
-                  <Button
-                    onClick={toggleCamera}
-                    variant="outline"
-                    className={`border ${isCameraOn ? 'border-blue-500' : 'border-red-500'}`}
-                    size="sm"
-                  >
-                    {isCameraOn ? <Camera className="h-4 w-4" /> : <CameraOff className="h-4 w-4" />}
-                  </Button>
-                  
-                  <div className="h-8 mx-2 border-l border-white/20"></div>
-                  
-                  {['facebook', 'instagram', 'youtube'].map((platform) => (
-                    <TooltipProvider key={platform}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={() => togglePlatform(platform)}
-                            variant="outline"
-                            size="sm"
-                            className={`border ${connectedPlatforms.includes(platform) ? 'border-green-500 bg-green-900/20' : 'border-white/20'}`}
-                          >
-                            {getPlatformIcon(platform)}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-black/90 border border-blue-500 text-white">
-                          {connectedPlatforms.includes(platform) 
-                            ? `Disconnect from ${platform}` 
-                            : `Connect to ${platform}`}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  ))}
+              {/* Video controls overlay */}
+              {isLive && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex space-x-3">
+                      <button className="text-white hover:text-gray-300 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                      </button>
+                      <div className="flex items-center space-x-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                        </svg>
+                        <div className="w-20 h-1 bg-gray-600 rounded-full overflow-hidden">
+                          <div className="w-3/4 h-full bg-white rounded-full"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex space-x-3">
+                      <button className="text-white hover:text-gray-300 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+                        </svg>
+                      </button>
+                      <button className="text-white hover:text-gray-300 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                      </button>
+                      <button className="text-white hover:text-gray-300 focus:outline-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                
-                <Button
-                  onClick={toggleStreaming}
-                  className={isStreaming 
-                    ? "bg-red-600 hover:bg-red-700" 
-                    : "bg-blue-600 hover:bg-blue-700"}
-                >
-                  <Video className="h-5 w-5 mr-2" />
-                  {isStreaming ? "End Stream" : t('live.start')}
+              )}
+            </div>
+            
+            {/* Stream info */}
+            <div className="mt-4">
+              <h2 className="text-xl font-bold">Studio Session - New Album Preview</h2>
+              <div className="flex items-center mt-2">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                  <User size={18} />
+                </div>
+                <div className="ml-3">
+                  <div className="text-white font-medium">JESTFLY Official</div>
+                  <div className="text-white/60 text-xs">2.3M followers</div>
+                </div>
+                <Button className="ml-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+                  Follow
                 </Button>
+              </div>
+              <div className="mt-4 bg-gray-900/60 rounded-lg p-4">
+                <p className="text-white/80">
+                  Welcome to our studio session livestream! We're giving you a sneak peek at some tracks from our upcoming album. Drop your questions in the chat and we'll try to answer them during the Q&A segment.
+                </p>
+                <div className="flex items-center mt-4 text-sm text-white/60">
+                  <div className="flex items-center mr-4">
+                    <Users size={16} className="mr-1" />
+                    <span>1.2K watching</span>
+                  </div>
+                  <div>Started streaming 45 minutes ago</div>
+                </div>
               </div>
             </div>
             
-            {/* Stream stats */}
-            <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-lg p-4">
-              <h3 className="text-lg font-medium mb-4">Stream Statistics</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-3 bg-black/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white/70">App</span>
-                    <span className="text-white font-medium">{viewers.app}</span>
-                  </div>
-                  <div className="w-full bg-white/10 rounded-full h-1">
-                    <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${(viewers.app / (Object.values(viewers).reduce((a, b) => a + b, 0) || 1)) * 100}%` }}></div>
-                  </div>
-                </div>
-                
-                <div className="p-3 bg-black/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white/70">Facebook</span>
-                    <span className="text-white font-medium">{viewers.facebook}</span>
-                  </div>
-                  <div className="w-full bg-white/10 rounded-full h-1">
-                    <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${(viewers.facebook / (Object.values(viewers).reduce((a, b) => a + b, 0) || 1)) * 100}%` }}></div>
-                  </div>
-                </div>
-                
-                <div className="p-3 bg-black/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white/70">Instagram</span>
-                    <span className="text-white font-medium">{viewers.instagram}</span>
-                  </div>
-                  <div className="w-full bg-white/10 rounded-full h-1">
-                    <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${(viewers.instagram / (Object.values(viewers).reduce((a, b) => a + b, 0) || 1)) * 100}%` }}></div>
-                  </div>
-                </div>
-                
-                <div className="p-3 bg-black/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white/70">YouTube</span>
-                    <span className="text-white font-medium">{viewers.youtube}</span>
-                  </div>
-                  <div className="w-full bg-white/10 rounded-full h-1">
-                    <div className="bg-blue-500 h-1 rounded-full" style={{ width: `${(viewers.youtube / (Object.values(viewers).reduce((a, b) => a + b, 0) || 1)) * 100}%` }}></div>
-                  </div>
-                </div>
+            {/* Instagram cross-posting */}
+            <div className="mt-6 bg-gradient-to-r from-purple-900/40 to-pink-900/40 rounded-lg p-4 border border-purple-500/30">
+              <div className="flex items-center">
+                <Instagram size={20} className="text-pink-400 mr-2" />
+                <h3 className="text-white font-medium">Share to Instagram</h3>
+                <Button size="sm" variant="outline" className="ml-auto text-xs border-white/20 text-white hover:bg-white/10">
+                  Post Highlight
+                </Button>
               </div>
             </div>
           </div>
           
-          {/* Comment section */}
-          <div className="space-y-6">
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden flex flex-col h-[600px]">
-              <Tabs defaultValue="all" className="w-full flex-1 flex flex-col">
-                <div className="px-4 pt-4">
-                  <h3 className="text-lg font-medium mb-3">{t('live.comments')}</h3>
-                  <TabsList className="grid grid-cols-4 w-full">
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    <TabsTrigger value="facebook">{t('live.facebook')}</TabsTrigger>
-                    <TabsTrigger value="instagram">{t('live.instagram')}</TabsTrigger>
-                    <TabsTrigger value="youtube">{t('live.youtube')}</TabsTrigger>
-                  </TabsList>
-                </div>
-                
-                <TabsContent value="all" className="flex-1 flex flex-col mt-0">
-                  <div className="p-4 flex-1 overflow-y-auto space-y-4">
-                    {comments.map((comment) => (
-                      <div key={comment.id} className="flex items-start gap-3">
-                        <div className="relative">
-                          <img 
-                            src={comment.avatar || `https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 70)}.jpg`} 
-                            alt={comment.author} 
-                            className="w-8 h-8 rounded-full"
-                          />
-                          <div className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-black">
-                            {getPlatformIcon(comment.platform)}
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <span className="font-medium">{comment.author}</span>
-                            <span className="text-xs text-white/50">{formatTimestamp(comment.timestamp)}</span>
-                          </div>
-                          <p className="text-white/80">{comment.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-4 border-t border-white/10">
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Type a message..."
-                        className="flex-1 bg-black/50 border border-white/20 rounded-lg px-3 py-2 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
-                      />
-                      <Button variant="ghost" className="bg-blue-600 hover:bg-blue-700 px-3">
-                        <MessageSquare className="h-5 w-5" />
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="facebook" className="flex-1 flex flex-col mt-0">
-                  <div className="p-4 flex-1 overflow-y-auto space-y-4">
-                    {comments.filter(c => c.platform === 'facebook').map((comment) => (
-                      <div key={comment.id} className="flex items-start gap-3">
-                        <div className="relative">
-                          <img src={comment.avatar} alt={comment.author} className="w-8 h-8 rounded-full" />
-                          <div className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-black">
-                            <Facebook className="h-4 w-4 text-blue-500" />
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <span className="font-medium">{comment.author}</span>
-                            <span className="text-xs text-white/50">{formatTimestamp(comment.timestamp)}</span>
-                          </div>
-                          <p className="text-white/80">{comment.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-4 border-t border-white/10">
-                    <div className="rounded-lg bg-white/10 p-3 text-center text-white/60">
-                      <Facebook className="h-5 w-5 inline-block mr-2" />
-                      Comments are synchronized from Facebook
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="instagram" className="flex-1 flex flex-col mt-0">
-                  <div className="p-4 flex-1 overflow-y-auto space-y-4">
-                    {comments.filter(c => c.platform === 'instagram').map((comment) => (
-                      <div key={comment.id} className="flex items-start gap-3">
-                        <div className="relative">
-                          <img src={comment.avatar} alt={comment.author} className="w-8 h-8 rounded-full" />
-                          <div className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-black">
-                            <Instagram className="h-4 w-4 text-pink-500" />
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <span className="font-medium">{comment.author}</span>
-                            <span className="text-xs text-white/50">{formatTimestamp(comment.timestamp)}</span>
-                          </div>
-                          <p className="text-white/80">{comment.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-4 border-t border-white/10">
-                    <div className="rounded-lg bg-white/10 p-3 text-center text-white/60">
-                      <Instagram className="h-5 w-5 inline-block mr-2" />
-                      Comments are synchronized from Instagram
-                    </div>
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="youtube" className="flex-1 flex flex-col mt-0">
-                  <div className="p-4 flex-1 overflow-y-auto space-y-4">
-                    {comments.filter(c => c.platform === 'youtube').map((comment) => (
-                      <div key={comment.id} className="flex items-start gap-3">
-                        <div className="relative">
-                          <img src={comment.avatar} alt={comment.author} className="w-8 h-8 rounded-full" />
-                          <div className="absolute -bottom-1 -right-1 p-0.5 rounded-full bg-black">
-                            <Youtube className="h-4 w-4 text-red-500" />
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <span className="font-medium">{comment.author}</span>
-                            <span className="text-xs text-white/50">{formatTimestamp(comment.timestamp)}</span>
-                          </div>
-                          <p className="text-white/80">{comment.content}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-4 border-t border-white/10">
-                    <div className="rounded-lg bg-white/10 p-3 text-center text-white/60">
-                      <Youtube className="h-5 w-5 inline-block mr-2" />
-                      Comments are synchronized from YouTube
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+          {/* Chat section */}
+          <div className="bg-gray-900/60 rounded-lg overflow-hidden border border-white/10 flex flex-col h-[600px]">
+            <div className="p-3 border-b border-white/10 flex items-center justify-between">
+              <h3 className="font-medium">Live Chat</h3>
+              <div className="flex items-center text-sm text-white/60">
+                <Users size={16} className="mr-1" />
+                <span>1.2K</span>
+              </div>
             </div>
             
-            <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-lg p-4">
-              <h3 className="text-lg font-medium mb-4">Connection Guide</h3>
-              <div className="space-y-3">
-                <div className="flex items-start gap-2">
-                  <div className="bg-blue-900/30 p-2 rounded-lg">
-                    <div className="h-6 w-6 text-blue-400 flex items-center justify-center font-bold">1</div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatMessages.map((msg) => (
+                <div key={msg.id} className="flex">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-xs flex-shrink-0">
+                    {msg.user.charAt(0)}
                   </div>
-                  <div>
-                    <p className="font-medium">Connect Your Accounts</p>
-                    <p className="text-sm text-white/70">Link your social media accounts in settings</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-2">
-                  <div className="bg-blue-900/30 p-2 rounded-lg">
-                    <div className="h-6 w-6 text-blue-400 flex items-center justify-center font-bold">2</div>
-                  </div>
-                  <div>
-                    <p className="font-medium">Select Platforms</p>
-                    <p className="text-sm text-white/70">Choose where you want to broadcast</p>
+                  <div className="ml-2">
+                    <div className="flex items-baseline">
+                      <span className="font-medium text-sm">{msg.user}</span>
+                      <span className="ml-2 text-white/40 text-xs">{msg.time}</span>
+                    </div>
+                    <p className="text-white/80 text-sm">{msg.message}</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start gap-2">
-                  <div className="bg-blue-900/30 p-2 rounded-lg">
-                    <div className="h-6 w-6 text-blue-400 flex items-center justify-center font-bold">3</div>
+              ))}
+            </div>
+            
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-white/10">
+              <div className="flex">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1 bg-gray-800 border border-white/10 rounded-l-lg px-3 py-2 text-white placeholder-white/40 focus:outline-none"
+                  placeholder="Send a message..."
+                />
+                <Button type="submit" className="rounded-l-none">
+                  Send
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        {/* Upcoming streams */}
+        <div className="mt-12">
+          <h3 className="text-xl font-bold mb-4">Upcoming Livestreams</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((stream) => (
+              <div key={stream} className="bg-gray-900/60 rounded-lg overflow-hidden border border-white/10 group hover:border-purple-500/50 transition-all">
+                <div className="aspect-video bg-gray-800 relative">
+                  <img src="/assets/imagem1.jpg" alt={`Stream preview ${stream}`} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-3">
+                    <div>
+                      <div className="text-white/70 text-xs">
+                        {stream === 1 ? 'Tomorrow, 8:00 PM' : stream === 2 ? 'Saturday, 7:30 PM' : 'Sunday, 9:00 PM'}
+                      </div>
+                      <div className="font-medium text-white">
+                        {stream === 1 ? 'Q&A Session' : stream === 2 ? 'Backstage Tour' : 'Music Producers Roundtable'}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">Start Streaming</p>
-                    <p className="text-sm text-white/70">Press the Start Stream button to go live on all platforms</p>
+                </div>
+                <div className="p-3 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                      <User size={14} />
+                    </div>
+                    <div className="ml-2 text-sm">JESTFLY</div>
                   </div>
+                  <Button size="sm" variant="outline" className="text-xs border-white/20 text-white hover:bg-white/10">
+                    Remind
+                  </Button>
                 </div>
               </div>
-              
-              <Button className="w-full mt-4" variant="outline">
-                <Settings className="h-4 w-4 mr-2" />
-                Configure Stream Settings
-              </Button>
-            </div>
+            ))}
           </div>
         </div>
       </div>
-      
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 rounded-full h-14 w-14 flex items-center justify-center">
-              <Info className="h-6 w-6" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left" className="bg-black/90 border border-blue-500 text-white max-w-md p-4">
-            <h3 className="font-bold mb-2">Live Streaming Help</h3>
-            <p className="text-sm mb-2">
-              Stream directly to your fans and simultaneously broadcast to Facebook, Instagram, and YouTube.
-            </p>
-            <p className="text-sm">
-              Comments from all platforms are synchronized in one place, making it easy to interact with your audience.
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      
       <Footer />
     </div>
   );
