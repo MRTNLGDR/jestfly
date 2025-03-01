@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CrystalComponent from '../CrystalComponent';
 import { ModelParameters, defaultModelParams } from '../types/model';
 import { Calendar } from 'lucide-react';
@@ -20,7 +20,21 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
   className = "",
 }) => {
   const isMobile = useIsMobile();
-  const [isPlayerMinimized, setIsPlayerMinimized] = useState(false);
+  const [isPlayerMinimized, setIsPlayerMinimized] = useState(true);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  
+  // Listen to scroll events
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollPosition(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  // Determine if player should be in hero (top) or fixed (bottom) position
+  const isHeroVisible = scrollPosition < window.innerHeight * 0.8;
   
   return (
     <section className={`hero relative h-screen flex flex-col pt-20 overflow-hidden ${className}`}>
@@ -65,13 +79,24 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
       </div>
       
-      {/* Glass audio player - repositioned lower but still in the hero section */}
-      <div className="absolute bottom-16 left-0 right-0 mx-auto z-30 w-full max-w-xs sm:max-w-sm hover:transform hover:translate-y-[-5px] transition-transform duration-300">
-        <GlassAudioPlayer 
-          isMinimized={isPlayerMinimized}
-          setIsMinimized={setIsPlayerMinimized}
-        />
-      </div>
+      {/* Pulsating audio player - positioned based on scroll */}
+      {isHeroVisible ? (
+        // In hero position (top right)
+        <div className="absolute top-[30%] right-28 z-30">
+          <GlassAudioPlayer 
+            isMinimized={isPlayerMinimized}
+            setIsMinimized={setIsPlayerMinimized}
+          />
+        </div>
+      ) : (
+        // Fixed position (bottom right)
+        <div className="fixed bottom-6 right-6 z-50">
+          <GlassAudioPlayer 
+            isMinimized={true}
+            setIsMinimized={setIsPlayerMinimized}
+          />
+        </div>
+      )}
       
       {/* Footer information - simplified on mobile */}
       <div className="absolute bottom-6 left-0 right-0 px-4 sm:px-6 z-30 flex justify-between items-center text-xs text-white/70">
