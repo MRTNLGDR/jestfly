@@ -4,6 +4,8 @@ import CrystalComponent from '../CrystalComponent';
 import { ModelParameters, defaultModelParams } from '../types/model';
 import { Calendar } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
+import SoundCloudPlayer from './SoundCloudPlayer';
+import { useState, useEffect } from 'react';
 
 interface CrystalHeroProps {
   title?: string;
@@ -19,6 +21,21 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
   className = "",
 }) => {
   const isMobile = useIsMobile();
+  const [isPlayerMinimized, setIsPlayerMinimized] = useState(false);
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  
+  // Load the SoundCloud Widget API
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://w.soundcloud.com/player/api.js';
+    script.async = true;
+    script.onload = () => setScriptLoaded(true);
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
   
   return (
     <section className={`hero relative h-screen flex flex-col pt-20 overflow-hidden ${className}`}>
@@ -48,7 +65,17 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
       </div>
       
-      {/* Main title behind crystal - adjusted for mobile */}
+      {/* SoundCloud Player above title */}
+      <div className="relative z-30 w-full max-w-md mx-auto mt-14 mb-4 px-4">
+        {scriptLoaded && (
+          <SoundCloudPlayer 
+            isMinimized={isPlayerMinimized}
+            setIsMinimized={setIsPlayerMinimized}
+          />
+        )}
+      </div>
+      
+      {/* Main title without card behind */}
       <div className="absolute z-10 flex items-center justify-center w-full h-full">
         <h1 className="text-[5rem] sm:text-[8rem] md:text-[12rem] lg:text-[16rem] font-bold tracking-tighter text-white/20"
             style={{ letterSpacing: '-0.05em' }}>

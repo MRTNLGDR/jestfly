@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Volume2, VolumeX, X, Disc } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
@@ -136,10 +137,10 @@ const SoundCloudPlayer: React.FC<SoundCloudPlayerProps> = ({
       >
         <button
           onClick={() => setIsMinimized(false)}
-          className="relative w-12 h-12 bg-black/30 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/10 shadow-lg"
+          className="relative w-12 h-12 backdrop-blur-xl bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white shadow-lg"
         >
           {isHovered && (
-            <div className="absolute -top-8 whitespace-nowrap bg-black/50 backdrop-blur-md px-2 py-1 rounded text-xs">
+            <div className="absolute -top-8 whitespace-nowrap bg-black/30 backdrop-blur-md px-2 py-1 rounded text-xs">
               {isPlaying ? 'Playing' : 'Paused'} • Click to expand
             </div>
           )}
@@ -158,13 +159,13 @@ const SoundCloudPlayer: React.FC<SoundCloudPlayerProps> = ({
   }
 
   return (
-    <div className={`fixed ${isMinimized ? 'bottom-6 right-6 w-12 h-12' : 'top-16 left-1/2 -translate-x-1/2 w-[320px]'} z-50 transition-all duration-300`}>
-      <div className="neo-blur rounded-lg overflow-hidden border border-white/10 shadow-2xl">
-        <div className="p-2 flex items-center justify-between bg-black/40">
+    <div className="w-full max-w-md mx-auto z-30">
+      <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+        <div className="p-2 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <button
               onClick={togglePlay}
-              className="w-8 h-8 rounded-full bg-purple-500/30 flex items-center justify-center hover:bg-purple-500/50 transition-colors"
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
             >
               {isPlaying ? (
                 <Pause className="h-4 w-4 text-white" />
@@ -175,7 +176,7 @@ const SoundCloudPlayer: React.FC<SoundCloudPlayerProps> = ({
             
             <button
               onClick={toggleMute}
-              className="w-8 h-8 rounded-full bg-black/30 flex items-center justify-center hover:bg-black/50 transition-colors"
+              className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
             >
               {isMuted ? (
                 <VolumeX className="h-4 w-4 text-white" />
@@ -186,23 +187,23 @@ const SoundCloudPlayer: React.FC<SoundCloudPlayerProps> = ({
           </div>
           
           <div className="text-xs text-white/80 font-medium tracking-wider">
-            JESTFLY PLAYER
+            SOUNDCLOUD PLAYER
           </div>
           
           <button
             onClick={() => setIsMinimized(true)}
-            className="w-8 h-8 rounded-full bg-black/30 flex items-center justify-center hover:bg-black/50 transition-colors"
+            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
           >
             <X className="h-4 w-4 text-white" />
           </button>
         </div>
         
-        <div className="h-[166px] bg-black/10">
+        <div className="h-[100px] bg-black/10">
           <iframe
             ref={audioRef}
             title="SoundCloud Player"
             width="100%" 
-            height="166" 
+            height="100" 
             scrolling="no" 
             frameBorder="no" 
             allow="autoplay"
