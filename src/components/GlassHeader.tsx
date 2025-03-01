@@ -1,13 +1,9 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Diamond, ChevronRight, Plus, Minus, User } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from './ui/button';
+import { Diamond, ChevronRight, Plus, Minus } from 'lucide-react';
 
 const GlassHeader: React.FC = () => {
-  const { user, isLoading } = useAuth();
-  
   return (
     <header className="fixed top-0 left-0 w-full z-50">
       <div className="max-w-full mx-auto px-6 py-4">
@@ -60,27 +56,15 @@ const GlassHeader: React.FC = () => {
               <Minus className="h-5 w-5" />
             </button>
             
-            {!isLoading && (
-              user ? (
-                <Link 
-                  to="/profile" 
-                  className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
-                >
-                  <User className="h-4 w-4 mr-1" />
-                  <span className="text-sm font-medium">Profile</span>
-                </Link>
-              ) : (
-                <Link 
-                  to="/auth" 
-                  className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
-                >
-                  <span className="text-sm font-medium uppercase">Login</span>
-                  <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                    <ChevronRight className="h-3 w-3 text-black" />
-                  </div>
-                </Link>
-              )
-            )}
+            <Link 
+              to="/order" 
+              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
+            >
+              <span className="text-sm font-medium uppercase">Pre-order</span>
+              <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                <ChevronRight className="h-3 w-3 text-black" />
+              </div>
+            </Link>
           </div>
         </div>
       </div>

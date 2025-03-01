@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -82,20 +83,19 @@ const Index = () => {
           .from('models')
           .select('*')
           .eq('is_active', true)
-          .limit(1);
+          .maybeSingle();
         
         if (error) throw error;
         
-        if (data && data.length > 0) {
-          const activeModel = data[0];
-          console.log("Modelo ativo encontrado:", activeModel);
-          localStorage.setItem("preferredModel", activeModel.model_type);
-          setCurrentModel(activeModel.model_type);
+        if (data) {
+          console.log("Modelo ativo encontrado:", data);
+          localStorage.setItem("preferredModel", data.model_type);
+          setCurrentModel(data.model_type);
           
-          if (activeModel.model_type === 'sketchfab' && activeModel.url) {
-            setSketchfabUrl(activeModel.url);
-            setSketchfabModelData(activeModel);
-            localStorage.setItem("sketchfabUrl", activeModel.url);
+          if (data.model_type === 'sketchfab' && data.url) {
+            setSketchfabUrl(data.url);
+            setSketchfabModelData(data);
+            localStorage.setItem("sketchfabUrl", data.url);
           }
         }
       } catch (error) {
