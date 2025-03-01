@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Link as LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import GoldCoin3D from './GoldCoin3D';
 
 interface JestCoinTickerProps {
   className?: string;
@@ -35,7 +36,9 @@ const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact
     // Compact ticker for smaller spaces
     return (
       <div className={`inline-flex items-center px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 ${className}`}>
-        <span className="font-mono text-xs mr-1">JEST</span>
+        <div className="mr-1">
+          <GoldCoin3D size={20} />
+        </div>
         <span className="font-mono text-xs">
           ${price.toFixed(4)}
         </span>
@@ -49,8 +52,8 @@ const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact
   // Full ticker with more details
   return (
     <Link to="/airdrop" className={`group flex items-center p-2 rounded-lg bg-black/30 backdrop-blur-sm border border-white/10 hover:border-purple-500/50 transition-all ${className}`}>
-      <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center mr-3">
-        <span className="text-xs font-bold">JEST</span>
+      <div className="w-10 h-10 relative mr-3 flex items-center justify-center">
+        <GoldCoin3D size={40} />
       </div>
       
       <div>
