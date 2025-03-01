@@ -22,8 +22,26 @@ import DemoSubmissionPage from './pages/DemoSubmissionPage';
 import LiveStreamPage from './pages/LiveStreamPage';
 import PressKitPage from './pages/PressKitPage';
 import LanguageProvider from './contexts/LanguageContext';
+import { useEffect, useState } from 'react';
+import SoundCloudPlayer from './components/SoundCloudPlayer';
 
 function App() {
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+  const [isPlayerMinimized, setIsPlayerMinimized] = useState(false);
+  
+  // Load the SoundCloud Widget API
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://w.soundcloud.com/player/api.js';
+    script.async = true;
+    script.onload = () => setScriptLoaded(true);
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+  
   // Crystal parameters with customized values for enhanced futuristic effect
   const crystalParams = {
     ...defaultModelParams,
@@ -82,6 +100,14 @@ function App() {
             <Route path="/press-kit" element={<PressKitPage />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Routes>
+          
+          {/* SoundCloud Player */}
+          {scriptLoaded && (
+            <SoundCloudPlayer 
+              isMinimized={isPlayerMinimized}
+              setIsMinimized={setIsPlayerMinimized}
+            />
+          )}
         </div>
       </Router>
     </LanguageProvider>

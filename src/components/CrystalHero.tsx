@@ -31,10 +31,12 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       
       {/* Side captions - hidden on mobile */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">bangers only</h2>
-        <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
-          <p>IT'S ALWAYS TIME</p>
-          <p>TO ENJOY</p>
+        <div className="neo-blur p-3 rounded-lg mb-3">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">bangers only</h2>
+          <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
+            <p>IT'S ALWAYS TIME</p>
+            <p>TO ENJOY</p>
+          </div>
         </div>
       </div>
       
