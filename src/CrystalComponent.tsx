@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { ModelParameters, defaultModelParams } from './types/model';
@@ -15,6 +14,8 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
     
     // Initialize scene, camera, and renderer
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a0a); // Extremely dark background
+    
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
     
@@ -29,34 +30,44 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.5; // Slightly increased exposure
     containerRef.current.appendChild(renderer.domElement);
     
-    // Advanced lighting setup for neon environment
-    const ambientLight = new THREE.AmbientLight(0x222222, parameters.lightIntensity || 0.5);
+    // Minimal ambient light to keep the center darker
+    const ambientLight = new THREE.AmbientLight(0x111111, 0.3); // Reduced intensity
     scene.add(ambientLight);
     
-    // Purple directional light (left side)
-    const purpleLight = new THREE.DirectionalLight(0x8B5CF6, parameters.lightIntensity || 2);
+    // Purple directional light (left side) - more focused on edges
+    const purpleLight = new THREE.DirectionalLight(0x8B5CF6, parameters.lightIntensity || 3);
     purpleLight.position.set(-5, 3, 5);
+    purpleLight.castShadow = true;
     scene.add(purpleLight);
     
-    // Green directional light (right side)
-    const greenLight = new THREE.DirectionalLight(0x2ecc71, parameters.lightIntensity || 2);
+    // Green directional light (right side) - more focused on edges
+    const greenLight = new THREE.DirectionalLight(0x2ecc71, parameters.lightIntensity || 3);
     greenLight.position.set(5, -3, 5);
+    greenLight.castShadow = true;
     scene.add(greenLight);
     
-    // Add point lights for extra neon effect
-    const purplePointLight = new THREE.PointLight(0xD946EF, 2, 10);
-    purplePointLight.position.set(-1, 2, 2);
+    // Add more focused point lights for neon edge effect
+    const purplePointLight = new THREE.PointLight(0xD946EF, 5, 8); // Increased intensity, reduced distance
+    purplePointLight.position.set(-1.5, 2, 2);
     scene.add(purplePointLight);
     
-    const greenPointLight = new THREE.PointLight(0x4ade80, 2, 10);
-    greenPointLight.position.set(2, -1, 3);
+    const greenPointLight = new THREE.PointLight(0x4ade80, 5, 8); // Increased intensity, reduced distance
+    greenPointLight.position.set(2, -1.5, 2);
     scene.add(greenPointLight);
     
-    // Create crystal geometry - using polyhedron for more interesting facets
-    // Diamond-like geometry with multiple facets for enhanced refraction effects
+    // Add extra small point lights to enhance edges
+    const edgeLight1 = new THREE.PointLight(0xD946EF, 2, 3);
+    edgeLight1.position.set(-1, -1, 2);
+    scene.add(edgeLight1);
+    
+    const edgeLight2 = new THREE.PointLight(0x4ade80, 2, 3);
+    edgeLight2.position.set(1, 1, 2);
+    scene.add(edgeLight2);
+    
+    // Create crystal geometry with more defined edges
     const geometry = new THREE.DodecahedronGeometry(1, 2);
     
     // Load environment map for reflections
@@ -79,25 +90,25 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
       scene.add(fallbackLight);
     }
     
-    // Create material with passed parameters and enhanced for hyper-realism
+    // Create material with enhanced contrast and edge definition
     const material = new THREE.MeshPhysicalMaterial({
       color: parameters.color || defaultModelParams.color,
-      metalness: parameters.metalness ?? defaultModelParams.metalness,
-      roughness: parameters.roughness ?? defaultModelParams.roughness,
-      transmission: parameters.transmission ?? defaultModelParams.transmission,
-      thickness: parameters.thickness ?? defaultModelParams.thickness,
-      envMapIntensity: parameters.envMapIntensity ?? defaultModelParams.envMapIntensity,
-      clearcoat: parameters.clearcoat ?? defaultModelParams.clearcoat,
-      clearcoatRoughness: parameters.clearcoatRoughness ?? defaultModelParams.clearcoatRoughness,
-      ior: parameters.ior ?? defaultModelParams.ior,
-      reflectivity: parameters.reflectivity ?? defaultModelParams.reflectivity,
-      iridescence: parameters.iridescence ?? defaultModelParams.iridescence,
-      iridescenceIOR: parameters.iridescenceIOR ?? defaultModelParams.iridescenceIOR,
-      transparent: parameters.transparent ?? defaultModelParams.transparent,
-      opacity: parameters.opacity ?? defaultModelParams.opacity,
-      wireframe: parameters.wireframe ?? defaultModelParams.wireframe,
+      metalness: parameters.metalness ?? 0.2, // Slightly increased for edge highlights
+      roughness: parameters.roughness ?? 0.01, // Ultra-smooth for sharp reflections
+      transmission: parameters.transmission ?? 0.95, // High transmission
+      thickness: parameters.thickness ?? 1.0, // Increased thickness
+      envMapIntensity: parameters.envMapIntensity ?? 3.5, // Increased for more pronounced reflections
+      clearcoat: parameters.clearcoat ?? 1.0, // Maximum clearcoat
+      clearcoatRoughness: parameters.clearcoatRoughness ?? 0.0, // Smooth clearcoat
+      ior: parameters.ior ?? 2.5, // Higher IOR for more dramatic refraction
+      reflectivity: parameters.reflectivity ?? 1.0, // Maximum reflectivity
+      iridescence: parameters.iridescence ?? 1.0, // Maximum iridescence
+      iridescenceIOR: parameters.iridescenceIOR ?? 2.0, // Enhanced iridescence refraction
+      transparent: parameters.transparent ?? true,
+      opacity: parameters.opacity ?? 0.65, // Slightly reduced for better edge visibility
+      wireframe: parameters.wireframe ?? false,
       emissive: new THREE.Color(parameters.emissiveColor || '#000000'),
-      emissiveIntensity: parameters.emissiveIntensity || 0
+      emissiveIntensity: parameters.emissiveIntensity || 0.1 // Slight emission for edge glow
     });
     
     // Create crystal mesh and add to scene
@@ -119,11 +130,17 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
       const scale = 1 + Math.sin(time) * 0.03;
       crystal.scale.set(scale, scale, scale);
       
-      // Animate point lights for dynamic reflections
+      // Animate point lights for dynamic edge lighting
       purplePointLight.position.x = Math.sin(time * 0.7) * 3;
       purplePointLight.position.y = Math.cos(time * 0.5) * 3;
       greenPointLight.position.x = Math.sin(time * 0.3 + 2) * 3;
       greenPointLight.position.y = Math.cos(time * 0.4 + 1) * 3;
+      
+      // Animate edge lights for more dynamic highlights
+      edgeLight1.position.x = Math.sin(time * 0.4) * 2;
+      edgeLight1.position.y = Math.cos(time * 0.6) * 2;
+      edgeLight2.position.x = Math.sin(time * 0.5 + 1) * 2;
+      edgeLight2.position.y = Math.cos(time * 0.7 + 2) * 2;
       
       renderer.render(scene, camera);
     };
