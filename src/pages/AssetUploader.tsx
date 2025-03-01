@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ArrowLeft, Upload, FileAxis3d, Image } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import FolderUploader from "@/components/FolderUploader";
+import { FolderUploader } from "@/components/file-uploader";
 
 const AssetUploader = () => {
   useEffect(() => {
