@@ -194,6 +194,7 @@ const FolderUploader = () => {
                 multiple
                 ref={folderInputRef}
                 onChange={handleFileChange}
+                // Use the attributes as valid HTML attributes
                 webkitdirectory=""
                 directory=""
                 className="hidden"
