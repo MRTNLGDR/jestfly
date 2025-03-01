@@ -6,7 +6,7 @@ import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Link } from "react-router-dom";
 import { Settings, Loader2 } from "lucide-react";
-import { ModelParameters, defaultModelParams } from "@/types/model";
+import { ModelParameters, defaultModelParams } from "@/types/modelParameters";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 
