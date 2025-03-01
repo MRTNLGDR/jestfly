@@ -67,7 +67,6 @@ function App() {
     { label: 'Live Stream', href: '/live-stream' },
     { label: 'Press Kit', href: '/press-kit' },
     { label: 'Airdrop', href: '/airdrop' },
-    { label: 'Admin', href: '/admin' },
   ];
   
   return (
@@ -88,6 +87,8 @@ function App() {
             <Route path="/airdrop" element={<AirdropPage />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Routes>
+          <CyberMenu items={menuItems} />
+          <Footer />
         </div>
       </Router>
     </LanguageProvider>

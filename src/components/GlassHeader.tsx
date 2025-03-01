@@ -83,13 +83,6 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
             <div className="h-8 mx-6 border-l border-white/20"></div>
             
             <div className="flex items-center space-x-6">
-              <Link 
-                to="/info"
-                className="text-white/80 text-sm hover:text-white transition-colors"
-              >
-                .info
-              </Link>
-              
               <div className="flex items-center space-x-2">
                 <span className="text-white/80 text-sm">[PRG]</span>
                 <span className="px-3 py-1 rounded border border-white/20 text-white/90 text-sm">11:03</span>

@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Diamond, Globe, Github, Twitter, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Diamond, Globe, Github, Twitter, Instagram, Settings, Info } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -56,6 +56,18 @@ const Footer: React.FC = () => {
               <FooterLink href="/terms">Terms of Service</FooterLink>
               <FooterLink href="/privacy">Privacy Policy</FooterLink>
               <FooterLink href="/community">Community</FooterLink>
+              <FooterLink href="/info">
+                <div className="flex items-center">
+                  <Info className="h-4 w-4 mr-2" />
+                  <span>Info</span>
+                </div>
+              </FooterLink>
+              <FooterLink href="/admin">
+                <div className="flex items-center">
+                  <Settings className="h-4 w-4 mr-2" />
+                  <span>Admin Panel</span>
+                </div>
+              </FooterLink>
             </ul>
           </div>
           
