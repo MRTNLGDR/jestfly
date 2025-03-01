@@ -31,9 +31,9 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] rounded-full bg-[#8B5CF6]/10 blur-[100px] animate-float z-10"></div>
       <div className="absolute bottom-[5%] left-[10%] w-[40vw] h-[40vw] rounded-full bg-[#4ade80]/10 blur-[100px] animate-float z-10" style={{ animationDelay: '-5s' }}></div>
       
-      {/* Side captions - hidden on mobile */}
+      {/* Side captions - hidden on mobile - removed glassmorphism from "bangers only" */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
-        <div className="neo-blur p-3 rounded-lg mb-3">
+        <div className="p-3 rounded-lg mb-3">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">bangers only</h2>
           <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
             <p>IT'S ALWAYS TIME</p>
@@ -65,8 +65,8 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
       </div>
       
-      {/* Glass audio player at the bottom center */}
-      <div className="absolute bottom-24 left-0 right-0 mx-auto z-30 w-full max-w-xs sm:max-w-sm">
+      {/* Glass audio player - repositioned lower but still in the hero section */}
+      <div className="absolute bottom-16 left-0 right-0 mx-auto z-30 w-full max-w-xs sm:max-w-sm hover:transform hover:translate-y-[-5px] transition-transform duration-300">
         <GlassAudioPlayer 
           isMinimized={isPlayerMinimized}
           setIsMinimized={setIsPlayerMinimized}
