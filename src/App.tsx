@@ -1,32 +1,37 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Admin from "./pages/Admin";
-import AssetUploader from "./pages/AssetUploader";
-import NotFound from "./pages/NotFound";
+import './App.css';
+import CrystalHero from './components/CrystalHero';
+import CrystalGallery from './components/CrystalGallery';
+import { defaultModelParams } from './types/model';
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/uploader" element={<AssetUploader />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  // Crystal parameters with customized values
+  const crystalParams = {
+    ...defaultModelParams,
+    color: "#ffffff",
+    iridescence: 0.5
+  };
+  
+  // Gallery images
+  const galleryImages = [
+    { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'default' as const },
+    { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'bottom-left' as const },
+    { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'center' as const }
+  ];
+  
+  return (
+    <div className="app">
+      {/* Hero section with 3D crystal */}
+      <CrystalHero 
+        title="Bem-vindo ao Mundo dos Cristais" 
+        subtitle="Descubra efeitos de vidro hiper-realista"
+        crystalParams={crystalParams}
+      />
+      
+      {/* Gallery section with small crystal overlays */}
+      <CrystalGallery images={galleryImages} />
+    </div>
+  );
+}
 
 export default App;
