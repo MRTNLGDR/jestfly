@@ -12,6 +12,7 @@ import EventsSection from './components/EventsSection';
 import ConnectionSection from './components/ConnectionSection';
 import ShopPreview from './components/ShopPreview';
 import Footer from './components/Footer';
+import RoadmapSection from './components/RoadmapSection'; // Import the new component
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -85,6 +86,9 @@ function App() {
               
               {/* Shop Categories Preview */}
               <ShopPreview />
+              
+              {/* NEW: Roadmap Section */}
+              <RoadmapSection />
               
               {/* Connection/Newsletter Section */}
               <ConnectionSection />
