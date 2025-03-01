@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Slider } from '../ui/slider';
@@ -10,6 +9,9 @@ import CrystalPreview from './CrystalPreview';
 import { ModelParameters, defaultModelParams } from '../../types/model';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Database } from '@/integrations/supabase/types';
+
+type ModelType = Database['public']['Enums']['model_type'];
 
 const ModelEditor = () => {
   const [parameters, setParameters] = useState<ModelParameters>({...defaultModelParams});
@@ -19,7 +21,6 @@ const ModelEditor = () => {
   const [savedModels, setSavedModels] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Convert hex to rgba
   const hexToRgba = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -30,7 +31,6 @@ const ModelEditor = () => {
     } : { r: 255, g: 255, b: 255, a: 1 };
   };
   
-  // Convert rgba to hex
   const rgbaToHex = ({ r, g, b }: { r: number, g: number, b: number }) => {
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   };
@@ -43,7 +43,6 @@ const ModelEditor = () => {
     });
   };
   
-  // Fetch saved models from Supabase
   const fetchSavedModels = async () => {
     try {
       const { data, error } = await supabase
@@ -65,7 +64,6 @@ const ModelEditor = () => {
     }
   };
   
-  // Load model based on ID
   const loadModel = async (id: string) => {
     try {
       setLoading(true);
@@ -81,7 +79,7 @@ const ModelEditor = () => {
       
       if (data) {
         setModelName(data.name);
-        setParameters(data.params as ModelParameters);
+        setParameters(data.params as unknown as ModelParameters);
         setSelectedModelId(data.id);
         toast.success(`Modelo "${data.name}" carregado com sucesso!`);
       }
@@ -93,28 +91,25 @@ const ModelEditor = () => {
     }
   };
   
-  // Save model to Supabase
   const saveModel = async () => {
     try {
       setLoading(true);
       
       const modelData = {
         name: modelName,
-        params: parameters,
-        model_type: 'crystal',
+        params: parameters as unknown as Database['public']['Tables']['models']['Insert']['params'],
+        model_type: 'crystal' as ModelType,
         is_active: true
       };
       
       let response;
       
       if (selectedModelId) {
-        // Update existing model
         response = await supabase
           .from('models')
           .update(modelData)
           .eq('id', selectedModelId);
       } else {
-        // Create new model
         response = await supabase
           .from('models')
           .insert([modelData]);
@@ -127,8 +122,7 @@ const ModelEditor = () => {
       }
       
       toast.success(`Modelo "${modelName}" salvo com sucesso!`);
-      fetchSavedModels(); // Refresh the list
-      
+      fetchSavedModels();
     } catch (error) {
       console.error('Erro ao salvar modelo:', error);
       toast.error('Não foi possível salvar o modelo.');
@@ -137,7 +131,6 @@ const ModelEditor = () => {
     }
   };
   
-  // Delete model from Supabase
   const deleteModel = async () => {
     if (!selectedModelId) return;
     
@@ -158,9 +151,8 @@ const ModelEditor = () => {
       }
       
       toast.success(`Modelo "${modelName}" excluído com sucesso!`);
-      fetchSavedModels(); // Refresh the list
+      fetchSavedModels();
       
-      // Reset form
       setParameters({...defaultModelParams});
       setModelName('Novo Modelo');
       setSelectedModelId(null);
@@ -173,7 +165,6 @@ const ModelEditor = () => {
     }
   };
   
-  // New model
   const createNewModel = () => {
     setParameters({...defaultModelParams});
     setModelName('Novo Modelo');
@@ -181,26 +172,22 @@ const ModelEditor = () => {
     toast.info('Criando novo modelo...');
   };
   
-  // Load models on component mount
   useEffect(() => {
     fetchSavedModels();
   }, []);
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Preview */}
       <Card className="glass-morphism lg:col-span-1 h-[400px] lg:h-[700px] overflow-hidden">
         <CardContent className="p-0 h-full">
           <CrystalPreview parameters={parameters} />
         </CardContent>
       </Card>
       
-      {/* Controls */}
       <div className="glass-morphism lg:col-span-1 p-6 rounded-lg">
         <h2 className="text-2xl font-bold text-white mb-6">Parâmetros do Cristal</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Model name and saved models */}
           <div className="col-span-full">
             <Label htmlFor="modelName" className="text-white mb-2 block">Nome do Modelo</Label>
             <div className="flex gap-2">
@@ -219,7 +206,6 @@ const ModelEditor = () => {
               </Button>
             </div>
             
-            {/* Color picker */}
             {showColorPicker && (
               <div className="absolute z-50 mt-2 p-3 rounded-lg glass-morphism">
                 <RgbaColorPicker 
@@ -237,7 +223,6 @@ const ModelEditor = () => {
               </div>
             )}
             
-            {/* Saved models dropdown */}
             <div className="mt-4">
               <Label htmlFor="savedModels" className="text-white mb-2 block">Modelos Salvos</Label>
               <div className="flex gap-2">
@@ -259,7 +244,6 @@ const ModelEditor = () => {
             </div>
           </div>
           
-          {/* Material parameters */}
           <div className="space-y-4">
             <div>
               <Label className="text-white mb-2 block">Metalicidade: {parameters.metalness.toFixed(2)}</Label>
@@ -374,7 +358,6 @@ const ModelEditor = () => {
             </div>
           </div>
           
-          {/* Save buttons */}
           <div className="col-span-full flex gap-2 mt-6">
             <Button 
               onClick={saveModel} 
