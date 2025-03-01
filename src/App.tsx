@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import CrystalHero from './components/CrystalHero';
 import CrystalGallery from './components/CrystalGallery';
 import AdminPanel from './pages/AdminPanel';
-import CyberMenu from './components/CyberMenu';
 import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
 import NFTSection from './components/NFTSection';
@@ -87,7 +86,7 @@ function App() {
             <Route path="/airdrop" element={<AirdropPage />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Routes>
-          <CyberMenu items={menuItems} />
+          {/* CyberMenu component removed */}
           <Footer />
         </div>
       </Router>
