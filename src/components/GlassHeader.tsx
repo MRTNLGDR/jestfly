@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Diamond, ChevronRight, Plus, Minus, Menu, X } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
 
@@ -15,10 +15,42 @@ interface GlassHeaderProps {
 
 const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const isMobile = useIsMobile();
+  const location = useLocation();
+  
+  // Track page changes and scrolling
+  useEffect(() => {
+    // Add initial glassmorphism effect when navigating to a new page
+    setScrolled(true);
+    
+    // Reset the effect after a delay (for animation purposes)
+    const timer = setTimeout(() => {
+      setScrolled(false);
+    }, 1000);
+    
+    // Track scrolling
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 10;
+      setScrolled(isScrolled);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timer);
+    };
+  }, [location.pathname]); // Re-run when the path changes
+  
+  // Define glass effect classes based on scrolled state
+  const glassEffect = scrolled 
+    ? "bg-black/40 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
+    : "bg-black/20 backdrop-blur-sm transition-all duration-500";
   
   return (
-    <header className="fixed top-0 left-0 w-full z-50">
+    <header className={`fixed top-0 left-0 w-full z-50 ${glassEffect}`}>
       <div className="max-w-full mx-auto px-6 sm:px-8 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and welcome text */}
@@ -39,7 +71,9 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
                 <Link 
                   key={item.href} 
                   to={item.href}
-                  className="text-white/80 text-sm hover:text-white transition-colors uppercase"
+                  className={`text-white/80 text-sm hover:text-white transition-colors uppercase ${
+                    location.pathname.includes(item.href) && item.href !== '/' ? 'text-white font-medium' : ''
+                  }`}
                 >
                   {item.label}
                 </Link>
@@ -103,7 +137,9 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
               <Link 
                 key={item.href} 
                 to={item.href}
-                className="block text-white py-2 hover:text-purple-400 transition-colors uppercase"
+                className={`block text-white py-2 hover:text-purple-400 transition-colors uppercase ${
+                  location.pathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
@@ -125,9 +161,6 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
           </div>
         </div>
       )}
-      
-      {/* Bottom border */}
-      <div className="w-full h-px bg-white/10"></div>
     </header>
   );
 };
