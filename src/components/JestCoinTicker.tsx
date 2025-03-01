@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Link as LinkIcon } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import GoldCoin3D from './GoldCoin3D';
 
@@ -9,7 +9,6 @@ interface JestCoinTickerProps {
   compact?: boolean;
 }
 
-// This component would be connected to real data in a production environment
 const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact = false }) => {
   const [price, setPrice] = useState(0.0382);
   const [change, setChange] = useState(3.2);
@@ -35,40 +34,40 @@ const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact
   if (compact) {
     // Compact ticker for smaller spaces
     return (
-      <div className={`inline-flex items-center px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-white/10 ${className}`}>
-        <div className="mr-1">
-          <GoldCoin3D size={20} />
+      <Link to="/airdrop" className={`inline-flex items-center px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-yellow-500/30 hover:border-yellow-500/70 transition-all ${className}`}>
+        <div className="mr-2 relative">
+          <GoldCoin3D size={24} />
         </div>
-        <span className="font-mono text-xs">
+        <span className="font-mono text-xs text-yellow-100">
           ${price.toFixed(4)}
         </span>
         <span className={`ml-1 text-xs ${isIncreasing ? 'text-green-500' : 'text-red-500'}`}>
           {isIncreasing ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
         </span>
-      </div>
+      </Link>
     );
   }
   
   // Full ticker with more details
   return (
-    <Link to="/airdrop" className={`group flex items-center p-2 rounded-lg bg-black/30 backdrop-blur-sm border border-white/10 hover:border-purple-500/50 transition-all ${className}`}>
-      <div className="w-10 h-10 relative mr-3 flex items-center justify-center">
-        <GoldCoin3D size={40} />
+    <Link to="/airdrop" className={`group flex items-center p-2 rounded-lg bg-black/30 backdrop-blur-sm border border-yellow-500/30 hover:border-yellow-500/70 transition-all ${className}`}>
+      <div className="w-12 h-12 relative mr-3 flex items-center justify-center">
+        <GoldCoin3D size={48} />
       </div>
       
       <div>
         <div className="flex items-center">
-          <span className="font-mono font-bold">${price.toFixed(4)}</span>
+          <span className="font-mono font-bold text-yellow-100">${price.toFixed(4)}</span>
           <span className={`ml-2 text-xs flex items-center ${isIncreasing ? 'text-green-500' : 'text-red-500'}`}>
             {isIncreasing ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
             {Math.abs(change)}%
           </span>
         </div>
-        <div className="text-xs text-white/60">JestCoin</div>
+        <div className="text-xs text-yellow-100/60">JestCoin</div>
       </div>
       
-      <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity">
-        <LinkIcon className="h-3 w-3 text-purple-400" />
+      <div className="ml-auto mr-2 opacity-40 group-hover:opacity-100 transition-opacity">
+        <span className="text-xs text-yellow-100">AIRDROP</span>
       </div>
     </Link>
   );

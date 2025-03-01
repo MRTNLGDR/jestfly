@@ -21,6 +21,7 @@ import HomePage from './pages/HomePage';
 import DemoSubmissionPage from './pages/DemoSubmissionPage';
 import LiveStreamPage from './pages/LiveStreamPage';
 import PressKitPage from './pages/PressKitPage';
+import AirdropPage from './pages/AirdropPage';
 import LanguageProvider from './contexts/LanguageContext';
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
     { label: 'Demo Submission', href: '/demo-submission' },
     { label: 'Live Stream', href: '/live-stream' },
     { label: 'Press Kit', href: '/press-kit' },
+    { label: 'Airdrop', href: '/airdrop' },
     { label: 'Admin', href: '/admin' },
   ];
   
@@ -80,6 +82,7 @@ function App() {
             <Route path="/demo-submission" element={<DemoSubmissionPage />} />
             <Route path="/live-stream" element={<LiveStreamPage />} />
             <Route path="/press-kit" element={<PressKitPage />} />
+            <Route path="/airdrop" element={<AirdropPage />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Routes>
         </div>

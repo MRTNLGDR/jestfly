@@ -43,62 +43,70 @@ const GoldCoin3D: React.FC<GoldCoin3DProps> = ({ size = 100, className = "" }) =
     // Create coin geometry
     const coinGeometry = new THREE.CylinderGeometry(2, 2, 0.2, 32);
     
-    // Load gold texture
-    const textureLoader = new THREE.TextureLoader();
-    const goldTexture = textureLoader.load('/textures/presets/gold.jpg');
-    
-    // Create gold material
+    // Create gold material with rich, metallic appearance
     const goldMaterial = new THREE.MeshStandardMaterial({
-      map: goldTexture,
+      color: 0xFFD700, // Bright gold color
       metalness: 1,
-      roughness: 0.2,
-      color: 0xFFD700
+      roughness: 0.1,
+      envMapIntensity: 1.5
     });
     
-    // Create cup symbol geometry
-    const cupGeometry = new THREE.ConeGeometry(0.7, 1, 16);
-    const cupBaseGeometry = new THREE.CylinderGeometry(0.3, 0.7, 0.2, 16);
-    const cupStemGeometry = new THREE.CylinderGeometry(0.2, 0.2, 0.5, 16);
-    const cupFootGeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.1, 16);
-    
-    // Create cup material (gold with different shade)
-    const cupMaterial = new THREE.MeshStandardMaterial({
-      color: 0xFFC125,
+    // Create darker gold material for spade symbol
+    const darkGoldMaterial = new THREE.MeshStandardMaterial({
+      color: 0xD4AF37, // Darker gold color
       metalness: 0.9,
-      roughness: 0.3
+      roughness: 0.2
     });
     
-    // Create meshes
+    // Create coin mesh
     const coinMesh = new THREE.Mesh(coinGeometry, goldMaterial);
     scene.add(coinMesh);
     
-    // Position cup parts
-    const cupMesh = new THREE.Mesh(cupGeometry, cupMaterial);
-    cupMesh.position.set(0, 0.7, 0);
-    cupMesh.rotation.x = Math.PI;
+    // Create spade symbol
+    const spadeGroup = new THREE.Group();
     
-    const cupBaseMesh = new THREE.Mesh(cupBaseGeometry, cupMaterial);
-    cupBaseMesh.position.set(0, 0.2, 0);
+    // Spade top (heart upside-down)
+    const spadeTopGeometry = new THREE.SphereGeometry(0.8, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    const spadeTop = new THREE.Mesh(spadeTopGeometry, darkGoldMaterial);
+    spadeTop.scale.set(1, 1.3, 0.8);
+    spadeTop.position.set(0, 0.2, 0);
+    spadeGroup.add(spadeTop);
     
-    const cupStemMesh = new THREE.Mesh(cupStemGeometry, cupMaterial);
-    cupStemMesh.position.set(0, -0.1, 0);
+    // Spade middle parts (like rounded triangles)
+    const spadeLeftGeometry = new THREE.ConeGeometry(0.4, 0.8, 16);
+    const spadeLeft = new THREE.Mesh(spadeLeftGeometry, darkGoldMaterial);
+    spadeLeft.position.set(-0.4, -0.2, 0);
+    spadeLeft.rotation.z = -Math.PI * 0.15;
+    spadeGroup.add(spadeLeft);
     
-    const cupFootMesh = new THREE.Mesh(cupFootGeometry, cupMaterial);
-    cupFootMesh.position.set(0, -0.4, 0);
+    const spadeRightGeometry = new THREE.ConeGeometry(0.4, 0.8, 16);
+    const spadeRight = new THREE.Mesh(spadeRightGeometry, darkGoldMaterial);
+    spadeRight.position.set(0.4, -0.2, 0);
+    spadeRight.rotation.z = Math.PI * 0.15;
+    spadeGroup.add(spadeRight);
     
-    // Create a group for the cup symbol
-    const cupGroup = new THREE.Group();
-    cupGroup.add(cupMesh);
-    cupGroup.add(cupBaseMesh);
-    cupGroup.add(cupStemMesh);
-    cupGroup.add(cupFootMesh);
+    // Spade stem
+    const spadeBaseGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.9, 16);
+    const spadeBase = new THREE.Mesh(spadeBaseGeometry, darkGoldMaterial);
+    spadeBase.position.set(0, -0.9, 0);
+    spadeGroup.add(spadeBase);
     
-    // Scale cup symbol to fit on coin
-    cupGroup.scale.set(0.5, 0.5, 0.5);
+    // Small ball at the base of the stem
+    const spadeBallGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+    const spadeBall = new THREE.Mesh(spadeBallGeometry, darkGoldMaterial);
+    spadeBall.position.set(0, -1.3, 0);
+    spadeGroup.add(spadeBall);
     
-    // Position cup on front face of coin
-    cupGroup.position.set(0, 0, 1.1);
-    scene.add(cupGroup);
+    // Scale and position the spade symbol on the front face of coin
+    spadeGroup.scale.set(0.5, 0.5, 0.5);
+    spadeGroup.position.set(0, 0, 1.1);
+    scene.add(spadeGroup);
+    
+    // Create edge detail for more realistic coin
+    const edgeGeometry = new THREE.TorusGeometry(2, 0.12, 16, 100);
+    const edgeMesh = new THREE.Mesh(edgeGeometry, goldMaterial);
+    edgeMesh.rotation.x = Math.PI / 2;
+    scene.add(edgeMesh);
     
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -120,12 +128,14 @@ const GoldCoin3D: React.FC<GoldCoin3DProps> = ({ size = 100, className = "" }) =
       time += 0.01;
       
       // Rotate coin
-      coinMesh.rotation.y += 0.01;
-      cupGroup.rotation.y += 0.01;
+      coinMesh.rotation.y = Math.sin(time * 0.5) * 0.5;
+      spadeGroup.rotation.y = Math.sin(time * 0.5) * 0.5;
+      edgeMesh.rotation.y = Math.sin(time * 0.5) * 0.5;
       
       // Slight floating animation
       coinMesh.position.y = Math.sin(time) * 0.1;
-      cupGroup.position.y = Math.sin(time) * 0.1 + 0.1;
+      spadeGroup.position.y = Math.sin(time) * 0.1 + 0.1;
+      edgeMesh.position.y = Math.sin(time) * 0.1;
       
       renderer.render(scene, camera);
     };
