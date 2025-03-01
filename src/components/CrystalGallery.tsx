@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useIsMobile } from '../hooks/use-mobile';
+import { motion } from 'framer-motion';
 
 interface ImageWithCrystalProps {
   src: string;
@@ -21,10 +22,16 @@ const ImageWithCrystal: React.FC<ImageWithCrystalProps> = ({
   if (crystalPosition === 'bottom-right') crystalClass += ' crystal-position-6';
   
   return (
-    <div className="image-container relative overflow-hidden rounded-lg">
+    <motion.div 
+      className="image-container relative overflow-hidden rounded-lg"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
       <img src={src} alt={alt} className="w-full h-auto object-cover transition-transform hover:scale-105 duration-700" />
       <div className={`${crystalClass} absolute`}></div>
-    </div>
+    </motion.div>
   );
 };
 
