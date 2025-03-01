@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Diamond, ExternalLink } from 'lucide-react';
 import CrystalComponent from '../CrystalComponent';
 import { defaultModelParams } from '../types/model';
+import NFTModel from './NFTModel';
 
 interface NFTItem {
   id: string;
@@ -38,6 +39,8 @@ const NFTSection: React.FC = () => {
       available: false
     }
   ];
+
+  const [hoveredNft, setHoveredNft] = useState<string | null>(null);
 
   const nftCrystalParams = {
     ...defaultModelParams,
@@ -78,14 +81,25 @@ const NFTSection: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {nfts.map((nft) => (
-            <Card key={nft.id} className="neo-blur overflow-hidden rounded-lg border-white/10 group hover:border-white/20 transition-all">
+            <Card 
+              key={nft.id} 
+              className="neo-blur overflow-hidden rounded-lg border-white/10 group hover:border-white/20 transition-all"
+              onMouseEnter={() => setHoveredNft(nft.id)}
+              onMouseLeave={() => setHoveredNft(null)}
+            >
               <CardContent className="p-0 relative">
                 <div className="relative h-64 w-full overflow-hidden">
-                  <img 
-                    src={nft.image} 
-                    alt={nft.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                  {hoveredNft === nft.id ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <NFTModel modelType={nft.id} />
+                    </div>
+                  ) : (
+                    <img 
+                      src={nft.image} 
+                      alt={nft.name} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  )}
                   
                   {/* Crystal overlay */}
                   <div className="absolute top-4 right-4 w-20 h-20 opacity-80 pointer-events-none">
