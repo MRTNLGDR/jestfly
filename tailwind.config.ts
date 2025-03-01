@@ -103,13 +103,18 @@ export default {
         'rotate-diamond': {
           '0%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(360deg)' }
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-10px)' }
         }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
-				'rotate-diamond': 'rotate-diamond 30s linear infinite'
+				'rotate-diamond': 'rotate-diamond 30s linear infinite',
+				'float': 'float 4s ease-in-out infinite'
 			}
 		}
 	},

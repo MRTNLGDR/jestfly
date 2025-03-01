@@ -14,11 +14,8 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [isPulsating, setIsPulsating] = useState(false);
-  const [pulseSize, setPulseSize] = useState(1);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fadeIntervalRef = useRef<number | null>(null);
-  const pulseIntervalRef = useRef<number | null>(null);
   const targetVolume = 0.7; // Target volume level
   
   // Handle fade in effect when playing
@@ -46,19 +43,6 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
           return newVolume;
         });
       }, 200); // Update every 200ms for a smooth fade
-
-      // Start pulsating effect when playing
-      setIsPulsating(true);
-      if (pulseIntervalRef.current) {
-        window.clearInterval(pulseIntervalRef.current);
-      }
-
-      pulseIntervalRef.current = window.setInterval(() => {
-        setPulseSize(prev => {
-          // Smooth pulsating between 1 and 1.15
-          return 1 + (0.15 * Math.sin(Date.now() / 400));
-        });
-      }, 50);
     } else {
       // Stop fade and reset volume when paused
       if (fadeIntervalRef.current) {
@@ -66,23 +50,12 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
         fadeIntervalRef.current = null;
       }
       setVolume(0);
-      
-      // Stop pulsating
-      setIsPulsating(false);
-      if (pulseIntervalRef.current) {
-        window.clearInterval(pulseIntervalRef.current);
-        pulseIntervalRef.current = null;
-      }
-      setPulseSize(1);
     }
     
     return () => {
       // Cleanup intervals on component unmount
       if (fadeIntervalRef.current) {
         window.clearInterval(fadeIntervalRef.current);
-      }
-      if (pulseIntervalRef.current) {
-        window.clearInterval(pulseIntervalRef.current);
       }
     };
   }, [isPlaying]);
@@ -118,16 +91,13 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
   if (isMinimized) {
     return (
       <div 
-        className="transition-all duration-300 transform z-50"
-        style={{ 
-          transform: `scale(${pulseSize})`,
-        }}
+        className="fixed bottom-8 right-8 animate-[float_4s_ease-in-out_infinite] z-50"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <button
-          onClick={() => setIsMinimized(false)}
-          className="relative w-10 h-10 backdrop-blur-xl bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white shadow-lg overflow-hidden"
+          onClick={togglePlay}
+          className="w-14 h-14 backdrop-blur-xl bg-white/10 border border-white/20 rounded-full flex items-center justify-center text-white shadow-lg overflow-hidden transition-all duration-300 hover:scale-105"
         >
           {isHovered && (
             <div className="absolute -top-8 whitespace-nowrap bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs">
@@ -138,15 +108,10 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
           {/* Glow effect behind the button */}
           <div className={`absolute inset-0 rounded-full ${isPlaying ? 'bg-purple-500/20' : ''} blur-md -z-10 transition-all duration-300`}></div>
           
-          {/* Pulsating background */}
-          {isPlaying && (
-            <div className="absolute inset-0 z-0 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20"></div>
-          )}
-          
           {isPlaying ? (
-            <Disc className="h-5 w-5 text-white animate-spin relative z-10" style={{ animationDuration: '3s' }} />
+            <Pause className="h-5 w-5 text-white" />
           ) : (
-            <Music className="h-4 w-4 text-white relative z-10" />
+            <Play className="h-5 w-5 text-white ml-0.5" />
           )}
         </button>
       </div>
@@ -155,7 +120,7 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
 
   // Expanded player
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="fixed bottom-8 right-8 z-50 w-64">
       <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
         <div className="p-4 flex items-center justify-between">
           <button
@@ -165,7 +130,7 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
             {isPlaying ? (
               <Pause className="h-5 w-5 text-white" />
             ) : (
-              <Play className="h-5 w-5 text-white" />
+              <Play className="h-5 w-5 text-white ml-0.5" />
             )}
           </button>
           
@@ -175,9 +140,9 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
           
           <button
             onClick={() => setIsMinimized(true)}
-            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
+            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
           >
-            <Disc className="h-5 w-5 text-white" />
+            <Disc className="h-4 w-4 text-white" />
           </button>
         </div>
         

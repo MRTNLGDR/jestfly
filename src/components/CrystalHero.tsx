@@ -33,9 +33,6 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  // Determine if player should be in hero (top) or fixed (bottom) position
-  const isHeroVisible = scrollPosition < window.innerHeight * 0.8;
-  
   return (
     <section className={`hero relative h-screen flex flex-col pt-20 overflow-hidden ${className}`}>
       {/* Dark gradient background */}
@@ -45,7 +42,7 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] rounded-full bg-[#8B5CF6]/10 blur-[100px] animate-float z-10"></div>
       <div className="absolute bottom-[5%] left-[10%] w-[40vw] h-[40vw] rounded-full bg-[#4ade80]/10 blur-[100px] animate-float z-10" style={{ animationDelay: '-5s' }}></div>
       
-      {/* Side captions - hidden on mobile - removed glassmorphism from "bangers only" */}
+      {/* Side captions - hidden on mobile */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
         <div className="p-3 rounded-lg mb-3">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">bangers only</h2>
@@ -79,24 +76,11 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
       </div>
       
-      {/* Pulsating audio player - positioned based on scroll */}
-      {isHeroVisible ? (
-        // In hero position (top right)
-        <div className="absolute top-[30%] right-28 z-30">
-          <GlassAudioPlayer 
-            isMinimized={isPlayerMinimized}
-            setIsMinimized={setIsPlayerMinimized}
-          />
-        </div>
-      ) : (
-        // Fixed position (bottom right)
-        <div className="fixed bottom-6 right-6 z-50">
-          <GlassAudioPlayer 
-            isMinimized={true}
-            setIsMinimized={setIsPlayerMinimized}
-          />
-        </div>
-      )}
+      {/* Glassmorphism audio player - fixed in the corner */}
+      <GlassAudioPlayer 
+        isMinimized={isPlayerMinimized}
+        setIsMinimized={setIsPlayerMinimized}
+      />
       
       {/* Footer information - simplified on mobile */}
       <div className="absolute bottom-6 left-0 right-0 px-4 sm:px-6 z-30 flex justify-between items-center text-xs text-white/70">
