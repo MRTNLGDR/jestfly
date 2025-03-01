@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { ModelParameters, defaultModelParams } from './types/model';
@@ -67,8 +68,9 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
     edgeLight2.position.set(1, 1, 2);
     scene.add(edgeLight2);
     
-    // Create crystal geometry with more defined edges
-    const geometry = new THREE.DodecahedronGeometry(1, 2);
+    // Create classic faceted crystal geometry - using diamond-like shape
+    // Using DiamondGeometry with more pronounced facets
+    const geometry = new THREE.OctahedronGeometry(1, 2); // Change to octahedron for classic diamond look
     
     // Load environment map for reflections
     const cubeTextureLoader = new THREE.CubeTextureLoader();
@@ -93,22 +95,22 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
     // Create material with enhanced contrast and edge definition
     const material = new THREE.MeshPhysicalMaterial({
       color: parameters.color || defaultModelParams.color,
-      metalness: parameters.metalness ?? 0.2, // Slightly increased for edge highlights
+      metalness: parameters.metalness ?? 0.1, // Slightly metallic for crystal look
       roughness: parameters.roughness ?? 0.01, // Ultra-smooth for sharp reflections
-      transmission: parameters.transmission ?? 0.95, // High transmission
-      thickness: parameters.thickness ?? 1.0, // Increased thickness
-      envMapIntensity: parameters.envMapIntensity ?? 3.5, // Increased for more pronounced reflections
+      transmission: parameters.transmission ?? 0.92, // High transmission for glass effect
+      thickness: parameters.thickness ?? 0.8, // Medium thickness
+      envMapIntensity: parameters.envMapIntensity ?? 2.5, // Strong reflections
       clearcoat: parameters.clearcoat ?? 1.0, // Maximum clearcoat
       clearcoatRoughness: parameters.clearcoatRoughness ?? 0.0, // Smooth clearcoat
-      ior: parameters.ior ?? 2.5, // Higher IOR for more dramatic refraction
-      reflectivity: parameters.reflectivity ?? 1.0, // Maximum reflectivity
-      iridescence: parameters.iridescence ?? 1.0, // Maximum iridescence
-      iridescenceIOR: parameters.iridescenceIOR ?? 2.0, // Enhanced iridescence refraction
+      ior: parameters.ior ?? 2.4, // Higher IOR for diamond-like refraction
+      reflectivity: parameters.reflectivity ?? 0.8, // High reflectivity
+      iridescence: parameters.iridescence ?? 0.7, // Medium iridescence
+      iridescenceIOR: parameters.iridescenceIOR ?? 1.8, // Enhanced iridescence refraction
       transparent: parameters.transparent ?? true,
-      opacity: parameters.opacity ?? 0.65, // Slightly reduced for better edge visibility
+      opacity: parameters.opacity ?? 0.8, // Slightly higher opacity for classic crystal look
       wireframe: parameters.wireframe ?? false,
-      emissive: new THREE.Color(parameters.emissiveColor || '#000000'),
-      emissiveIntensity: parameters.emissiveIntensity || 0.1 // Slight emission for edge glow
+      emissive: new THREE.Color(parameters.emissiveColor || '#220033'), // Subtle purple emission
+      emissiveIntensity: parameters.emissiveIntensity || 0.05 // Slight emission for edge glow
     });
     
     // Create crystal mesh and add to scene
@@ -121,13 +123,13 @@ const CrystalComponent = ({ parameters = defaultModelParams }: CrystalComponentP
       requestAnimationFrame(animate);
       time += 0.01;
       
-      // More complex rotation for interesting light play
-      crystal.rotation.y += 0.005;
-      crystal.rotation.x = Math.sin(time * 0.2) * 0.1;
-      crystal.rotation.z = Math.cos(time * 0.3) * 0.05;
+      // Slower, more elegant rotation for a classic crystal display
+      crystal.rotation.y += 0.003;
+      crystal.rotation.x = Math.sin(time * 0.1) * 0.05;
+      crystal.rotation.z = Math.cos(time * 0.15) * 0.02;
       
-      // Subtle scale pulsing for more dynamic effect
-      const scale = 1 + Math.sin(time) * 0.03;
+      // Very subtle scale pulsing for more realistic effect
+      const scale = 1 + Math.sin(time) * 0.01;
       crystal.scale.set(scale, scale, scale);
       
       // Animate point lights for dynamic edge lighting
