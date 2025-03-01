@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import Footer from '../components/Footer';
+import { toast } from "sonner";
 
 const BookingsPage: React.FC = () => {
   const [bookingType, setBookingType] = useState<'dj' | 'studio' | 'consultation'>('dj');
@@ -23,59 +24,85 @@ const BookingsPage: React.FC = () => {
     e.preventDefault();
     console.log('Booking submitted:', { type: bookingType, ...formData });
     // Here you would typically send this data to your backend
-    alert('Booking request submitted successfully!');
+    toast.success("Booking request submitted successfully!");
+  };
+
+  // Get the right gradient based on booking type
+  const getGradientClass = () => {
+    switch(bookingType) {
+      case 'dj':
+        return 'from-purple-600/20 to-blue-600/20';
+      case 'studio':
+        return 'from-cyan-600/20 to-blue-600/20';
+      case 'consultation':
+        return 'from-pink-600/20 to-purple-600/20';
+    }
+  };
+
+  // Get button gradient based on booking type
+  const getButtonGradient = () => {
+    switch(bookingType) {
+      case 'dj':
+        return 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700';
+      case 'studio':
+        return 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700';
+      case 'consultation':
+        return 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700';
+    }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pt-24">
+    <div className="min-h-screen bg-black bg-[url('/assets/grid.svg')] bg-fixed text-white pt-24">
       <div className="container mx-auto px-6 pb-20">
-        <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">Book JESTFLY</h1>
-        <p className="text-xl text-white/70 max-w-3xl mb-12">
-          Ready to bring the future of sound to your event? Book JESTFLY for your next party, 
-          festival, or private event and experience a sonic journey like no other.
-        </p>
+        <div className="mb-12 text-center">
+          <h1 className="text-gradient text-5xl md:text-7xl font-bold mb-6">Book JESTFLY</h1>
+          <p className="text-xl text-white/70 max-w-3xl mx-auto">
+            Ready to bring the future of sound to your event? Book JESTFLY for your next party, 
+            festival, or private event and experience a sonic journey like no other.
+          </p>
+        </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {/* Booking Type Selector */}
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6 mb-8">
-              <h2 className="text-2xl font-semibold text-white mb-4">What would you like to book?</h2>
+            <div className="glass-morphism rounded-xl p-6 mb-8 transform hover:translate-y-[-5px] transition-all duration-300">
+              <h2 className="text-2xl font-semibold text-gradient mb-4">What would you like to book?</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button 
                   onClick={() => setBookingType('dj')}
-                  className={`p-4 rounded-lg border transition-all ${
+                  className={`p-4 rounded-lg border backdrop-blur-md transition-all ${
                     bookingType === 'dj' 
                       ? 'border-purple-500 bg-purple-900/20' 
-                      : 'border-white/10 hover:border-purple-500/50'
+                      : 'border-white/10 hover:border-purple-500/50 bg-white/5'
                   }`}
                 >
-                  <div className="text-3xl mb-2">🎧</div>
+                  <div className="text-4xl mb-2 glow-purple">🎧</div>
                   <h3 className="text-lg font-medium">DJ Performance</h3>
                   <p className="text-white/70 text-sm mt-1">Book JESTFLY for your event or venue</p>
                 </button>
                 
                 <button 
                   onClick={() => setBookingType('studio')}
-                  className={`p-4 rounded-lg border transition-all ${
+                  className={`p-4 rounded-lg border backdrop-blur-md transition-all ${
                     bookingType === 'studio' 
                       ? 'border-cyan-500 bg-cyan-900/20' 
-                      : 'border-white/10 hover:border-cyan-500/50'
+                      : 'border-white/10 hover:border-cyan-500/50 bg-white/5'
                   }`}
                 >
-                  <div className="text-3xl mb-2">🎹</div>
+                  <div className="text-4xl mb-2 glow-blue">🎹</div>
                   <h3 className="text-lg font-medium">Studio Session</h3>
                   <p className="text-white/70 text-sm mt-1">Collaborate in the studio on your project</p>
                 </button>
                 
                 <button 
                   onClick={() => setBookingType('consultation')}
-                  className={`p-4 rounded-lg border transition-all ${
+                  className={`p-4 rounded-lg border backdrop-blur-md transition-all ${
                     bookingType === 'consultation' 
                       ? 'border-pink-500 bg-pink-900/20' 
-                      : 'border-white/10 hover:border-pink-500/50'
+                      : 'border-white/10 hover:border-pink-500/50 bg-white/5'
                   }`}
                 >
-                  <div className="text-3xl mb-2">💬</div>
+                  <div className="text-4xl mb-2 glow-purple">💬</div>
                   <h3 className="text-lg font-medium">Consultation</h3>
                   <p className="text-white/70 text-sm mt-1">Get advice on your music or event</p>
                 </button>
@@ -83,8 +110,8 @@ const BookingsPage: React.FC = () => {
             </div>
             
             {/* Booking Form */}
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6">
-              <h2 className="text-2xl font-semibold text-white mb-6">
+            <div className={`glass-morphism rounded-xl border-t border-l border-white/20 p-6 bg-gradient-to-br ${getGradientClass()}`}>
+              <h2 className="text-2xl font-semibold text-gradient mb-6 glow-text">
                 {bookingType === 'dj' ? 'DJ Booking Request' : 
                  bookingType === 'studio' ? 'Studio Session Request' : 
                  'Consultation Request'}
@@ -99,7 +126,7 @@ const BookingsPage: React.FC = () => {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                       required
                     />
                   </div>
@@ -110,7 +137,7 @@ const BookingsPage: React.FC = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                       required
                     />
                   </div>
@@ -121,7 +148,7 @@ const BookingsPage: React.FC = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                     />
                   </div>
                   <div>
@@ -131,7 +158,7 @@ const BookingsPage: React.FC = () => {
                       name="date"
                       value={formData.date}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                       required
                     />
                   </div>
@@ -142,7 +169,7 @@ const BookingsPage: React.FC = () => {
                       name="time"
                       value={formData.time}
                       onChange={handleChange}
-                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                     />
                   </div>
                   <div>
@@ -156,8 +183,9 @@ const BookingsPage: React.FC = () => {
                         name="location"
                         value={formData.location}
                         onChange={handleChange}
-                        className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                       >
+                        <option value="">Select one...</option>
                         <option value="zoom">Zoom</option>
                         <option value="teams">Microsoft Teams</option>
                         <option value="hangouts">Google Meet</option>
@@ -169,7 +197,7 @@ const BookingsPage: React.FC = () => {
                         name="location"
                         value={formData.location}
                         onChange={handleChange}
-                        className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                        className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                       />
                     )}
                   </div>
@@ -185,7 +213,7 @@ const BookingsPage: React.FC = () => {
                     name="details"
                     value={formData.details}
                     onChange={handleChange}
-                    className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                    className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500 transition-colors"
                     rows={5}
                     required
                   ></textarea>
@@ -193,13 +221,7 @@ const BookingsPage: React.FC = () => {
                 
                 <button
                   type="submit"
-                  className={`px-8 py-3 rounded-full text-white transition-colors ${
-                    bookingType === 'dj' 
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' 
-                      : bookingType === 'studio'
-                      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700'
-                      : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'
-                  }`}
+                  className={`px-8 py-3 rounded-full text-white transition-colors ${getButtonGradient()} shadow-lg transform hover:scale-105 transition duration-300 ease-in-out`}
                 >
                   Submit Request
                 </button>
@@ -207,10 +229,10 @@ const BookingsPage: React.FC = () => {
             </div>
           </div>
           
-          <div>
+          <div className="space-y-6">
             {/* Booking Info */}
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6 mb-6">
-              <h2 className="text-2xl font-semibold text-white mb-4">Booking Information</h2>
+            <div className="glass-morphism rounded-xl p-6 transform hover:translate-y-[-5px] transition-all duration-300">
+              <h2 className="text-2xl font-semibold text-gradient mb-4">Booking Information</h2>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium text-white">Response Time</h3>
@@ -228,14 +250,14 @@ const BookingsPage: React.FC = () => {
             </div>
             
             {/* Testimonials */}
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold text-white mb-4">What People Say</h2>
+            <div className="glass-morphism rounded-xl p-6 transform hover:translate-y-[-5px] transition-all duration-300">
+              <h2 className="text-xl font-semibold text-gradient mb-4">What People Say</h2>
               <div className="space-y-4">
-                <div className="p-3 bg-white/5 rounded-lg">
+                <div className="p-4 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
                   <p className="text-white/80 italic">"JESTFLY brought an incredible energy to our corporate event. The fusion of visual art and music was unlike anything we've experienced before."</p>
                   <p className="text-white/60 text-sm mt-2">— Alex Chen, Event Director</p>
                 </div>
-                <div className="p-3 bg-white/5 rounded-lg">
+                <div className="p-4 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
                   <p className="text-white/80 italic">"The studio session with JESTFLY transformed our track into something truly special. Professional, creative, and inspiring."</p>
                   <p className="text-white/60 text-sm mt-2">— SoundWave Collective</p>
                 </div>
@@ -243,18 +265,18 @@ const BookingsPage: React.FC = () => {
             </div>
             
             {/* FAQ */}
-            <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Frequently Asked Questions</h2>
-              <div className="space-y-3">
-                <div>
+            <div className="glass-morphism rounded-xl p-6 transform hover:translate-y-[-5px] transition-all duration-300">
+              <h2 className="text-xl font-semibold text-gradient mb-4">Frequently Asked Questions</h2>
+              <div className="space-y-4">
+                <div className="p-3 bg-white/5 backdrop-blur-sm rounded-lg">
                   <h3 className="text-white/90 font-medium">What areas do you serve?</h3>
                   <p className="text-white/70 text-sm mt-1">We're available for bookings worldwide, with additional travel fees for locations outside our base city.</p>
                 </div>
-                <div>
+                <div className="p-3 bg-white/5 backdrop-blur-sm rounded-lg">
                   <h3 className="text-white/90 font-medium">What is your cancellation policy?</h3>
                   <p className="text-white/70 text-sm mt-1">Cancellations made 14+ days before the event receive a full refund. Less than 14 days notice will incur a fee.</p>
                 </div>
-                <div>
+                <div className="p-3 bg-white/5 backdrop-blur-sm rounded-lg">
                   <h3 className="text-white/90 font-medium">Do you offer custom music production?</h3>
                   <p className="text-white/70 text-sm mt-1">Yes! Book a studio session or consultation to discuss your project's needs.</p>
                 </div>
