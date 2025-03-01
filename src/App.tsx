@@ -1,3 +1,4 @@
+
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import CrystalHero from './components/CrystalHero';
@@ -21,8 +22,6 @@ import DemoSubmissionPage from './pages/DemoSubmissionPage';
 import LiveStreamPage from './pages/LiveStreamPage';
 import PressKitPage from './pages/PressKitPage';
 import AirdropPage from './pages/AirdropPage';
-import ResourcesPage from './pages/ResourcesPage';
-import TemplateDetailPage from './pages/templates/TemplateDetailPage';
 import LanguageProvider from './contexts/LanguageContext';
 
 function App() {
@@ -55,7 +54,7 @@ function App() {
     { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'center' as const }
   ];
   
-  // Menu items for the cyber menu - not adding Resources to keep it hidden from navigation
+  // Menu items for the cyber menu
   const menuItems = [
     { label: 'Início', href: '/' },
     { label: 'Store', href: '/store' },
@@ -85,9 +84,6 @@ function App() {
             <Route path="/press-kit" element={<PressKitPage />} />
             <Route path="/airdrop" element={<AirdropPage />} />
             <Route path="/admin" element={<AdminPanel />} />
-            {/* Resources routes */}
-            <Route path="/templates" element={<ResourcesPage />} />
-            <Route path="/templates/:category" element={<TemplateDetailPage />} />
           </Routes>
         </div>
       </Router>

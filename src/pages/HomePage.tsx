@@ -1,59 +1,93 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
 import CrystalHero from '../components/CrystalHero';
 import CrystalGallery from '../components/CrystalGallery';
 import NFTSection from '../components/NFTSection';
 import EventsSection from '../components/EventsSection';
-import ConnectionSection from '../components/ConnectionSection';
 import ShopPreview from '../components/ShopPreview';
-import RoadmapSection from '../components/RoadmapSection';
+import ConnectionSection from '../components/ConnectionSection';
 import Footer from '../components/Footer';
+import { ModelParameters } from '../types/model';
 import ArtistShowcase from '../components/ArtistShowcase';
-import JestCoinTicker from '../components/JestCoinTicker';
-import { ModelParameters } from '../types/modelParameters';
 
 interface HomePageProps {
   crystalParams: ModelParameters;
-  galleryImages: { src: string; alt: string; crystalPosition: 'default' | 'bottom-left' | 'center' }[];
+  galleryImages: Array<{
+    src: string;
+    alt: string;
+    crystalPosition: 'default' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+  }>;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ crystalParams, galleryImages }) => {
+const HomePage: React.FC<HomePageProps> = ({ 
+  crystalParams = {
+    color: "#ffffff",
+    metalness: 0.1,
+    roughness: 0.0,
+    transmission: 0.98,
+    thickness: 0.5,
+    envMapIntensity: 2.5,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.0,
+    ior: 2.75,
+    reflectivity: 1.0,
+    iridescence: 0.3,
+    iridescenceIOR: 1.3,
+    lightIntensity: 2.0,
+    opacity: 0.9,
+    transparent: true,
+    emissiveIntensity: 0.2,
+    emissiveColor: "#8B5CF6",
+    aoMapIntensity: 1.0,
+    displacementScale: 0.1,
+    wireframe: false,
+    side: 'front',
+    textureMap: "",
+    normalMap: "",
+    roughnessMap: "",
+    metalnessMap: "",
+  }, 
+  galleryImages 
+}) => {
   return (
-    <div className="relative">
-      <div className="fixed top-4 right-4 z-50">
-        <JestCoinTicker compact={true} />
-      </div>
+    <>
+      {/* Hero section with futuristic crystal and Nike-inspired layout */}
+      <CrystalHero 
+        title="JESTFLY" 
+        subtitle="FUTURE.TECH"
+        crystalParams={crystalParams}
+      />
       
-      <section className="hero">
-        <div className="hero-content">
-          <h1 className="gradient-title">JestFly Records</h1>
-          <p>Revolutionary Electronic Music & Digital Art</p>
-          
-          {/* Discreet link to resources section */}
-          <div className="mt-8">
-            <Link 
-              to="/templates" 
-              className="text-sm text-white/50 hover:text-white/80 transition-colors underline"
-            >
-              Explore Creative Resources
-            </Link>
+      {/* Quick facts marquee like Nike's site */}
+      <div className="w-full bg-black py-4 border-t border-b border-white/10 overflow-hidden">
+        <div className="marquee-container">
+          <div className="marquee-content">
+            QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS
           </div>
         </div>
-        <div className="hero-crystal">
-          <CrystalHero crystalParams={crystalParams} />
-        </div>
-      </section>
-
-      <CrystalGallery images={galleryImages} />
+      </div>
+      
+      {/* Artist Showcase Section - NEW */}
       <ArtistShowcase />
+      
+      {/* NFT Section */}
       <NFTSection />
+      
+      {/* Events Section */}
       <EventsSection />
+      
+      {/* Gallery section with small crystal overlays */}
+      <CrystalGallery images={galleryImages} />
+      
+      {/* Shop Categories Preview */}
       <ShopPreview />
-      <RoadmapSection />
+      
+      {/* Connection/Newsletter Section */}
       <ConnectionSection />
+      
+      {/* Footer */}
       <Footer />
-    </div>
+    </>
   );
 };
 
