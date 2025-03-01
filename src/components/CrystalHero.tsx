@@ -1,11 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import CrystalComponent from '../CrystalComponent';
 import { ModelParameters, defaultModelParams } from '../types/model';
 import { Calendar } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
-import SoundCloudPlayer from './SoundCloudPlayer';
-import { useState, useEffect } from 'react';
+import GlassAudioPlayer from './GlassAudioPlayer';
 
 interface CrystalHeroProps {
   title?: string;
@@ -22,20 +21,6 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const [isPlayerMinimized, setIsPlayerMinimized] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  
-  // Load the SoundCloud Widget API
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://w.soundcloud.com/player/api.js';
-    script.async = true;
-    script.onload = () => setScriptLoaded(true);
-    document.body.appendChild(script);
-    
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
   
   return (
     <section className={`hero relative h-screen flex flex-col pt-20 overflow-hidden ${className}`}>
@@ -65,16 +50,6 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
       </div>
       
-      {/* SoundCloud Player above title */}
-      <div className="relative z-30 w-full max-w-md mx-auto mt-14 mb-4 px-4">
-        {scriptLoaded && (
-          <SoundCloudPlayer 
-            isMinimized={isPlayerMinimized}
-            setIsMinimized={setIsPlayerMinimized}
-          />
-        )}
-      </div>
-      
       {/* Main title without card behind */}
       <div className="absolute z-10 flex items-center justify-center w-full h-full">
         <h1 className="text-[5rem] sm:text-[8rem] md:text-[12rem] lg:text-[16rem] font-bold tracking-tighter text-white/20"
@@ -88,6 +63,14 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl h-full">
           <CrystalComponent parameters={crystalParams} />
         </div>
+      </div>
+      
+      {/* Glass audio player at the bottom center */}
+      <div className="absolute bottom-24 left-0 right-0 mx-auto z-30 w-full max-w-xs sm:max-w-sm">
+        <GlassAudioPlayer 
+          isMinimized={isPlayerMinimized}
+          setIsMinimized={setIsPlayerMinimized}
+        />
       </div>
       
       {/* Footer information - simplified on mobile */}
