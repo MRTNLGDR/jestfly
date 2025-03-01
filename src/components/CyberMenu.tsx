@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useIsMobile } from '../hooks/use-mobile';
 
 interface MenuItem {
   label: string;
@@ -14,12 +15,16 @@ interface CyberMenuProps {
 
 const CyberMenu: React.FC<CyberMenuProps> = ({ items }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const isMobile = useIsMobile();
+  
+  // Only show a limited number of items on mobile
+  const displayedItems = isMobile ? items.slice(0, 5) : items;
   
   return (
-    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
-      <div className="neo-blur rounded-xl overflow-hidden px-6 py-4 flex items-center justify-center">
-        <div className="flex space-x-1">
-          {items.map((item, index) => (
+    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 w-full px-4 sm:px-0 sm:w-auto">
+      <div className="neo-blur rounded-xl overflow-hidden px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-center">
+        <div className="flex flex-wrap justify-center gap-1 sm:flex-nowrap sm:space-x-1">
+          {displayedItems.map((item, index) => (
             <motion.div
               key={index}
               className="relative"
@@ -34,7 +39,7 @@ const CyberMenu: React.FC<CyberMenuProps> = ({ items }) => {
             >
               <Link
                 to={item.href}
-                className="relative block px-4 py-2 text-white hover:text-white/90"
+                className="relative block px-2 sm:px-4 py-1.5 sm:py-2 text-white hover:text-white/90"
               >
                 {/* Multiple glass-like polygons forming the button */}
                 <div className="absolute inset-0 overflow-hidden">
@@ -63,7 +68,7 @@ const CyberMenu: React.FC<CyberMenuProps> = ({ items }) => {
                 </div>
                 
                 {/* Text */}
-                <span className="relative z-10 font-medium text-sm tracking-wide">
+                <span className="relative z-10 font-medium text-xs sm:text-sm tracking-wide">
                   {item.label}
                 </span>
                 

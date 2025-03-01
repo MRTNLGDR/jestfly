@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useIsMobile } from '../hooks/use-mobile';
 
 interface ImageWithCrystalProps {
   src: string;
@@ -20,9 +21,9 @@ const ImageWithCrystal: React.FC<ImageWithCrystalProps> = ({
   if (crystalPosition === 'bottom-right') crystalClass += ' crystal-position-6';
   
   return (
-    <div className="image-container">
-      <img src={src} alt={alt} />
-      <div className={crystalClass}></div>
+    <div className="image-container relative overflow-hidden rounded-lg">
+      <img src={src} alt={alt} className="w-full h-auto object-cover transition-transform hover:scale-105 duration-700" />
+      <div className={`${crystalClass} absolute`}></div>
     </div>
   );
 };
@@ -44,8 +45,10 @@ const CrystalGallery: React.FC<CrystalGalleryProps> = ({
   ],
   className = ""
 }) => {
+  const isMobile = useIsMobile();
+  
   return (
-    <section className={`gallery ${className}`}>
+    <section className={`gallery grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6 ${className}`}>
       {images.map((image, index) => (
         <ImageWithCrystal 
           key={index} 

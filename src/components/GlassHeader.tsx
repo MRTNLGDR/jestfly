@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Diamond, ChevronRight, Plus, Minus, Menu, X } from 'lucide-react';
+import { useIsMobile } from '../hooks/use-mobile';
 
 interface MenuItem {
   label: string;
@@ -14,15 +15,16 @@ interface GlassHeaderProps {
 
 const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
   
   return (
     <header className="fixed top-0 left-0 w-full z-50">
-      <div className="max-w-full mx-auto px-6 py-4">
+      <div className="max-w-full mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and welcome text */}
-          <div className="flex items-center space-x-10">
+          <div className="flex items-center space-x-4 sm:space-x-10">
             <Link to="/" className="flex items-center">
-              <Diamond className="h-8 w-8 text-white glow-purple" />
+              <Diamond className="h-6 w-6 sm:h-8 sm:w-8 text-white glow-purple" />
             </Link>
             
             <div className="hidden md:flex items-center space-x-4">
@@ -30,8 +32,8 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
             </div>
           </div>
           
-          {/* Center - Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          {/* Center - Navigation (desktop only) */}
+          <nav className="hidden lg:flex items-center space-x-6 sm:space-x-8">
             {menuItems.map((item) => (
               <Link 
                 key={item.href} 
@@ -61,17 +63,18 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
           <button 
             className="lg:hidden text-white p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           
-          {/* Right side - Controls */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button className="text-white opacity-80 hover:opacity-100">
+          {/* Right side - Controls (hide on small mobile) */}
+          <div className="hidden sm:flex md:flex items-center space-x-4">
+            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom in">
               <Plus className="h-5 w-5" />
             </button>
             
-            <button className="text-white opacity-80 hover:opacity-100">
+            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom out">
               <Minus className="h-5 w-5" />
             </button>
             
@@ -91,7 +94,7 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-black/90 backdrop-blur-md">
-          <div className="px-6 py-4 space-y-4">
+          <div className="px-6 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
             {menuItems.map((item) => (
               <Link 
                 key={item.href} 
@@ -102,6 +105,19 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
                 {item.label}
               </Link>
             ))}
+            
+            {/* Mobile-only controls */}
+            <div className="sm:hidden pt-4 border-t border-white/10 flex justify-center space-x-8">
+              <Link 
+                to="/order" 
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
+              >
+                <span className="text-xs font-medium uppercase">Pre-order</span>
+                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
+                  <ChevronRight className="h-2 w-2 text-black" />
+                </div>
+              </Link>
+            </div>
           </div>
         </div>
       )}
