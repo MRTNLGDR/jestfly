@@ -2,9 +2,14 @@
 import React, { useState } from 'react';
 import Footer from '../components/Footer';
 import { toast } from "sonner";
+import { Calendar, Clock, Users, MapPin, MessageSquare } from 'lucide-react';
+import GlassCalendar from '../components/GlassCalendar';
+import BookingImage from '../components/BookingImages';
+import { BookingTypeIcon, EventIcon } from '../components/BookingIcons';
 
 const BookingsPage: React.FC = () => {
   const [bookingType, setBookingType] = useState<'dj' | 'studio' | 'consultation'>('dj');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,6 +23,14 @@ const BookingsPage: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setFormData(prev => ({
+      ...prev,
+      date: date.toISOString().split('T')[0]
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -64,7 +77,7 @@ const BookingsPage: React.FC = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            {/* Booking Type Selector */}
+            {/* Booking Type Selector with Images */}
             <div className="glass-morphism rounded-xl p-6 mb-8 transform hover:translate-y-[-5px] transition-all duration-300">
               <h2 className="text-2xl font-semibold text-gradient mb-4">What would you like to book?</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -76,7 +89,12 @@ const BookingsPage: React.FC = () => {
                       : 'border-white/10 hover:border-purple-500/50 bg-white/5'
                   }`}
                 >
-                  <div className="text-4xl mb-2 glow-purple">🎧</div>
+                  <div className="mb-3 h-32 overflow-hidden rounded-md">
+                    <BookingImage type="dj" className="h-full w-full" />
+                  </div>
+                  <div className="flex items-center justify-center mb-2">
+                    <BookingTypeIcon type="dj" className="text-purple-400" size={28} />
+                  </div>
                   <h3 className="text-lg font-medium">DJ Performance</h3>
                   <p className="text-white/70 text-sm mt-1">Book JESTFLY for your event or venue</p>
                 </button>
@@ -89,7 +107,12 @@ const BookingsPage: React.FC = () => {
                       : 'border-white/10 hover:border-cyan-500/50 bg-white/5'
                   }`}
                 >
-                  <div className="text-4xl mb-2 glow-blue">🎹</div>
+                  <div className="mb-3 h-32 overflow-hidden rounded-md">
+                    <BookingImage type="studio" className="h-full w-full" />
+                  </div>
+                  <div className="flex items-center justify-center mb-2">
+                    <BookingTypeIcon type="studio" className="text-cyan-400" size={28} />
+                  </div>
                   <h3 className="text-lg font-medium">Studio Session</h3>
                   <p className="text-white/70 text-sm mt-1">Collaborate in the studio on your project</p>
                 </button>
@@ -102,16 +125,31 @@ const BookingsPage: React.FC = () => {
                       : 'border-white/10 hover:border-pink-500/50 bg-white/5'
                   }`}
                 >
-                  <div className="text-4xl mb-2 glow-purple">💬</div>
+                  <div className="mb-3 h-32 overflow-hidden rounded-md">
+                    <BookingImage type="consultation" className="h-full w-full" />
+                  </div>
+                  <div className="flex items-center justify-center mb-2">
+                    <BookingTypeIcon type="consultation" className="text-pink-400" size={28} />
+                  </div>
                   <h3 className="text-lg font-medium">Consultation</h3>
                   <p className="text-white/70 text-sm mt-1">Get advice on your music or event</p>
                 </button>
               </div>
             </div>
             
+            {/* Interactive Calendar */}
+            <div className={`glass-morphism rounded-xl border-t border-l border-white/20 p-6 mb-8 bg-gradient-to-br ${getGradientClass()}`}>
+              <GlassCalendar 
+                onDateSelect={handleDateSelect}
+                selectedDate={selectedDate}
+                bookingType={bookingType}
+              />
+            </div>
+            
             {/* Booking Form */}
             <div className={`glass-morphism rounded-xl border-t border-l border-white/20 p-6 bg-gradient-to-br ${getGradientClass()}`}>
-              <h2 className="text-2xl font-semibold text-gradient mb-6 glow-text">
+              <h2 className="text-2xl font-semibold text-gradient mb-6 glow-text flex items-center gap-3">
+                <BookingTypeIcon type={bookingType} size={28} />
                 {bookingType === 'dj' ? 'DJ Booking Request' : 
                  bookingType === 'studio' ? 'Studio Session Request' : 
                  'Consultation Request'}
@@ -120,7 +158,10 @@ const BookingsPage: React.FC = () => {
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>
-                    <label className="block text-white/80 mb-2">Your Name</label>
+                    <label className="block text-white/80 mb-2 flex items-center gap-2">
+                      <Users size={16} className="text-white/60" />
+                      Your Name
+                    </label>
                     <input
                       type="text"
                       name="name"
@@ -131,7 +172,10 @@ const BookingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/80 mb-2">Email</label>
+                    <label className="block text-white/80 mb-2 flex items-center gap-2">
+                      <MessageSquare size={16} className="text-white/60" />
+                      Email
+                    </label>
                     <input
                       type="email"
                       name="email"
@@ -142,7 +186,10 @@ const BookingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/80 mb-2">Phone Number</label>
+                    <label className="block text-white/80 mb-2 flex items-center gap-2">
+                      <Users size={16} className="text-white/60" />
+                      Phone Number
+                    </label>
                     <input
                       type="tel"
                       name="phone"
@@ -152,7 +199,10 @@ const BookingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/80 mb-2">Preferred Date</label>
+                    <label className="block text-white/80 mb-2 flex items-center gap-2">
+                      <Calendar size={16} className="text-white/60" />
+                      Preferred Date
+                    </label>
                     <input
                       type="date"
                       name="date"
@@ -163,7 +213,10 @@ const BookingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/80 mb-2">Preferred Time</label>
+                    <label className="block text-white/80 mb-2 flex items-center gap-2">
+                      <Clock size={16} className="text-white/60" />
+                      Preferred Time
+                    </label>
                     <input
                       type="time"
                       name="time"
@@ -173,7 +226,8 @@ const BookingsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-white/80 mb-2">
+                    <label className="block text-white/80 mb-2 flex items-center gap-2">
+                      <MapPin size={16} className="text-white/60" />
                       {bookingType === 'dj' ? 'Event Location' : 
                        bookingType === 'studio' ? 'Studio Location' : 
                        'Preferred Meeting Method'}
@@ -204,7 +258,8 @@ const BookingsPage: React.FC = () => {
                 </div>
                 
                 <div className="mb-6">
-                  <label className="block text-white/80 mb-2">
+                  <label className="block text-white/80 mb-2 flex items-center gap-2">
+                    <MessageSquare size={16} className="text-white/60" />
                     {bookingType === 'dj' ? 'Event Details' : 
                      bookingType === 'studio' ? 'Project Details' : 
                      'What would you like to discuss?'}
@@ -230,21 +285,35 @@ const BookingsPage: React.FC = () => {
           </div>
           
           <div className="space-y-6">
+            {/* Showcase Image */}
+            <div className="rounded-xl overflow-hidden mb-6 transform hover:translate-y-[-5px] transition-all duration-300">
+              <BookingImage type={bookingType} className="h-56 w-full" />
+            </div>
+          
             {/* Booking Info */}
             <div className="glass-morphism rounded-xl p-6 transform hover:translate-y-[-5px] transition-all duration-300">
               <h2 className="text-2xl font-semibold text-gradient mb-4">Booking Information</h2>
               <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-medium text-white">Response Time</h3>
-                  <p className="text-white/70">We typically respond to booking inquiries within 24-48 hours.</p>
+                <div className="flex gap-3">
+                  <Clock className="h-5 w-5 text-purple-400 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-lg font-medium text-white">Response Time</h3>
+                    <p className="text-white/70">We typically respond to booking inquiries within 24-48 hours.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-medium text-white">Availability</h3>
-                  <p className="text-white/70">Bookings are subject to availability. We recommend booking at least 4-6 weeks in advance for events.</p>
+                <div className="flex gap-3">
+                  <Calendar className="h-5 w-5 text-blue-400 flex-shrink-0 mt-1" />
+                  <div>
+                    <h3 className="text-lg font-medium text-white">Availability</h3>
+                    <p className="text-white/70">Bookings are subject to availability. We recommend booking at least 4-6 weeks in advance for events.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-medium text-white">Technical Requirements</h3>
-                  <p className="text-white/70">For DJ performances, we'll provide a detailed technical rider after your booking is confirmed.</p>
+                <div className="flex gap-3">
+                  <BookingTypeIcon type={bookingType} className="text-cyan-400 flex-shrink-0 mt-1" size={20} />
+                  <div>
+                    <h3 className="text-lg font-medium text-white">Technical Requirements</h3>
+                    <p className="text-white/70">For DJ performances, we'll provide a detailed technical rider after your booking is confirmed.</p>
+                  </div>
                 </div>
               </div>
             </div>
