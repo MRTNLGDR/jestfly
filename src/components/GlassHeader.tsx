@@ -1,8 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Diamond, ChevronRight, Plus, Minus, Menu, X } from 'lucide-react';
+import { Diamond, ChevronRight, Plus, Minus, Menu, X, Globe, DollarSign } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
+import { useLanguage } from '../contexts/LanguageContext';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Button } from './ui/button';
 
 interface MenuItem {
   label: string;
@@ -18,6 +21,16 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
   const [scrolled, setScrolled] = useState(false);
   const isMobile = useIsMobile();
   const location = useLocation();
+  
+  const { 
+    language, 
+    setLanguage, 
+    currency, 
+    setCurrency, 
+    t, 
+    availableLanguages, 
+    availableCurrencies 
+  } = useLanguage();
   
   // Track page changes and scrolling
   useEffect(() => {
@@ -99,8 +112,62 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           
-          {/* Right side - Controls (hide on small mobile) */}
-          <div className="hidden sm:flex md:flex items-center space-x-4">
+          {/* Right side - Controls */}
+          <div className="hidden sm:flex items-center space-x-4">
+            {/* Language selector */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <Globe size={20} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 bg-black/90 border border-white/20 text-white p-0" align="end">
+                <div className="p-2">
+                  <h3 className="text-sm font-medium mb-2 text-white/70">Languages</h3>
+                  <div className="grid grid-cols-1 gap-1">
+                    {availableLanguages.map((lang) => (
+                      <Button 
+                        key={lang}
+                        variant={lang === language ? "secondary" : "ghost"}
+                        size="sm"
+                        className="justify-start"
+                        onClick={() => setLanguage(lang)}
+                      >
+                        {t(`language.${lang}`)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Currency selector */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <DollarSign size={20} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 bg-black/90 border border-white/20 text-white p-0" align="end">
+                <div className="p-2">
+                  <h3 className="text-sm font-medium mb-2 text-white/70">Currencies</h3>
+                  <div className="grid grid-cols-1 gap-1">
+                    {availableCurrencies.map((curr) => (
+                      <Button 
+                        key={curr}
+                        variant={curr === currency ? "secondary" : "ghost"}
+                        size="sm"
+                        className="justify-start"
+                        onClick={() => setCurrency(curr)}
+                      >
+                        {t(`currency.${curr}`)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            
             <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom in">
               <Plus className="h-5 w-5" />
             </button>
@@ -138,6 +205,47 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
                 {item.label}
               </Link>
             ))}
+            
+            {/* Language and currency selectors for mobile */}
+            <div className="pt-4 border-t border-white/10">
+              <div className="mb-4">
+                <h3 className="text-sm font-medium mb-2 text-white/70">Language</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {availableLanguages.map((lang) => (
+                    <button
+                      key={lang}
+                      className={`px-3 py-1.5 text-sm rounded-md ${
+                        lang === language 
+                          ? 'bg-purple-700 text-white' 
+                          : 'bg-white/10 text-white/80 hover:bg-white/20'
+                      }`}
+                      onClick={() => setLanguage(lang)}
+                    >
+                      {lang.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <h3 className="text-sm font-medium mb-2 text-white/70">Currency</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableCurrencies.map((curr) => (
+                    <button
+                      key={curr}
+                      className={`px-3 py-1.5 text-sm rounded-md ${
+                        curr === currency 
+                          ? 'bg-purple-700 text-white' 
+                          : 'bg-white/10 text-white/80 hover:bg-white/20'
+                      }`}
+                      onClick={() => setCurrency(curr)}
+                    >
+                      {curr}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
             
             {/* Mobile-only controls */}
             <div className="sm:hidden pt-4 border-t border-white/10 flex justify-center space-x-8">

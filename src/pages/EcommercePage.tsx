@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Box, FileImage, Video, Shapes, BookOpen, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { Card, CardContent } from '../components/ui/card';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Product category interface
 interface ProductCategory {
@@ -24,10 +26,12 @@ interface Product {
   category: string;
   modelType?: '001' | '002' | '003'; // For 3D model preview
   animated?: boolean;
+  priceJestCoin?: number; // Optional JestCoin price
 }
 
 const EcommercePage: React.FC = () => {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const { t, formatCurrency, convertToJestCoin } = useLanguage();
   
   // Product categories with matching site aesthetics
   const categories: ProductCategory[] = [
@@ -87,6 +91,7 @@ const EcommercePage: React.FC = () => {
       id: 'prod-001',
       title: 'Crystal Shader Collection',
       price: 49.99,
+      priceJestCoin: 200, // Fixed JestCoin price
       image: '/assets/imagem1.jpg',
       category: '3d-models',
       modelType: '001',
@@ -96,6 +101,7 @@ const EcommercePage: React.FC = () => {
       id: 'prod-002',
       title: 'Neon City Environment',
       price: 79.99,
+      priceJestCoin: 320,
       image: '/assets/imagem1.jpg',
       category: 'assets',
       modelType: '002',
@@ -105,6 +111,7 @@ const EcommercePage: React.FC = () => {
       id: 'prod-003',
       title: 'Futuristic UI Kit',
       price: 39.99,
+      priceJestCoin: 160,
       image: '/assets/imagem1.jpg',
       category: 'templates',
       animated: true
@@ -120,6 +127,7 @@ const EcommercePage: React.FC = () => {
       id: 'prod-005',
       title: 'Complete NFT Creation Pack',
       price: 149.99,
+      priceJestCoin: 600,
       image: '/assets/imagem1.jpg',
       category: 'packs',
       modelType: '003',
@@ -211,14 +219,23 @@ const EcommercePage: React.FC = () => {
                     
                     <div className="p-6">
                       <h3 className="text-xl font-semibold mb-2">{product.title}</h3>
+                      <div className="mt-2 space-y-1">
+                        <div className="text-lg font-mono text-purple-400">
+                          {formatCurrency(product.price)}
+                        </div>
+                        {product.priceJestCoin && (
+                          <div className="text-sm font-mono text-yellow-400">
+                            {product.priceJestCoin} J$C
+                          </div>
+                        )}
+                      </div>
                       <div className="flex justify-between items-center mt-4">
-                        <span className="text-xl font-mono text-purple-400">${product.price}</span>
                         <motion.button 
                           className="px-4 py-2 rounded-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium transition-colors"
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
-                          View Details
+                          {t('shop.viewDetails')}
                         </motion.button>
                       </div>
                     </div>
@@ -235,7 +252,7 @@ const EcommercePage: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <span className="text-sm font-medium uppercase">Browse All Resources</span>
+              <span className="text-sm font-medium uppercase">{t('shop.browseAll')}</span>
               <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center group-hover:scale-110 transition-transform">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -272,7 +289,7 @@ const EcommercePage: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    Explore Collection
+                    {t('shop.viewDetails')}
                   </motion.button>
                 </div>
               </div>
@@ -296,7 +313,7 @@ const EcommercePage: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    Explore Collection
+                    {t('shop.viewDetails')}
                   </motion.button>
                 </div>
               </div>

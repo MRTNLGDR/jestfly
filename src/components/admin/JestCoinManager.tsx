@@ -7,9 +7,11 @@ import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Coins, User, ArrowUpRight, ArrowDownRight, Users, Search, CircleDollarSign, ArrowRight } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const JestCoinManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const { formatCurrency, currency, currencySymbol, jestCoinInCurrency } = useLanguage();
   
   // Sample data for transactions and users
   const transactions = [
@@ -28,18 +30,11 @@ const JestCoinManager: React.FC = () => {
     { id: 'user5', username: 'roberta', fullName: 'Robert Adams', email: 'robert@example.com', balance: 850, joined: '2023-09-20T00:00:00' }
   ];
   
-  // Current exchange rates
-  const jestCoinValue = {
-    usd: 0.25, // $0.25 USD per JestCoin
-    eth: 0.0000125 // ETH per JestCoin
-  };
-  
   // Total JestCoins in circulation
   const totalJestCoins = 3500;
   
   // Calculate total market cap
-  const marketCapUsd = totalJestCoins * jestCoinValue.usd;
-  const marketCapEth = totalJestCoins * jestCoinValue.eth;
+  const marketCapInCurrency = totalJestCoins * jestCoinInCurrency;
   
   // Filter users based on search term
   const filteredUsers = users.filter(user => 
@@ -82,8 +77,8 @@ const JestCoinManager: React.FC = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-white/60">JestCoin Value</p>
-              <h3 className="text-2xl font-bold">${jestCoinValue.usd.toFixed(2)}</h3>
-              <p className="text-xs text-white/40 mt-1">{jestCoinValue.eth.toFixed(7)} ETH</p>
+              <h3 className="text-2xl font-bold">{formatCurrency(jestCoinInCurrency)}</h3>
+              <p className="text-xs text-white/40 mt-1">1 J$C = {formatCurrency(jestCoinInCurrency)}</p>
             </div>
           </CardContent>
         </Card>
@@ -95,8 +90,8 @@ const JestCoinManager: React.FC = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-white/60">Market Cap</p>
-              <h3 className="text-2xl font-bold">${marketCapUsd.toLocaleString()}</h3>
-              <p className="text-xs text-white/40 mt-1">{marketCapEth.toFixed(4)} ETH</p>
+              <h3 className="text-2xl font-bold">{formatCurrency(marketCapInCurrency)}</h3>
+              <p className="text-xs text-white/40 mt-1">{totalJestCoins.toLocaleString()} J$C</p>
             </div>
           </CardContent>
         </Card>
@@ -131,9 +126,8 @@ const JestCoinManager: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Value (USD)</TableHead>
-                    <TableHead>Value (ETH)</TableHead>
+                    <TableHead>Amount (J$C)</TableHead>
+                    <TableHead>Value ({currency})</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Reason</TableHead>
                     <TableHead>Date</TableHead>
@@ -154,10 +148,7 @@ const JestCoinManager: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell className="font-mono text-sm">
-                        ${(transaction.amount * jestCoinValue.usd).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {(transaction.amount * jestCoinValue.eth).toFixed(6)}
+                        {formatCurrency(transaction.amount * jestCoinInCurrency)}
                       </TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs ${
@@ -190,7 +181,7 @@ const JestCoinManager: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="amount">Amount</Label>
+                    <Label htmlFor="amount">Amount (J$C)</Label>
                     <Input id="amount" type="number" placeholder="100" />
                   </div>
                   
@@ -214,7 +205,7 @@ const JestCoinManager: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="groupAmount">Amount per user</Label>
+                    <Label htmlFor="groupAmount">Amount per user (J$C)</Label>
                     <Input id="groupAmount" type="number" placeholder="50" />
                   </div>
                   
@@ -252,9 +243,8 @@ const JestCoinManager: React.FC = () => {
                     <TableHead>Username</TableHead>
                     <TableHead>Full Name</TableHead>
                     <TableHead>Email</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead>Value (USD)</TableHead>
-                    <TableHead>Value (ETH)</TableHead>
+                    <TableHead>Balance (J$C)</TableHead>
+                    <TableHead>Value ({currency})</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -269,10 +259,7 @@ const JestCoinManager: React.FC = () => {
                         <span className="font-mono font-bold">{user.balance}</span>
                       </TableCell>
                       <TableCell className="font-mono text-sm text-green-400">
-                        ${(user.balance * jestCoinValue.usd).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="font-mono text-sm text-purple-400">
-                        {(user.balance * jestCoinValue.eth).toFixed(6)}
+                        {formatCurrency(user.balance * jestCoinInCurrency)}
                       </TableCell>
                       <TableCell>{new Date(user.joined).toLocaleDateString()}</TableCell>
                       <TableCell>
