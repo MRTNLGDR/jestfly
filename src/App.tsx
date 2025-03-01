@@ -1,7 +1,10 @@
 
 import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import CrystalHero from './components/CrystalHero';
 import CrystalGallery from './components/CrystalGallery';
+import AdminPanel from './pages/AdminPanel';
+import CyberMenu from './components/CyberMenu';
 import { defaultModelParams } from './types/model';
 
 function App() {
@@ -33,18 +36,39 @@ function App() {
     { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'center' as const }
   ];
   
+  // Menu items for the cyber menu
+  const menuItems = [
+    { label: 'Início', href: '/' },
+    { label: 'Galeria', href: '/galeria' },
+    { label: 'Sobre', href: '/sobre' },
+    { label: 'Admin', href: '/admin' },
+  ];
+  
   return (
-    <div className="app">
-      {/* Hero section with hyper-realistic 3D crystal and purple title */}
-      <CrystalHero 
-        title="JESTFLY" 
-        subtitle="Descubra efeitos de vidro hiper-realista"
-        crystalParams={crystalParams}
-      />
-      
-      {/* Gallery section with small crystal overlays */}
-      <CrystalGallery images={galleryImages} />
-    </div>
+    <Router>
+      <div className="app">
+        <Routes>
+          <Route path="/" element={
+            <>
+              {/* Hero section with hyper-realistic 3D crystal and purple title */}
+              <CrystalHero 
+                title="JESTFLY" 
+                subtitle="Descubra efeitos de vidro hiper-realista"
+                crystalParams={crystalParams}
+              />
+              
+              {/* Gallery section with small crystal overlays */}
+              <CrystalGallery images={galleryImages} />
+              
+              {/* Cyber menu at the bottom of the screen */}
+              <CyberMenu items={menuItems} />
+            </>
+          } />
+          
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
