@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Box, Cube3d, FileImage, Video, Shapes, BookOpen, Package } from 'lucide-react';
+import { Box, FileImage, Video, Shapes, BookOpen, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/Footer';
 import { Card, CardContent } from '../components/ui/card';
