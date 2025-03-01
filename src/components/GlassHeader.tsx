@@ -19,10 +19,10 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
   
   return (
     <header className="fixed top-0 left-0 w-full z-50">
-      <div className="max-w-full mx-auto px-4 sm:px-6 py-3 sm:py-4">
+      <div className="max-w-full mx-auto px-6 sm:px-8 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and welcome text */}
-          <div className="flex items-center space-x-4 sm:space-x-10">
+          <div className="flex items-center space-x-6 sm:space-x-12">
             <Link to="/" className="flex items-center">
               <Diamond className="h-6 w-6 sm:h-8 sm:w-8 text-white glow-purple" />
             </Link>
@@ -33,29 +33,33 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
           </div>
           
           {/* Center - Navigation (desktop only) */}
-          <nav className="hidden lg:flex items-center space-x-6 sm:space-x-8">
-            {menuItems.map((item) => (
+          <nav className="hidden lg:flex items-center">
+            <div className="flex items-center space-x-10">
+              {menuItems.map((item) => (
+                <Link 
+                  key={item.href} 
+                  to={item.href}
+                  className="text-white/80 text-sm hover:text-white transition-colors uppercase"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            
+            <div className="h-10 mx-8 border-l border-white/20"></div>
+            
+            <div className="flex items-center space-x-8">
               <Link 
-                key={item.href} 
-                to={item.href}
-                className="text-white/80 text-sm hover:text-white transition-colors uppercase"
+                to="/info"
+                className="text-white/80 text-sm hover:text-white transition-colors"
               >
-                {item.label}
+                .info
               </Link>
-            ))}
-            
-            <div className="h-10 mx-4 border-l border-white/20"></div>
-            
-            <Link 
-              to="/info"
-              className="text-white/80 text-sm hover:text-white transition-colors"
-            >
-              .info
-            </Link>
-            
-            <div className="flex items-center space-x-2">
-              <span className="text-white/80 text-sm">[PRG]</span>
-              <span className="px-3 py-1 rounded border border-white/20 text-white/90 text-sm">11:03</span>
+              
+              <div className="flex items-center space-x-3">
+                <span className="text-white/80 text-sm">[PRG]</span>
+                <span className="px-3 py-1 rounded border border-white/20 text-white/90 text-sm">11:03</span>
+              </div>
             </div>
           </nav>
           
@@ -69,7 +73,7 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
           </button>
           
           {/* Right side - Controls (hide on small mobile) */}
-          <div className="hidden sm:flex md:flex items-center space-x-4">
+          <div className="hidden sm:flex md:flex items-center space-x-6">
             <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom in">
               <Plus className="h-5 w-5" />
             </button>

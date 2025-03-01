@@ -11,6 +11,7 @@ interface NFTItem {
   name: string;
   price: string;
   image: string;
+  video?: string;
   available: boolean;
 }
 
@@ -29,6 +30,7 @@ const NFTSection: React.FC = () => {
       name: 'SONIC FRAGMENT',
       price: '1.2 ETH',
       image: '/assets/imagem1.jpg',
+      video: '/assets/video-background.mp4',
       available: true
     },
     {
@@ -89,25 +91,40 @@ const NFTSection: React.FC = () => {
             >
               <CardContent className="p-0 relative">
                 <div className="relative h-64 w-full overflow-hidden">
-                  {hoveredNft === nft.id ? (
-                    <div className="w-full h-full flex items-center justify-center">
+                  {/* Background media (image or video) */}
+                  <div className="absolute inset-0 w-full h-full">
+                    {nft.video && (
+                      <video 
+                        src={nft.video} 
+                        autoPlay 
+                        muted 
+                        loop 
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    {!nft.video && (
+                      <img 
+                        src={nft.image} 
+                        alt={nft.name} 
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    )}
+                  </div>
+                  
+                  {/* 3D Model overlay */}
+                  {hoveredNft === nft.id && (
+                    <div className="absolute inset-0 w-full h-full flex items-center justify-center z-10">
                       <NFTModel modelType={nft.id} />
                     </div>
-                  ) : (
-                    <img 
-                      src={nft.image} 
-                      alt={nft.name} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
                   )}
                   
                   {/* Crystal overlay */}
-                  <div className="absolute top-4 right-4 w-20 h-20 opacity-80 pointer-events-none">
+                  <div className="absolute top-4 right-4 w-20 h-20 opacity-80 pointer-events-none z-20">
                     <CrystalComponent parameters={nftCrystalParams} />
                   </div>
                   
                   {/* Availability badge */}
-                  <div className={`absolute bottom-4 left-4 px-3 py-1 rounded-full text-xs font-medium uppercase ${
+                  <div className={`absolute bottom-4 left-4 px-3 py-1 rounded-full text-xs font-medium uppercase z-20 ${
                     nft.available ? 'bg-green-500/80' : 'bg-red-500/80'
                   }`}>
                     {nft.available ? 'Available' : 'Sold'}
