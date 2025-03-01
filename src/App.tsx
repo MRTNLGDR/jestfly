@@ -73,9 +73,7 @@ function App() {
           <GlassHeader menuItems={menuItems} />
           <Routes>
             <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-            <Route path="/store" element={<Navigate to="/store/" replace />} />
             <Route path="/store/*" element={<StorePage />} />
-            <Route path="/community" element={<Navigate to="/community/hub" replace />} />
             <Route path="/community/*" element={<CommunityPage />} />
             <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

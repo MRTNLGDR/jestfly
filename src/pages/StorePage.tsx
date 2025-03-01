@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import Footer from '../components/Footer';
 
 // Store sub-pages
@@ -112,24 +112,26 @@ const CollectiblesPage = () => (
 );
 
 const StorePage: React.FC = () => {
+  const location = useLocation();
+
   return (
     <div className="min-h-screen bg-black text-white pt-20">
       {/* Store Nav */}
       <div className="bg-black/80 backdrop-blur-md border-b border-white/10 sticky top-20 z-10">
         <div className="container mx-auto flex overflow-x-auto whitespace-nowrap py-4 px-6">
-          <Link to="/store" className="text-white/80 hover:text-white px-4 py-2 mr-4 transition-colors">
+          <Link to="/store" className={`px-4 py-2 mr-4 transition-colors ${location.pathname === '/store' ? 'text-white' : 'text-white/80 hover:text-white'}`}>
             All Products
           </Link>
-          <Link to="/store/nfts" className="text-white/80 hover:text-white px-4 py-2 mr-4 transition-colors">
+          <Link to="/store/nfts" className={`px-4 py-2 mr-4 transition-colors ${location.pathname === '/store/nfts' ? 'text-white' : 'text-white/80 hover:text-white'}`}>
             NFTs
           </Link>
-          <Link to="/store/music" className="text-white/80 hover:text-white px-4 py-2 mr-4 transition-colors">
+          <Link to="/store/music" className={`px-4 py-2 mr-4 transition-colors ${location.pathname === '/store/music' ? 'text-white' : 'text-white/80 hover:text-white'}`}>
             Music
           </Link>
-          <Link to="/store/merch" className="text-white/80 hover:text-white px-4 py-2 mr-4 transition-colors">
+          <Link to="/store/merch" className={`px-4 py-2 mr-4 transition-colors ${location.pathname === '/store/merch' ? 'text-white' : 'text-white/80 hover:text-white'}`}>
             Merch
           </Link>
-          <Link to="/store/collectibles" className="text-white/80 hover:text-white px-4 py-2 transition-colors">
+          <Link to="/store/collectibles" className={`px-4 py-2 transition-colors ${location.pathname === '/store/collectibles' ? 'text-white' : 'text-white/80 hover:text-white'}`}>
             Collectibles
           </Link>
         </div>
