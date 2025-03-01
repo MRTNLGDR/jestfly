@@ -5,22 +5,25 @@ import CrystalGallery from './components/CrystalGallery';
 import { defaultModelParams } from './types/model';
 
 function App() {
-  // Crystal parameters with customized values for enhanced reflections and transparency
+  // Crystal parameters with customized values for enhanced hyper-realistic effect
   const crystalParams = {
     ...defaultModelParams,
-    color: "#ffffff",
-    metalness: 0.0,
-    roughness: 0.05,
-    transmission: 1.0,
-    thickness: 0.5,
-    envMapIntensity: 2.0, // Increased to make reflections more prominent
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.0,
-    ior: 1.5,
-    iridescence: 0.7, // Increased for more visible color shifts
-    iridescenceIOR: 1.5,
+    color: "#ffffff", // Pure white base color for better refraction
+    metalness: 0.1, // Slight metalness for better reflections
+    roughness: 0.01, // Ultra smooth surface for crisp reflections
+    transmission: 0.99, // Near perfect transmission for glass effect
+    thickness: 0.8, // Increased thickness for more internal refraction
+    envMapIntensity: 3.0, // Boosted reflections to showcase neon environment
+    clearcoat: 1.0, // Maximum clearcoat for extra glossiness
+    clearcoatRoughness: 0.0, // Perfect clearcoat smoothness
+    ior: 2.33, // Higher index of refraction for diamond-like effect
+    iridescence: 0.9, // Strong iridescence for color shifts
+    iridescenceIOR: 1.8, // Enhanced iridescence refraction
     transparent: true,
-    opacity: 0.9 // Slightly reduced opacity to allow better text visibility through crystal
+    opacity: 0.75, // Reduced opacity for better text visibility
+    reflectivity: 1.0, // Maximum reflectivity
+    emissiveIntensity: 0.05, // Slight emission for added glow
+    emissiveColor: "#8B5CF6" // Subtle purple emission color
   };
   
   // Gallery images
@@ -32,7 +35,7 @@ function App() {
   
   return (
     <div className="app">
-      {/* Hero section with 3D crystal */}
+      {/* Hero section with hyper-realistic 3D crystal */}
       <CrystalHero 
         title="JESTFLY" 
         subtitle="Descubra efeitos de vidro hiper-realista"
