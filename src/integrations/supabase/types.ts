@@ -9,6 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      demo_submissions: {
+        Row: {
+          artist_name: string
+          biography: string | null
+          created_at: string
+          email: string
+          file_path: string
+          genre: string | null
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          social_links: string | null
+          status: string
+        }
+        Insert: {
+          artist_name: string
+          biography?: string | null
+          created_at?: string
+          email: string
+          file_path: string
+          genre?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          social_links?: string | null
+          status?: string
+        }
+        Update: {
+          artist_name?: string
+          biography?: string | null
+          created_at?: string
+          email?: string
+          file_path?: string
+          genre?: string | null
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          social_links?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       models: {
         Row: {
           created_at: string
@@ -111,6 +156,39 @@ export type Database = {
           total?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      press_contacts: {
+        Row: {
+          created_at: string
+          date_requested: string
+          email: string
+          id: string
+          name: string
+          outlet: string | null
+          role: Database["public"]["Enums"]["press_role"] | null
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          date_requested: string
+          email: string
+          id?: string
+          name: string
+          outlet?: string | null
+          role?: Database["public"]["Enums"]["press_role"] | null
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          date_requested?: string
+          email?: string
+          id?: string
+          name?: string
+          outlet?: string | null
+          role?: Database["public"]["Enums"]["press_role"] | null
+          verified?: boolean
         }
         Relationships: []
       }
@@ -337,6 +415,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "manager" | "creator" | "user"
       model_type: "diamond" | "sphere" | "torus" | "crystal" | "sketchfab"
+      press_role: "journalist" | "blogger" | "editor" | "podcaster" | "other"
       product_type: "nft" | "music" | "merch" | "collectible"
     }
     CompositeTypes: {

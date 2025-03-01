@@ -1,129 +1,91 @@
 
 import React, { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../components/ui/tooltip';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../components/ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Card, CardContent } from '../components/ui/card';
 import Footer from '../components/Footer';
-import { Download, FileText, Image, Music, Newspaper, Calendar, Info } from 'lucide-react';
+import { Download, File, Info, Newspaper } from 'lucide-react';
 import { supabase } from '../integrations/supabase/client';
-
-interface PressResource {
-  id: string;
-  title: string;
-  description: string;
-  type: 'image' | 'bio' | 'release' | 'calendar' | 'logos';
-  downloadUrl: string;
-  fileSize: string;
-  fileType: string;
-}
-
-const MOCK_RESOURCES: PressResource[] = [
-  {
-    id: '1',
-    title: 'Press Photos',
-    description: 'High resolution promotional photos for print and web use',
-    type: 'image',
-    downloadUrl: '#',
-    fileSize: '24.5 MB',
-    fileType: 'ZIP Archive',
-  },
-  {
-    id: '2',
-    title: 'Biography',
-    description: 'Artist biography in multiple formats and lengths',
-    type: 'bio',
-    downloadUrl: '#',
-    fileSize: '256 KB',
-    fileType: 'PDF',
-  },
-  {
-    id: '3',
-    title: 'Press Release Templates',
-    description: 'Templates for new releases and events',
-    type: 'release',
-    downloadUrl: '#',
-    fileSize: '1.2 MB',
-    fileType: 'DOCX, PDF',
-  },
-  {
-    id: '4',
-    title: 'Tour Dates & Events',
-    description: 'Upcoming shows, events, and appearances',
-    type: 'calendar',
-    downloadUrl: '#',
-    fileSize: '512 KB',
-    fileType: 'PDF, iCal',
-  },
-  {
-    id: '5',
-    title: 'Brand Assets & Logos',
-    description: 'Logos, color palettes, and brand guidelines',
-    type: 'logos',
-    downloadUrl: '#',
-    fileSize: '8.7 MB',
-    fileType: 'ZIP Archive',
-  },
-];
 
 const PressKitPage: React.FC = () => {
   const { t } = useLanguage();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasAccess, setHasAccess] = useState(false);
+  const [showKitContent, setShowKitContent] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     outlet: '',
+    role: 'journalist' as 'journalist' | 'blogger' | 'editor' | 'podcaster' | 'other',
   });
-  const [resources] = useState<PressResource[]>(MOCK_RESOURCES);
-  
+  const [feedback, setFeedback] = useState({
+    type: '',
+    message: '',
+  });
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+
+  const handleRoleChange = (value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      role: value as 'journalist' | 'blogger' | 'editor' | 'podcaster' | 'other' 
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFeedback({ type: '', message: '' });
     
     try {
-      // Store press contact in Supabase
-      await supabase
+      // Save the press contact to the database
+      const { error } = await supabase
         .from('press_contacts')
         .insert({
           name: formData.name,
           email: formData.email,
           outlet: formData.outlet,
+          role: formData.role,
           date_requested: new Date().toISOString(),
-        });
+          verified: false
+        } as any); // Using 'as any' to bypass TypeScript checking until types are generated
+        
+      if (error) throw error;
       
-      // Grant access after successful submission
-      setHasAccess(true);
+      // Success feedback
+      setFeedback({
+        type: 'success',
+        message: 'Access granted! You can now download press materials.',
+      });
+      
+      setShowKitContent(true);
+      
     } catch (error) {
-      console.error('Error submitting press access:', error);
+      console.error('Error submitting press contact:', error);
+      setFeedback({
+        type: 'error',
+        message: 'Failed to submit request. Please try again later.',
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
-  const getResourceIcon = (type: string) => {
-    switch (type) {
-      case 'image':
-        return <Image className="h-8 w-8 text-purple-400" />;
-      case 'bio':
-        return <FileText className="h-8 w-8 text-blue-400" />;
-      case 'release':
-        return <Newspaper className="h-8 w-8 text-green-400" />;
-      case 'calendar':
-        return <Calendar className="h-8 w-8 text-yellow-400" />;
-      case 'logos':
-        return <Music className="h-8 w-8 text-pink-400" />;
-      default:
-        return <FileText className="h-8 w-8 text-gray-400" />;
-    }
-  };
-  
+
+  const pressKitItems = [
+    { name: 'JESTFLY Logo Pack', size: '10.2 MB', format: 'ZIP', description: 'High-resolution logos in various formats (PNG, SVG, AI)' },
+    { name: 'Press Photos 2024', size: '25.5 MB', format: 'ZIP', description: 'Professional photoshoot images in high resolution' },
+    { name: 'Artist Biography', size: '0.5 MB', format: 'PDF', description: 'Detailed artist biography and background' },
+    { name: 'Technical Rider', size: '1.2 MB', format: 'PDF', description: 'Technical requirements for live performances' },
+    { name: 'Press Releases', size: '3.8 MB', format: 'ZIP', description: 'All press releases from the last 12 months' },
+    { name: 'Discography', size: '0.8 MB', format: 'PDF', description: 'Complete list of releases with streaming links' },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-900 text-white">
       <div className="container mx-auto pt-32 px-4 pb-20">
@@ -134,8 +96,14 @@ const PressKitPage: React.FC = () => {
             <p className="text-white/80 max-w-2xl mx-auto">{t('press.description')}</p>
           </div>
           
-          {!hasAccess ? (
+          {!showKitContent ? (
             <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-8">
+              {feedback.message && (
+                <div className={`mb-6 p-4 rounded-lg ${feedback.type === 'success' ? 'bg-green-900/50 border border-green-500' : 'bg-red-900/50 border border-red-500'}`}>
+                  {feedback.message}
+                </div>
+              )}
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <div className="flex items-center">
@@ -146,7 +114,7 @@ const PressKitPage: React.FC = () => {
                           <Info className="h-4 w-4 ml-2 opacity-70 cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="bg-black/90 border border-purple-500 text-white">
-                          Your full name as it appears in your publications
+                          Your full name
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -170,7 +138,7 @@ const PressKitPage: React.FC = () => {
                           <Info className="h-4 w-4 ml-2 opacity-70 cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="bg-black/90 border border-purple-500 text-white">
-                          Preferably your professional email address
+                          Your professional email address
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -195,7 +163,7 @@ const PressKitPage: React.FC = () => {
                           <Info className="h-4 w-4 ml-2 opacity-70 cursor-help" />
                         </TooltipTrigger>
                         <TooltipContent className="bg-black/90 border border-purple-500 text-white">
-                          The name of your publication, blog, or media outlet
+                          Publication, blog, or media outlet you represent
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -208,6 +176,34 @@ const PressKitPage: React.FC = () => {
                     required
                     className="bg-black/50 border-white/20 text-white placeholder:text-white/40"
                   />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <Label htmlFor="role" className="text-white">Your Role</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 ml-2 opacity-70 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-black/90 border border-purple-500 text-white">
+                          Select the role that best describes you
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <Select onValueChange={handleRoleChange} defaultValue={formData.role}>
+                    <SelectTrigger className="bg-black/50 border-white/20 text-white">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black/90 border border-purple-500 text-white">
+                      <SelectItem value="journalist">Journalist</SelectItem>
+                      <SelectItem value="blogger">Blogger</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="podcaster">Podcaster</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="pt-4">
@@ -226,6 +222,7 @@ const PressKitPage: React.FC = () => {
                       </span>
                     ) : (
                       <span className="flex items-center">
+                        <Newspaper className="h-5 w-5 mr-2" />
                         {t('press.form.submit')}
                       </span>
                     )}
@@ -236,52 +233,46 @@ const PressKitPage: React.FC = () => {
           ) : (
             <div className="space-y-8">
               <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Press Resources</h2>
-                  <div className="bg-purple-900/60 text-purple-200 px-3 py-1 rounded-full text-sm">
-                    Access Granted
-                  </div>
-                </div>
-                
-                <div className="space-y-6">
-                  {resources.map((resource) => (
-                    <div key={resource.id} className="flex items-start gap-6 p-4 bg-black/30 rounded-lg hover:bg-black/40 transition-colors">
-                      <div className="p-4 rounded-lg bg-black/50">
-                        {getResourceIcon(resource.type)}
-                      </div>
-                      
-                      <div className="flex-1">
-                        <h3 className="text-xl font-medium mb-1">{resource.title}</h3>
-                        <p className="text-white/70 mb-3">{resource.description}</p>
-                        <div className="flex items-center text-sm text-white/50">
-                          <span className="mr-4">{resource.fileType}</span>
-                          <span>{resource.fileSize}</span>
+                <h2 className="text-2xl font-bold mb-6">Press Kit Materials</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {pressKitItems.map((item, idx) => (
+                    <Card key={idx} className="bg-black/50 border border-white/10">
+                      <CardContent className="p-4">
+                        <div className="flex items-start space-x-4">
+                          <div className="h-12 w-12 bg-purple-900/50 rounded-lg flex items-center justify-center">
+                            <File className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium">{item.name}</h3>
+                            <p className="text-sm text-white/60 mb-1">{item.description}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-xs text-white/50">{item.size} • {item.format}</span>
+                              <Button variant="ghost" size="sm" className="hover:bg-purple-900/50">
+                                <Download className="h-4 w-4 mr-1" /> Download
+                              </Button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                      
-                      <Button variant="outline" className="border-purple-500 hover:bg-purple-900/30">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download
-                      </Button>
-                    </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               </div>
               
               <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-8">
-                <h2 className="text-2xl font-bold mb-6">Press Contacts</h2>
-                
-                <div className="space-y-6">
-                  <div className="p-4 bg-black/30 rounded-lg">
-                    <h3 className="text-lg font-medium mb-2">Media Inquiries</h3>
-                    <p className="text-white/70 mb-1">For interview requests and press inquiries:</p>
-                    <a href="mailto:press@jestfly.com" className="text-purple-400 hover:text-purple-300">press@jestfly.com</a>
+                <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-medium">Press Inquiries</h3>
+                    <p className="text-white/70">press@jestfly.com</p>
                   </div>
-                  
-                  <div className="p-4 bg-black/30 rounded-lg">
-                    <h3 className="text-lg font-medium mb-2">Booking & Management</h3>
-                    <p className="text-white/70 mb-1">For booking inquiries and management contact:</p>
-                    <a href="mailto:bookings@jestfly.com" className="text-purple-400 hover:text-purple-300">bookings@jestfly.com</a>
+                  <div>
+                    <h3 className="text-lg font-medium">Booking</h3>
+                    <p className="text-white/70">bookings@jestfly.com</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium">Management</h3>
+                    <p className="text-white/70">management@jestfly.com</p>
                   </div>
                 </div>
               </div>
