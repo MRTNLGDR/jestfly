@@ -35,3 +35,6 @@ export const EventIcon: React.FC<BookingIconProps & { name: string }> = ({ name,
       return null;
   }
 };
+
+// Export the Lucide icons directly for components that need them
+export { Clock, CalendarCheck as Calendar } from 'lucide-react';
