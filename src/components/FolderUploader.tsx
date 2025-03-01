@@ -14,6 +14,12 @@ interface UploadedFile {
   url: string;
 }
 
+// Define a type that includes the non-standard directory attributes
+interface DirectoryInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  webkitdirectory?: string;
+  directory?: string;
+}
+
 const FolderUploader = () => {
   const { toast } = useToast();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -189,14 +195,13 @@ const FolderUploader = () => {
                 className="hidden"
               />
               
+              {/* Cast input element to accept directory attributes */}
               <input
                 type="file"
                 multiple
                 ref={folderInputRef}
                 onChange={handleFileChange}
-                // Use the attributes as valid HTML attributes
-                webkitdirectory=""
-                directory=""
+                {...{webkitdirectory: "", directory: ""} as DirectoryInputProps}
                 className="hidden"
               />
               

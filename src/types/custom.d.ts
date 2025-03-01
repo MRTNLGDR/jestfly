@@ -4,4 +4,9 @@ declare namespace JSX {
     directory?: string;
     webkitdirectory?: string;
   }
+  
+  interface InputHTMLAttributes extends HTMLAttributes<HTMLInputElement> {
+    directory?: string;
+    webkitdirectory?: string;
+  }
 }
