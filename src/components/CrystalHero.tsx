@@ -22,7 +22,12 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
   
   return (
     <section className={`hero relative h-screen flex flex-col pt-20 overflow-hidden ${className}`}>
-      <div className="absolute inset-0 bg-black z-0"></div>
+      {/* Dark gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0d0d15] to-[#1A1F2C] z-0"></div>
+      
+      {/* Dynamic light effects */}
+      <div className="absolute top-0 right-0 w-[50vw] h-[50vw] rounded-full bg-[#8B5CF6]/10 blur-[100px] animate-float z-10"></div>
+      <div className="absolute bottom-[5%] left-[10%] w-[40vw] h-[40vw] rounded-full bg-[#4ade80]/10 blur-[100px] animate-float z-10" style={{ animationDelay: '-5s' }}></div>
       
       {/* Side captions - hidden on mobile */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
