@@ -13,7 +13,7 @@ import ConnectionSection from './components/ConnectionSection';
 import ShopPreview from './components/ShopPreview';
 import Footer from './components/Footer';
 import RoadmapSection from './components/RoadmapSection';
-import StorePage from './pages/StorePage';
+import NewStorePage from './pages/NewStorePage';
 import CommunityPage from './pages/CommunityPage';
 import BookingsPage from './pages/BookingsPage';
 import ProfilePage from './pages/ProfilePage';
@@ -77,7 +77,7 @@ function App() {
           <GlassHeader menuItems={menuItems} />
           <Routes>
             <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-            <Route path="/store/*" element={<StorePage />} />
+            <Route path="/store/*" element={<NewStorePage />} />
             <Route path="/community/*" element={<CommunityPage />} />
             <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/resources" element={<EcommercePage />} />

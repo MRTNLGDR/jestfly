@@ -68,29 +68,7 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </div>
       
-      {/* Resource Link Card */}
-      <div className="w-full bg-black py-12">
-        <div className="container mx-auto px-4">
-          <Link to="/resources" className="block">
-            <div className="rounded-xl overflow-hidden relative group cursor-pointer">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-800 to-blue-700 opacity-90 group-hover:opacity-100 transition-opacity"></div>
-              <div className="relative z-10 flex items-center justify-between p-8">
-                <div>
-                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">3D Resources Marketplace</h3>
-                  <p className="text-white/80 max-w-md">Explore premium templates, models, tutorials and more</p>
-                </div>
-                <div className="bg-white/10 rounded-full p-3 backdrop-blur-sm group-hover:bg-white/20 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-      </div>
-      
-      {/* Artist Showcase Section - NEW */}
+      {/* Artist Showcase Section */}
       <ArtistShowcase />
       
       {/* NFT Section */}
