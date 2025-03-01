@@ -6,7 +6,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Coin, User, ArrowUpRight, ArrowDownRight, Users, Search } from 'lucide-react';
+import { Coins, User, ArrowUpRight, ArrowDownRight, Users, Search } from 'lucide-react';
 
 const JestCoinManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +53,7 @@ const JestCoinManager: React.FC = () => {
         <Card className="bg-gradient-to-br from-yellow-900/40 to-yellow-800/20 border-yellow-700/30">
           <CardContent className="flex items-center p-6">
             <div className="bg-yellow-500/20 p-3 rounded-full mr-4">
-              <Coin className="h-8 w-8 text-yellow-400" />
+              <Coins className="h-8 w-8 text-yellow-400" />
             </div>
             <div>
               <p className="text-sm font-medium text-white/60">Total JestCoins</p>
