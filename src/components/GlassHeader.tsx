@@ -1,9 +1,20 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Diamond, ChevronRight, Plus, Minus } from 'lucide-react';
+import { Diamond, ChevronRight, Plus, Minus, Menu, X } from 'lucide-react';
 
-const GlassHeader: React.FC = () => {
+interface MenuItem {
+  label: string;
+  href: string;
+}
+
+interface GlassHeaderProps {
+  menuItems?: MenuItem[];
+}
+
+const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   return (
     <header className="fixed top-0 left-0 w-full z-50">
       <div className="max-w-full mx-auto px-6 py-4">
@@ -21,13 +32,13 @@ const GlassHeader: React.FC = () => {
           
           {/* Center - Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            {['shop', 'about', 'collection'].map((item) => (
+            {menuItems.map((item) => (
               <Link 
-                key={item} 
-                to={`/${item}`}
+                key={item.href} 
+                to={item.href}
                 className="text-white/80 text-sm hover:text-white transition-colors uppercase"
               >
-                {item}
+                {item.label}
               </Link>
             ))}
             
@@ -46,13 +57,21 @@ const GlassHeader: React.FC = () => {
             </div>
           </nav>
           
+          {/* Mobile menu button */}
+          <button 
+            className="lg:hidden text-white p-2"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          
           {/* Right side - Controls */}
-          <div className="flex items-center space-x-4">
-            <button className="hidden md:flex text-white opacity-80 hover:opacity-100">
+          <div className="hidden md:flex items-center space-x-4">
+            <button className="text-white opacity-80 hover:opacity-100">
               <Plus className="h-5 w-5" />
             </button>
             
-            <button className="hidden md:flex text-white opacity-80 hover:opacity-100">
+            <button className="text-white opacity-80 hover:opacity-100">
               <Minus className="h-5 w-5" />
             </button>
             
@@ -68,6 +87,24 @@ const GlassHeader: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden bg-black/90 backdrop-blur-md">
+          <div className="px-6 py-4 space-y-4">
+            {menuItems.map((item) => (
+              <Link 
+                key={item.href} 
+                to={item.href}
+                className="block text-white py-2 hover:text-purple-400 transition-colors uppercase"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
       
       {/* Bottom border */}
       <div className="w-full h-px bg-white/10"></div>
