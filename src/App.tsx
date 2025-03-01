@@ -13,13 +13,14 @@ function App() {
     roughness: 0.05,
     transmission: 1.0,
     thickness: 0.5,
-    envMapIntensity: 1.5,
+    envMapIntensity: 2.0, // Increased to make reflections more prominent
     clearcoat: 1.0,
     clearcoatRoughness: 0.0,
     ior: 1.5,
-    iridescence: 0.5,
+    iridescence: 0.7, // Increased for more visible color shifts
     iridescenceIOR: 1.5,
-    transparent: true
+    transparent: true,
+    opacity: 0.9 // Slightly reduced opacity to allow better text visibility through crystal
   };
   
   // Gallery images
