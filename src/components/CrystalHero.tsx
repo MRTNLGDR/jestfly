@@ -5,6 +5,7 @@ import { ModelParameters, defaultModelParams } from '../types/model';
 import { Calendar } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
 import GlassAudioPlayer from './GlassAudioPlayer';
+import JestCoinTicker from './JestCoinTicker';
 
 interface CrystalHeroProps {
   title?: string;
@@ -59,6 +60,11 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
           <p>FROM 10:00</p>
           <p>TO 19:00</p>
         </div>
+        
+        {/* JestCoin ticker positioned near "inspired" */}
+        <div className="mt-6">
+          <JestCoinTicker compact={true} />
+        </div>
       </div>
       
       {/* Main title without card behind */}
@@ -81,6 +87,16 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         isMinimized={isPlayerMinimized}
         setIsMinimized={setIsPlayerMinimized}
       />
+      
+      {/* JestCoin ticker in a more prominent position for mobile */}
+      <div className="absolute top-24 right-4 z-30 md:hidden">
+        <JestCoinTicker compact={true} />
+      </div>
+      
+      {/* Fuller JestCoin ticker at the bottom for all screen sizes */}
+      <div className="absolute bottom-16 left-0 right-0 flex justify-center z-30">
+        <JestCoinTicker />
+      </div>
       
       {/* Footer information - simplified on mobile */}
       <div className="absolute bottom-6 left-0 right-0 px-4 sm:px-6 z-30 flex justify-between items-center text-xs text-white/70">
