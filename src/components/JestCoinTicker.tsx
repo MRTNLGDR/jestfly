@@ -32,13 +32,13 @@ const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact
   }, [price]);
   
   if (compact) {
-    // Compact ticker for smaller spaces
+    // Compact ticker for smaller spaces - pure glassmorphism without gold border
     return (
-      <Link to="/airdrop" className={`inline-flex items-center px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-yellow-500/30 hover:border-yellow-500/70 transition-all ${className}`}>
+      <Link to="/airdrop" className={`inline-flex items-center px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/40 transition-all ${className}`}>
         <div className="mr-2 relative">
           <GoldCoin3D size={24} />
         </div>
-        <span className="font-mono text-xs text-yellow-100">
+        <span className="font-mono text-xs text-white">
           ${price.toFixed(4)}
         </span>
         <span className={`ml-1 text-xs ${isIncreasing ? 'text-green-500' : 'text-red-500'}`}>
@@ -48,26 +48,26 @@ const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact
     );
   }
   
-  // Full ticker with more details
+  // Full ticker with more details - pure glassmorphism without gold border
   return (
-    <Link to="/airdrop" className={`group flex items-center p-2 rounded-lg bg-black/30 backdrop-blur-sm border border-yellow-500/30 hover:border-yellow-500/70 transition-all ${className}`}>
+    <Link to="/airdrop" className={`group flex items-center p-2 rounded-lg bg-black/30 backdrop-blur-sm hover:bg-black/40 transition-all ${className}`}>
       <div className="w-12 h-12 relative mr-3 flex items-center justify-center">
         <GoldCoin3D size={48} />
       </div>
       
       <div>
         <div className="flex items-center">
-          <span className="font-mono font-bold text-yellow-100">${price.toFixed(4)}</span>
+          <span className="font-mono font-bold text-white">${price.toFixed(4)}</span>
           <span className={`ml-2 text-xs flex items-center ${isIncreasing ? 'text-green-500' : 'text-red-500'}`}>
             {isIncreasing ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
             {Math.abs(change)}%
           </span>
         </div>
-        <div className="text-xs text-yellow-100/60">JestCoin</div>
+        <div className="text-xs text-white/60">JestCoin</div>
       </div>
       
       <div className="ml-auto mr-2 opacity-40 group-hover:opacity-100 transition-opacity">
-        <span className="text-xs text-yellow-100">AIRDROP</span>
+        <span className="text-xs text-white">AIRDROP</span>
       </div>
     </Link>
   );
