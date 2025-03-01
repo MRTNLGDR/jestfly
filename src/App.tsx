@@ -22,6 +22,7 @@ import DemoSubmissionPage from './pages/DemoSubmissionPage';
 import LiveStreamPage from './pages/LiveStreamPage';
 import PressKitPage from './pages/PressKitPage';
 import AirdropPage from './pages/AirdropPage';
+import EcommercePage from './pages/EcommercePage';
 import LanguageProvider from './contexts/LanguageContext';
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
     { label: 'Store', href: '/store' },
     { label: 'Community', href: '/community' },
     { label: 'Bookings', href: '/bookings' },
+    { label: 'Resources', href: '/resources' },
     { label: 'Profile', href: '/profile' },
     { label: 'Demo Submission', href: '/demo-submission' },
     { label: 'Live Stream', href: '/live-stream' },
@@ -78,6 +80,7 @@ function App() {
             <Route path="/store/*" element={<StorePage />} />
             <Route path="/community/*" element={<CommunityPage />} />
             <Route path="/bookings" element={<BookingsPage />} />
+            <Route path="/resources" element={<EcommercePage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/demo-submission" element={<DemoSubmissionPage />} />
             <Route path="/live-stream" element={<LiveStreamPage />} />
