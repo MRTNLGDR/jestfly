@@ -1,324 +1,400 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '../ui/card';
 import { Slider } from '../ui/slider';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Card } from '../ui/card';
-import { HexColorPicker } from 'react-colorful';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Save, Trash, Upload, Eye } from 'lucide-react';
+import { RgbaColorPicker } from 'react-colorful';
 import CrystalPreview from './CrystalPreview';
 import { ModelParameters, defaultModelParams } from '../../types/model';
-import { Switch } from '../ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const ModelEditor = () => {
-  const [params, setParams] = useState<ModelParameters>({...defaultModelParams});
-  const [hexColor, setHexColor] = useState('#ffffff');
-  const [previewParams, setPreviewParams] = useState<ModelParameters>({...defaultModelParams});
-  const [previewVisible, setPreviewVisible] = useState(true);
+  const [parameters, setParameters] = useState<ModelParameters>({...defaultModelParams});
+  const [modelName, setModelName] = useState('Novo Modelo');
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
+  const [savedModels, setSavedModels] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleColorChange = (color: string) => {
-    setHexColor(color);
-    setParams(prev => ({ ...prev, color }));
+  // Convert hex to rgba
+  const hexToRgba = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16),
+      a: 1
+    } : { r: 255, g: 255, b: 255, a: 1 };
   };
-
-  const handleParamChange = (key: keyof ModelParameters, value: any) => {
-    setParams(prev => ({ ...prev, [key]: value }));
+  
+  // Convert rgba to hex
+  const rgbaToHex = ({ r, g, b }: { r: number, g: number, b: number }) => {
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   };
-
-  const handleNumericInput = (key: keyof ModelParameters, value: string) => {
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue)) {
-      handleParamChange(key, numValue);
+  
+  const handleColorChange = (color: { r: number, g: number, b: number, a: number }) => {
+    setParameters({
+      ...parameters,
+      color: rgbaToHex(color),
+      opacity: color.a
+    });
+  };
+  
+  // Fetch saved models from Supabase
+  const fetchSavedModels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('models')
+        .select('*')
+        .eq('model_type', 'crystal')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        setSavedModels(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar modelos:', error);
+      toast.error('Não foi possível carregar os modelos salvos.');
     }
   };
-
-  const updatePreview = () => {
-    setPreviewParams({...params});
-  };
-
-  const triggerFileUpload = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
+  
+  // Load model based on ID
+  const loadModel = async (id: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('models')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data) {
+        setModelName(data.name);
+        setParameters(data.params as ModelParameters);
+        setSelectedModelId(data.id);
+        toast.success(`Modelo "${data.name}" carregado com sucesso!`);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar modelo:', error);
+      toast.error('Não foi possível carregar o modelo selecionado.');
+    } finally {
+      setLoading(false);
     }
   };
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Process file upload logic here
-      console.log("File selected:", file.name);
-      // In a real implementation, you would upload this to a server
+  
+  // Save model to Supabase
+  const saveModel = async () => {
+    try {
+      setLoading(true);
+      
+      const modelData = {
+        name: modelName,
+        params: parameters,
+        model_type: 'crystal',
+        is_active: true
+      };
+      
+      let response;
+      
+      if (selectedModelId) {
+        // Update existing model
+        response = await supabase
+          .from('models')
+          .update(modelData)
+          .eq('id', selectedModelId);
+      } else {
+        // Create new model
+        response = await supabase
+          .from('models')
+          .insert([modelData]);
+      }
+      
+      const { error } = response;
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success(`Modelo "${modelName}" salvo com sucesso!`);
+      fetchSavedModels(); // Refresh the list
+      
+    } catch (error) {
+      console.error('Erro ao salvar modelo:', error);
+      toast.error('Não foi possível salvar o modelo.');
+    } finally {
+      setLoading(false);
     }
   };
-
+  
+  // Delete model from Supabase
+  const deleteModel = async () => {
+    if (!selectedModelId) return;
+    
+    if (!confirm(`Tem certeza que deseja excluir o modelo "${modelName}"?`)) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from('models')
+        .delete()
+        .eq('id', selectedModelId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      toast.success(`Modelo "${modelName}" excluído com sucesso!`);
+      fetchSavedModels(); // Refresh the list
+      
+      // Reset form
+      setParameters({...defaultModelParams});
+      setModelName('Novo Modelo');
+      setSelectedModelId(null);
+      
+    } catch (error) {
+      console.error('Erro ao excluir modelo:', error);
+      toast.error('Não foi possível excluir o modelo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // New model
+  const createNewModel = () => {
+    setParameters({...defaultModelParams});
+    setModelName('Novo Modelo');
+    setSelectedModelId(null);
+    toast.info('Criando novo modelo...');
+  };
+  
+  // Load models on component mount
+  useEffect(() => {
+    fetchSavedModels();
+  }, []);
+  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Preview Section */}
-      <Card className="glass-morphism overflow-hidden rounded-lg h-[600px] relative">
-        <div className="absolute top-4 right-4 z-10 flex gap-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => setPreviewVisible(!previewVisible)}
-            className="bg-black/20 hover:bg-black/40 backdrop-blur-sm"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-        </div>
-        {previewVisible && (
-          <CrystalPreview parameters={previewParams} />
-        )}
+      {/* Preview */}
+      <Card className="glass-morphism lg:col-span-1 h-[400px] lg:h-[700px] overflow-hidden">
+        <CardContent className="p-0 h-full">
+          <CrystalPreview parameters={parameters} />
+        </CardContent>
       </Card>
-
-      {/* Controls Section */}
-      <div className="space-y-6">
-        <Card className="glass-morphism p-6 rounded-lg">
-          <h3 className="text-xl font-bold mb-4 text-gradient">Parâmetros do Material</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Color Picker */}
-            <div className="space-y-2">
-              <Label>Cor Base</Label>
-              <div className="flex gap-2 items-center">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-10 h-10 p-0 rounded-md"
-                      style={{ backgroundColor: hexColor }}
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 border-none bg-transparent">
-                    <HexColorPicker color={hexColor} onChange={handleColorChange} />
-                  </PopoverContent>
-                </Popover>
-                <Input 
-                  value={hexColor} 
-                  onChange={(e) => handleColorChange(e.target.value)}
-                  className="font-mono"
+      
+      {/* Controls */}
+      <div className="glass-morphism lg:col-span-1 p-6 rounded-lg">
+        <h2 className="text-2xl font-bold text-white mb-6">Parâmetros do Cristal</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Model name and saved models */}
+          <div className="col-span-full">
+            <Label htmlFor="modelName" className="text-white mb-2 block">Nome do Modelo</Label>
+            <div className="flex gap-2">
+              <Input 
+                id="modelName" 
+                value={modelName} 
+                onChange={(e) => setModelName(e.target.value)} 
+                className="bg-white/10 border-white/20 text-white"
+              />
+              <Button variant="outline" disabled={loading} onClick={() => setShowColorPicker(!showColorPicker)}>
+                <div 
+                  className="w-5 h-5 rounded-full mr-2" 
+                  style={{ backgroundColor: parameters.color }}
                 />
-              </div>
+                Cor
+              </Button>
             </div>
-
-            {/* Material Properties */}
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between">
-                  <Label>Metálico</Label>
-                  <span className="text-xs text-gray-400">{params.metalness.toFixed(2)}</span>
-                </div>
-                <Slider 
-                  value={[params.metalness]} 
-                  min={0} 
-                  max={1} 
-                  step={0.01}
-                  onValueChange={(value) => handleParamChange('metalness', value[0])}
-                  className="py-2"
+            
+            {/* Color picker */}
+            {showColorPicker && (
+              <div className="absolute z-50 mt-2 p-3 rounded-lg glass-morphism">
+                <RgbaColorPicker 
+                  color={hexToRgba(parameters.color)} 
+                  onChange={handleColorChange}
                 />
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-2" 
+                  onClick={() => setShowColorPicker(false)}
+                >
+                  Fechar
+                </Button>
               </div>
-              
-              <div>
-                <div className="flex justify-between">
-                  <Label>Rugosidade</Label>
-                  <span className="text-xs text-gray-400">{params.roughness.toFixed(2)}</span>
-                </div>
-                <Slider 
-                  value={[params.roughness]} 
-                  min={0} 
-                  max={1} 
-                  step={0.01}
-                  onValueChange={(value) => handleParamChange('roughness', value[0])}
-                  className="py-2"
-                />
+            )}
+            
+            {/* Saved models dropdown */}
+            <div className="mt-4">
+              <Label htmlFor="savedModels" className="text-white mb-2 block">Modelos Salvos</Label>
+              <div className="flex gap-2">
+                <select 
+                  id="savedModels" 
+                  className="w-full bg-white/10 border-white/20 text-white rounded-md h-10 px-3"
+                  value={selectedModelId || ""}
+                  onChange={(e) => e.target.value && loadModel(e.target.value)}
+                >
+                  <option value="">Selecione um modelo</option>
+                  {savedModels.map(model => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))}
+                </select>
+                <Button variant="outline" onClick={createNewModel} disabled={loading}>
+                  Novo
+                </Button>
               </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          {/* Material parameters */}
+          <div className="space-y-4">
             <div>
-              <div className="flex justify-between">
-                <Label>Transmissão</Label>
-                <span className="text-xs text-gray-400">{params.transmission.toFixed(2)}</span>
-              </div>
+              <Label className="text-white mb-2 block">Metalicidade: {parameters.metalness.toFixed(2)}</Label>
               <Slider 
-                value={[params.transmission]} 
+                value={[parameters.metalness]} 
                 min={0} 
                 max={1} 
-                step={0.01}
-                onValueChange={(value) => handleParamChange('transmission', value[0])}
-                className="py-2"
+                step={0.01} 
+                onValueChange={([value]) => setParameters({...parameters, metalness: value})}
               />
             </div>
             
             <div>
-              <div className="flex justify-between">
-                <Label>Espessura</Label>
-                <span className="text-xs text-gray-400">{params.thickness.toFixed(2)}</span>
-              </div>
+              <Label className="text-white mb-2 block">Rugosidade: {parameters.roughness.toFixed(2)}</Label>
               <Slider 
-                value={[params.thickness]} 
+                value={[parameters.roughness]} 
                 min={0} 
-                max={2} 
-                step={0.01}
-                onValueChange={(value) => handleParamChange('thickness', value[0])}
-                className="py-2"
-              />
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="glass-morphism p-6 rounded-lg">
-          <h3 className="text-xl font-bold mb-4 text-gradient">Parâmetros Avançados</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex justify-between">
-                <Label>Índice de Refração (IOR)</Label>
-                <span className="text-xs text-gray-400">{params.ior.toFixed(2)}</span>
-              </div>
-              <Slider 
-                value={[params.ior]} 
-                min={1} 
-                max={3} 
-                step={0.01}
-                onValueChange={(value) => handleParamChange('ior', value[0])}
-                className="py-2"
+                max={1} 
+                step={0.01} 
+                onValueChange={([value]) => setParameters({...parameters, roughness: value})}
               />
             </div>
             
             <div>
-              <div className="flex justify-between">
-                <Label>Intensidade do Ambiente</Label>
-                <span className="text-xs text-gray-400">{params.envMapIntensity.toFixed(2)}</span>
-              </div>
+              <Label className="text-white mb-2 block">Transmissão: {parameters.transmission.toFixed(2)}</Label>
               <Slider 
-                value={[params.envMapIntensity]} 
+                value={[parameters.transmission]} 
+                min={0} 
+                max={1} 
+                step={0.01} 
+                onValueChange={([value]) => setParameters({...parameters, transmission: value})}
+              />
+            </div>
+            
+            <div>
+              <Label className="text-white mb-2 block">Espessura: {parameters.thickness.toFixed(2)}</Label>
+              <Slider 
+                value={[parameters.thickness]} 
                 min={0} 
                 max={5} 
-                step={0.1}
-                onValueChange={(value) => handleParamChange('envMapIntensity', value[0])}
-                className="py-2"
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <div>
-              <div className="flex justify-between">
-                <Label>Camada clara</Label>
-                <span className="text-xs text-gray-400">{params.clearcoat.toFixed(2)}</span>
-              </div>
-              <Slider 
-                value={[params.clearcoat]} 
-                min={0} 
-                max={1} 
-                step={0.01}
-                onValueChange={(value) => handleParamChange('clearcoat', value[0])}
-                className="py-2"
+                step={0.1} 
+                onValueChange={([value]) => setParameters({...parameters, thickness: value})}
               />
             </div>
             
             <div>
-              <div className="flex justify-between">
-                <Label>Rugosidade da camada</Label>
-                <span className="text-xs text-gray-400">{params.clearcoatRoughness.toFixed(2)}</span>
-              </div>
+              <Label className="text-white mb-2 block">IOR: {parameters.ior.toFixed(2)}</Label>
               <Slider 
-                value={[params.clearcoatRoughness]} 
-                min={0} 
-                max={1} 
-                step={0.01}
-                onValueChange={(value) => handleParamChange('clearcoatRoughness', value[0])}
-                className="py-2"
-              />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <div>
-              <div className="flex justify-between">
-                <Label>Iridescência</Label>
-                <span className="text-xs text-gray-400">{params.iridescence.toFixed(2)}</span>
-              </div>
-              <Slider 
-                value={[params.iridescence]} 
-                min={0} 
-                max={1} 
-                step={0.01}
-                onValueChange={(value) => handleParamChange('iridescence', value[0])}
-                className="py-2"
-              />
-            </div>
-            
-            <div>
-              <div className="flex justify-between">
-                <Label>IOR da Iridescência</Label>
-                <span className="text-xs text-gray-400">{params.iridescenceIOR.toFixed(2)}</span>
-              </div>
-              <Slider 
-                value={[params.iridescenceIOR]} 
+                value={[parameters.ior]} 
                 min={1} 
-                max={2.5} 
-                step={0.01}
-                onValueChange={(value) => handleParamChange('iridescenceIOR', value[0])}
-                className="py-2"
+                max={3} 
+                step={0.05} 
+                onValueChange={([value]) => setParameters({...parameters, ior: value})}
               />
             </div>
           </div>
           
-          <div className="flex items-center space-x-2 mt-6">
-            <Switch 
-              id="wireframe"
-              checked={params.wireframe}
-              onCheckedChange={(checked) => handleParamChange('wireframe', checked)}
-            />
-            <Label htmlFor="wireframe">Exibir wireframe</Label>
+          <div className="space-y-4">
+            <div>
+              <Label className="text-white mb-2 block">Camada Extra: {parameters.clearcoat.toFixed(2)}</Label>
+              <Slider 
+                value={[parameters.clearcoat]} 
+                min={0} 
+                max={1} 
+                step={0.01} 
+                onValueChange={([value]) => setParameters({...parameters, clearcoat: value})}
+              />
+            </div>
+            
+            <div>
+              <Label className="text-white mb-2 block">Rugosidade da Camada: {parameters.clearcoatRoughness.toFixed(2)}</Label>
+              <Slider 
+                value={[parameters.clearcoatRoughness]} 
+                min={0} 
+                max={1} 
+                step={0.01} 
+                onValueChange={([value]) => setParameters({...parameters, clearcoatRoughness: value})}
+              />
+            </div>
+            
+            <div>
+              <Label className="text-white mb-2 block">Intensidade do Ambiente: {parameters.envMapIntensity.toFixed(2)}</Label>
+              <Slider 
+                value={[parameters.envMapIntensity]} 
+                min={0} 
+                max={5} 
+                step={0.1} 
+                onValueChange={([value]) => setParameters({...parameters, envMapIntensity: value})}
+              />
+            </div>
+            
+            <div>
+              <Label className="text-white mb-2 block">Iridescência: {parameters.iridescence.toFixed(2)}</Label>
+              <Slider 
+                value={[parameters.iridescence]} 
+                min={0} 
+                max={1} 
+                step={0.01} 
+                onValueChange={([value]) => setParameters({...parameters, iridescence: value})}
+              />
+            </div>
+            
+            <div>
+              <Label className="text-white mb-2 block">IOR Iridescente: {parameters.iridescenceIOR.toFixed(2)}</Label>
+              <Slider 
+                value={[parameters.iridescenceIOR]} 
+                min={1} 
+                max={3} 
+                step={0.05} 
+                onValueChange={([value]) => setParameters({...parameters, iridescenceIOR: value})}
+              />
+            </div>
           </div>
-        </Card>
-        
-        <div className="flex gap-3 mt-6">
-          <Button 
-            className="flex-1 bg-purple-600 hover:bg-purple-700"
-            onClick={updatePreview}
-          >
-            <Eye className="mr-2 h-4 w-4" />
-            Visualizar
-          </Button>
           
-          <Button 
-            className="flex-1 bg-green-600 hover:bg-green-700"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            Salvar
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={triggerFileUpload}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Carregar Modelo
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept=".glb,.gltf,.obj"
-              className="hidden"
-            />
-          </Button>
-          
-          <Button 
-            variant="destructive"
-            className="flex-1"
-          >
-            <Trash className="mr-2 h-4 w-4" />
-            Limpar
-          </Button>
+          {/* Save buttons */}
+          <div className="col-span-full flex gap-2 mt-6">
+            <Button 
+              onClick={saveModel} 
+              className="flex-1" 
+              disabled={loading}
+              variant="default"
+            >
+              {loading ? 'Salvando...' : selectedModelId ? 'Atualizar Modelo' : 'Salvar Modelo'}
+            </Button>
+            
+            {selectedModelId && (
+              <Button 
+                onClick={deleteModel} 
+                variant="destructive" 
+                disabled={loading}
+              >
+                {loading ? 'Excluindo...' : 'Excluir'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

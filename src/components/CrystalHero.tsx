@@ -17,7 +17,7 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
   className = "",
 }) => {
   return (
-    <section className={`hero relative h-screen flex flex-col items-center justify-center ${className}`}>
+    <section className={`hero relative h-screen flex flex-col items-center justify-center pt-16 ${className}`}>
       {/* Purple title positioned behind the crystal */}
       <div className="absolute z-0 flex items-center justify-center w-full">
         <h1 className="text-6xl md:text-8xl font-bold text-purple-600 opacity-80" 

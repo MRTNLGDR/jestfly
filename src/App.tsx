@@ -5,6 +5,7 @@ import CrystalHero from './components/CrystalHero';
 import CrystalGallery from './components/CrystalGallery';
 import AdminPanel from './pages/AdminPanel';
 import CyberMenu from './components/CyberMenu';
+import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
   return (
     <Router>
       <div className="app">
+        <GlassHeader />
         <Routes>
           <Route path="/" element={
             <>
