@@ -7,6 +7,11 @@ import AdminPanel from './pages/AdminPanel';
 import CyberMenu from './components/CyberMenu';
 import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
+import NFTSection from './components/NFTSection';
+import EventsSection from './components/EventsSection';
+import ConnectionSection from './components/ConnectionSection';
+import ShopPreview from './components/ShopPreview';
+import Footer from './components/Footer';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -69,15 +74,23 @@ function App() {
                 </div>
               </div>
               
+              {/* NFT Section */}
+              <NFTSection />
+              
+              {/* Events Section */}
+              <EventsSection />
+              
               {/* Gallery section with small crystal overlays */}
               <CrystalGallery images={galleryImages} />
               
-              {/* Footer text */}
-              <div className="w-full py-6 flex justify-between px-8 text-white/70 text-xs uppercase tracking-widest bg-black/80">
-                <div>DON'T.RUN</div>
-                <div>JESTFLY.CNCPT</div>
-                <div>JUST.FLY</div>
-              </div>
+              {/* Shop Categories Preview */}
+              <ShopPreview />
+              
+              {/* Connection/Newsletter Section */}
+              <ConnectionSection />
+              
+              {/* Footer */}
+              <Footer />
             </>
           } />
           
