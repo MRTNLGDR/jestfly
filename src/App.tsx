@@ -5,11 +5,21 @@ import CrystalGallery from './components/CrystalGallery';
 import { defaultModelParams } from './types/model';
 
 function App() {
-  // Crystal parameters with customized values
+  // Crystal parameters with customized values for enhanced reflections and transparency
   const crystalParams = {
     ...defaultModelParams,
     color: "#ffffff",
-    iridescence: 0.5
+    metalness: 0.0,
+    roughness: 0.05,
+    transmission: 1.0,
+    thickness: 0.5,
+    envMapIntensity: 1.5,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.0,
+    ior: 1.5,
+    iridescence: 0.5,
+    iridescenceIOR: 1.5,
+    transparent: true
   };
   
   // Gallery images
@@ -23,7 +33,7 @@ function App() {
     <div className="app">
       {/* Hero section with 3D crystal */}
       <CrystalHero 
-        title="Bem-vindo ao Mundo dos Cristais" 
+        title="JESTFLY" 
         subtitle="Descubra efeitos de vidro hiper-realista"
         crystalParams={crystalParams}
       />

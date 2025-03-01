@@ -11,7 +11,7 @@ interface CrystalHeroProps {
 }
 
 const CrystalHero: React.FC<CrystalHeroProps> = ({
-  title = "Bem-vindo ao Mundo dos Cristais",
+  title = "JESTFLY",
   subtitle = "Descubra efeitos de vidro hiper-realista",
   crystalParams = defaultModelParams,
   className = "",
@@ -19,7 +19,7 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
   return (
     <section className={`hero ${className}`}>
       <div className="hero-content">
-        <h1>{title}</h1>
+        <h1 className="gradient-title">{title}</h1>
         <p>{subtitle}</p>
       </div>
       <div className="hero-crystal">
