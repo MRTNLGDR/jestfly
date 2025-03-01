@@ -1,4 +1,3 @@
-
 export interface ModelParameters {
   color: string;
   metalness: number;
@@ -25,6 +24,13 @@ export interface ModelParameters {
   displacementScale: number;
   wireframe: boolean;
   side: 'front' | 'back' | 'double';
+  bumpMap?: string;
+  bumpScale?: number;
+  envMap?: string;
+  displacementMap?: string;
+  alphaMap?: string;
+  lightMap?: string;
+  lightMapIntensity?: number;
 }
 
 export const defaultModelParams: ModelParameters = {
@@ -52,7 +58,9 @@ export const defaultModelParams: ModelParameters = {
   aoMapIntensity: 1.0,
   displacementScale: 0.1,
   wireframe: false,
-  side: 'front'
+  side: 'front',
+  bumpScale: 0.05,
+  lightMapIntensity: 1.0
 };
 
 export interface MaterialPreset {
@@ -281,3 +289,32 @@ export const environmentPresets: EnvironmentPreset[] = [
     intensity: 1.1
   }
 ];
+
+export interface TextureReference {
+  id: string;
+  name: string;
+  file: File;
+  url: string;
+  type: 'diffuse' | 'normal' | 'roughness' | 'metalness' | 'emissive' | 'ao' | 'displacement' | 'alpha' | 'bump' | 'env' | 'lightmap' | 'other';
+}
+
+export interface ModelReference {
+  id: string;
+  name: string;
+  file: File;
+  url: string;
+  format: 'gltf' | 'glb' | 'obj' | 'fbx' | 'other';
+  thumbnail?: string;
+}
+
+export interface UploadedAsset {
+  id: string;
+  name: string;
+  file: File;
+  url: string;
+  type: string;
+  size: number;
+  isTexture: boolean;
+  isModel: boolean;
+  referenceType?: string;
+}
