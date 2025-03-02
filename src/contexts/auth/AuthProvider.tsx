@@ -25,13 +25,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Se tiver usuário autenticado no Supabase, buscar o perfil
           const profile = await supabaseAuthService.getUserProfile(data.session.user.id);
           if (profile) {
+            // Determinar o tipo de perfil baseado em algum critério
+            // Como o campo profile_type ainda não existe, usamos uma lógica temporária
+            let profileType: 'artist' | 'fan' | 'admin' | 'collaborator' = 'fan';
+            if (profile.full_name?.includes('Admin')) {
+              profileType = 'admin';
+            }
+            
             // Converter o formato do perfil do Supabase para nosso formato User
             const userDataFromSupabase: User = {
               id: profile.id,
               email: data.session.user.email || '',
               username: profile.username || '',
-              displayName: profile.display_name || data.session.user.email?.split('@')[0] || '',
-              profileType: profile.profile_type as any,
+              displayName: profile.full_name || data.session.user.email?.split('@')[0] || '',
+              profileType: profileType,
               createdAt: new Date(profile.created_at),
               updatedAt: new Date(profile.updated_at),
               lastLogin: new Date(),
@@ -117,12 +124,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profile = await supabaseAuthService.getUserProfile(session.user.id);
         
         if (profile) {
+          // Determinar o tipo de perfil baseado em algum critério
+          // Como o campo profile_type ainda não existe, usamos uma lógica temporária
+          let profileType: 'artist' | 'fan' | 'admin' | 'collaborator' = 'fan';
+          if (profile.full_name?.includes('Admin')) {
+            profileType = 'admin';
+          }
+          
           const userDataFromSupabase: User = {
             id: profile.id,
             email: session.user.email || '',
             username: profile.username || '',
-            displayName: profile.display_name || session.user.email?.split('@')[0] || '',
-            profileType: profile.profile_type as any,
+            displayName: profile.full_name || session.user.email?.split('@')[0] || '',
+            profileType: profileType,
             createdAt: new Date(profile.created_at),
             updatedAt: new Date(profile.updated_at),
             lastLogin: new Date(),
