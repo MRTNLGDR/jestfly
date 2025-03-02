@@ -1,0 +1,98 @@
+
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .glass-morphism {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)];
+  }
+  
+  .glass-morphism-subtle {
+    @apply backdrop-blur-md bg-white/5 border-t border-b border-white/5;
+  }
+  
+  .neo-blur {
+    @apply backdrop-blur-2xl bg-black/40 border border-white/10;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-primary {
+    @apply bg-gradient-to-br from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  }
+
+  .glow-sm {
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+  }
+
+  .glow-md {
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+  }
+
+  .glow-lg {
+    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
+  }
+
+  .glow-purple {
+    filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.5));
+  }
+
+  .glow-blue {
+    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+  }
+
+  .glow-red {
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+  }
+  
+  .holographic-text {
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .holographic-text::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 300%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    animation: holographic-scan 3s linear infinite;
+  }
+
+  .nike-gradient {
+    @apply bg-gradient-to-br from-purple-500 via-blue-400 to-cyan-300;
+  }
+  
+  .futuristic-border {
+    @apply relative after:absolute after:inset-0 after:p-[1px] after:rounded-md after:bg-gradient-to-r after:from-white/20 after:via-white/40 after:to-white/20 after:-z-10 after:pointer-events-none;
+  }
+  
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+}
