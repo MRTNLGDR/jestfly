@@ -1,24 +1,19 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Diamond, Globe, Github, Twitter, Instagram, Settings, Info, Lock } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth';
 
 const Footer: React.FC = () => {
   const { currentUser } = useAuth();
   
-  // Auto-authenticate lucas@martynlegrand.com as admin
   React.useEffect(() => {
-    // This is just a visual indicator - actual admin rights should be managed in the backend
     if (currentUser?.email === 'lucas@martynlegrand.com') {
       console.log('Admin user detected');
-      // Here you would add additional admin-specific code/authentication
     }
   }, [currentUser]);
   
   return (
     <footer className="bg-black relative overflow-hidden">
-      {/* Decorative top border */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       
       <div className="container mx-auto py-16 px-4">
@@ -96,7 +91,6 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
             
-            {/* Admin login link - subtle and discreet */}
             <Link to="/admin" className="text-zinc-400/50 hover:text-white/60 transition-colors flex items-center">
               <Lock className="h-3 w-3 mr-1 opacity-50" />
               <span className="text-[10px]">Admin</span>
@@ -105,7 +99,6 @@ const Footer: React.FC = () => {
         </div>
       </div>
       
-      {/* Decorative elements */}
       <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-900/10 rounded-full blur-[100px]"></div>
       <div className="absolute top-20 right-0 w-60 h-60 bg-blue-900/10 rounded-full blur-[100px]"></div>
     </footer>
