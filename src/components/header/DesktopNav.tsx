@@ -29,9 +29,9 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
   );
   
   return (
-    <nav className="hidden lg:flex items-center">
+    <nav className="hidden lg:flex items-center overflow-x-auto scrollbar-none">
       {/* Seção Principal */}
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-4 xl:space-x-6 whitespace-nowrap">
         {mainMenuItems.map((item) => (
           <Link 
             key={item.href} 
@@ -45,10 +45,10 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
         ))}
       </div>
       
-      <div className="h-8 mx-6 border-l border-white/20"></div>
+      <div className="h-8 mx-4 xl:mx-6 border-l border-white/20"></div>
       
       {/* Seção de Recursos */}
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-4 xl:space-x-6 whitespace-nowrap">
         {resourceMenuItems.map((item) => (
           <Link 
             key={item.href} 
@@ -62,10 +62,10 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
         ))}
       </div>
       
-      <div className="h-8 mx-6 border-l border-white/20"></div>
+      <div className="h-8 mx-4 xl:mx-6 border-l border-white/20"></div>
       
       {/* Seção do Usuário */}
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center space-x-4 xl:space-x-6 whitespace-nowrap">
         {userMenuItems.map((item) => (
           <Link 
             key={item.href} 
@@ -80,15 +80,15 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
         
         <Link 
           to="/login" 
-          className="px-4 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-500 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-600 transition-colors"
+          className="px-3 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-500 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-600 transition-colors"
         >
           Login
         </Link>
       </div>
       
-      <div className="h-8 mx-6 border-l border-white/20"></div>
+      <div className="h-8 mx-4 xl:mx-6 border-l border-white/20"></div>
       
-      <div className="flex items-center space-x-6">
+      <div className="flex items-center">
         <LocationIndicator />
       </div>
     </nav>

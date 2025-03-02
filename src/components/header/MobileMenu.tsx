@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PreOrderButton from './PreOrderButton';
 import { Settings } from 'lucide-react';
+import JestCoinTicker from '../JestCoinTicker';
 
 interface MenuItem {
   label: string;
@@ -43,8 +44,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
   );
   
   return (
-    <div className="lg:hidden bg-black/95 backdrop-blur-md">
-      <div className="px-6 py-4 space-y-1 max-h-[80vh] overflow-y-auto">
+    <div className="lg:hidden fixed top-[60px] left-0 right-0 max-h-[calc(100vh-60px)] overflow-y-auto bg-black/95 backdrop-blur-md z-50 border-b border-white/10 shadow-lg">
+      <div className="px-6 py-4 space-y-1">
         {/* Principal */}
         <div className="mb-3">
           <h3 className="text-xs font-semibold text-zinc-500 uppercase mb-2 tracking-wider">Principal</h3>
@@ -113,8 +114,14 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
           </Link>
         </div>
         
+        {/* JestCoin ticker for mobile */}
+        <div className="pt-2 border-t border-zinc-800 mb-3">
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase mb-2 tracking-wider">JestCoin</h3>
+          <JestCoinTicker />
+        </div>
+        
         {/* Language and currency selectors for mobile */}
-        <div className="pt-4 border-t border-zinc-800">
+        <div className="pt-2 border-t border-zinc-800">
           <div className="mb-4">
             <h3 className="text-xs font-semibold text-zinc-500 uppercase mb-2 tracking-wider">Idioma</h3>
             <div className="grid grid-cols-3 gap-2">
@@ -152,11 +159,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
               ))}
             </div>
           </div>
-        </div>
-        
-        {/* Mobile-only controls */}
-        <div className="sm:hidden pt-4 border-t border-zinc-800 flex justify-center space-x-8">
-          <PreOrderButton />
         </div>
       </div>
     </div>
