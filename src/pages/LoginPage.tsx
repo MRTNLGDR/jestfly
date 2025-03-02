@@ -2,8 +2,12 @@
 import React from 'react';
 import { LoginForm } from '../components/auth/LoginForm';
 import { ProtectedRoute } from '../components/ProtectedRoute';
+import { useAuth } from '../contexts/auth';
 
 const LoginPage: React.FC = () => {
+  const { userData } = useAuth();
+  const isAdmin = userData?.profileType === 'admin';
+
   return (
     <ProtectedRoute requireAuth={false}>
       <div className="min-h-screen w-full py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center relative overflow-hidden">
@@ -19,10 +23,10 @@ const LoginPage: React.FC = () => {
           ></div>
         </div>
         
-        {/* Gradient light effects */}
+        {/* Gradient light effects - reduzidos para não chegarem tanto ao centro */}
         <div className="absolute top-0 left-0 right-0 bottom-0 -z-5">
-          <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 bg-purple-600/20 rounded-full blur-[100px] transform -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute bottom-1/3 right-1/4 w-1/2 h-1/2 bg-blue-600/20 rounded-full blur-[100px] transform translate-x-1/2 translate-y-1/2"></div>
+          <div className="absolute top-1/4 left-1/4 w-1/3 h-1/3 bg-purple-600/20 rounded-full blur-[100px] transform -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-1/3 h-1/3 bg-blue-600/20 rounded-full blur-[100px] transform translate-x-1/2 translate-y-1/2"></div>
         </div>
         
         <div className="relative z-10">
@@ -32,7 +36,20 @@ const LoginPage: React.FC = () => {
               <div className="w-40 h-1 bg-gradient-to-r from-purple-600 to-blue-500 mt-3 rounded-full"></div>
             </h2>
           </div>
-          <LoginForm />
+          
+          {/* Formulário com estilo diferente para admin */}
+          <div className={isAdmin ? "admin-login" : ""}>
+            <LoginForm />
+          </div>
+          
+          {/* Indicador visual para login de admin */}
+          {isAdmin && (
+            <div className="mt-4 text-center">
+              <span className="px-4 py-1 bg-gradient-to-r from-red-600 to-purple-600 text-white text-xs rounded-full">
+                Acesso de Administrador
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </ProtectedRoute>

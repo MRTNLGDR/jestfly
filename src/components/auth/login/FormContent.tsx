@@ -73,10 +73,10 @@ export const FormContent: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.1)]">
+    <Card className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.1)]">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
-          JESTFLY
+          ACESSO
         </CardTitle>
         <CardDescription className="text-center text-zinc-400">
           Entre com suas credenciais para acessar
