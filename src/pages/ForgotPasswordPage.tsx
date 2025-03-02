@@ -30,6 +30,7 @@ const ForgotPasswordPage: React.FC = () => {
       setIsSuccess(true);
       toast.success('Password reset email sent!');
     } catch (error: any) {
+      console.error('Reset password error:', error);
       toast.error(error.message || 'Failed to send password reset email');
     } finally {
       setIsSubmitting(false);
