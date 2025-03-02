@@ -23,7 +23,7 @@ const HeaderControls: React.FC = () => {
       {!isMobile && (
         <Link 
           to="/login" 
-          className="px-3 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-500 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-600 transition-colors"
+          className="px-4 py-2 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors text-sm font-medium"
         >
           Login
         </Link>
