@@ -7,7 +7,7 @@ import { Input } from "../ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'sonner';
-import { LockKeyhole, Mail, ArrowRight } from 'lucide-react';
+import { LockKeyhole, Mail, ArrowRight, CheckCircle } from 'lucide-react';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -22,10 +22,26 @@ export const LoginForm: React.FC = () => {
     
     try {
       await login(email, password);
-      toast.success('Login successful!');
+      toast.success('Login bem-sucedido!', {
+        duration: 5000,
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />
+      });
       navigate('/profile');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to login');
+      console.error('Login error:', error);
+      let errorMessage = 'Falha ao fazer login';
+      
+      if (error.message.includes('user-not-found')) {
+        errorMessage = 'Usuário não encontrado';
+      } else if (error.message.includes('wrong-password')) {
+        errorMessage = 'Senha incorreta';
+      } else if (error.message.includes('invalid-email')) {
+        errorMessage = 'Email inválido';
+      } else if (error.message.includes('too-many-requests')) {
+        errorMessage = 'Muitas tentativas de login. Tente novamente mais tarde';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -35,10 +51,14 @@ export const LoginForm: React.FC = () => {
     setIsSubmitting(true);
     try {
       await loginWithGoogle();
-      toast.success('Login successful!');
+      toast.success('Login bem-sucedido!', {
+        duration: 5000,
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />
+      });
       navigate('/profile');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to login with Google');
+      console.error('Google login error:', error);
+      toast.error(error.message || 'Falha ao fazer login com Google');
     } finally {
       setIsSubmitting(false);
     }
@@ -64,7 +84,7 @@ export const LoginForm: React.FC = () => {
             <div className="relative">
               <Input
                 type="email"
-                placeholder="your@email.com"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

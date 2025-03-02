@@ -41,9 +41,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user) {
         // Fetch user data from Firestore
         try {
+          console.log("Fetching user data for:", user.uid);
           const userDoc = await getDoc(doc(firestore, 'users', user.uid));
           if (userDoc.exists()) {
+            console.log("User data found:", userDoc.data());
             setUserData(userDoc.data() as User);
+          } else {
+            console.log("No user data found");
           }
         } catch (err) {
           console.error("Error fetching user data:", err);
@@ -61,8 +65,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      await signInWithEmailAndPassword(auth, email, password);
+      console.log("Attempting login with:", email);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log("Login successful:", result.user.uid);
+      
+      // Update last login time
+      await setDoc(doc(firestore, 'users', result.user.uid), 
+        { lastLogin: new Date() }, 
+        { merge: true }
+      );
     } catch (err: any) {
+      console.error("Login error:", err);
       setError(err.message);
       throw err;
     }
@@ -74,15 +87,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
+      console.log("Google login successful:", user.uid);
       
       // Check if this is a new user
       const userDoc = await getDoc(doc(firestore, 'users', user.uid));
       if (!userDoc.exists()) {
+        console.log("Creating new user data for Google sign-in");
         // Create user data for new Google sign-ins
         await setDoc(doc(firestore, 'users', user.uid), {
           id: user.uid,
           email: user.email,
           displayName: user.displayName || user.email?.split('@')[0],
+          username: (user.email?.split('@')[0] || '') + '-' + Math.floor(Math.random() * 1000),
           profileType: 'fan', // Default profile type
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -91,8 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           twoFactorEnabled: false,
           preferences: {
             theme: 'system',
-            language: 'en',
-            currency: 'USD',
+            language: 'pt',
+            currency: 'BRL',
             notifications: {
               email: true,
               push: true,
@@ -100,9 +116,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           },
           socialLinks: {},
-          collectionItems: []
+          collectionItems: [],
+          transactions: []
         });
       } else {
+        console.log("Updating last login for existing user");
         // Update last login time for existing users
         await setDoc(doc(firestore, 'users', user.uid), 
           { lastLogin: new Date() }, 
@@ -110,6 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         );
       }
     } catch (err: any) {
+      console.error("Google login error:", err);
       setError(err.message);
       throw err;
     }
@@ -118,11 +137,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, userData: Partial<User>) => {
     try {
       setError(null);
+      console.log("Attempting to register:", email, userData.profileType);
       const result = await createUserWithEmailAndPassword(auth, email, password);
       const user = result.user;
+      console.log("Registration successful:", user.uid);
       
       // Create user document in Firestore
-      await setDoc(doc(firestore, 'users', user.uid), {
+      const newUserData = {
         id: user.uid,
         email,
         ...userData,
@@ -133,8 +154,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         twoFactorEnabled: false,
         preferences: userData.preferences || {
           theme: 'system',
-          language: 'en',
-          currency: 'USD',
+          language: 'pt',
+          currency: 'BRL',
           notifications: {
             email: true,
             push: true,
@@ -142,9 +163,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         },
         socialLinks: userData.socialLinks || {},
-        collectionItems: []
-      });
+        collectionItems: [],
+        transactions: []
+      };
+      
+      console.log("Creating user document:", newUserData);
+      await setDoc(doc(firestore, 'users', user.uid), newUserData);
     } catch (err: any) {
+      console.error("Registration error:", err);
       setError(err.message);
       throw err;
     }
@@ -152,8 +178,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      console.log("Logging out");
       await signOut(auth);
     } catch (err: any) {
+      console.error("Logout error:", err);
       setError(err.message);
       throw err;
     }
@@ -162,8 +190,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string) => {
     try {
       setError(null);
+      console.log("Sending password reset to:", email);
       await sendPasswordResetEmail(auth, email);
     } catch (err: any) {
+      console.error("Password reset error:", err);
       setError(err.message);
       throw err;
     }
