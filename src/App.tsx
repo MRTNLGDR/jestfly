@@ -29,6 +29,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import NotesPage from './pages/NotesPage';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -67,6 +68,7 @@ function App() {
     { label: 'Community', href: '/community' },
     { label: 'Bookings', href: '/bookings' },
     { label: 'Resources', href: '/resources' },
+    { label: 'Notes', href: '/notes' },
     { label: 'Profile', href: '/profile' },
     { label: 'Demo Submission', href: '/demo-submission' },
     { label: 'Live Stream', href: '/live-stream' },
@@ -86,6 +88,14 @@ function App() {
               <Route path="/community/*" element={<CommunityPage />} />
               <Route path="/bookings" element={<BookingsPage />} />
               <Route path="/resources" element={<EcommercePage />} />
+              <Route 
+                path="/notes" 
+                element={
+                  <ProtectedRoute>
+                    <NotesPage />
+                  </ProtectedRoute>
+                } 
+              />
               <Route 
                 path="/profile" 
                 element={
