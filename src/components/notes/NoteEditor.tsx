@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import { extractLinks } from '../../utils/noteUtils';
@@ -24,23 +23,6 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [isSaving, setIsSaving] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
-  
-  // Criamos um hook customizado para debounce
-  const useDebounce = (value: any, delay: number) => {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-  
-    useEffect(() => {
-      const handler = setTimeout(() => {
-        setDebouncedValue(value);
-      }, delay);
-  
-      return () => {
-        clearTimeout(handler);
-      };
-    }, [value, delay]);
-  
-    return debouncedValue;
-  };
   
   const debouncedContent = useDebounce(content, 1500);
   
