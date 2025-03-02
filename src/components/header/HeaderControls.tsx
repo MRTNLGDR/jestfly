@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import LanguageSwitcher from './LanguageSwitcher';
 import CurrencySwitcher from './CurrencySwitcher';
 import ZoomControls from './ZoomControls';
@@ -19,6 +20,14 @@ const HeaderControls: React.FC = () => {
         </>
       )}
       <PreOrderButton />
+      {!isMobile && (
+        <Link 
+          to="/login" 
+          className="px-3 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-500 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-600 transition-colors"
+        >
+          Login
+        </Link>
+      )}
     </div>
   );
 };

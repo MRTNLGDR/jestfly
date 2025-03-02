@@ -84,12 +84,12 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
             
-            {/* Ícone para área de administrador */}
+            {/* Admin area icon */}
             <Link to="/admin" className="ml-4 text-zinc-400 hover:text-white transition-colors">
               <Settings className="h-4 w-4" />
             </Link>
             
-            {/* Ícone para informações */}
+            {/* Info icon */}
             <Link to="/info" className="text-zinc-400 hover:text-white transition-colors">
               <Info className="h-4 w-4" />
             </Link>
