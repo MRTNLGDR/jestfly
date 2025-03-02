@@ -10,11 +10,11 @@
   }
 
   .glass-morphism {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)];
+    @apply backdrop-blur-xl bg-black/30 border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.05)];
   }
   
   .glass-morphism-subtle {
-    @apply backdrop-blur-md bg-white/5 border-t border-b border-white/5;
+    @apply backdrop-blur-md bg-black/20 border-t border-b border-white/5;
   }
   
   .neo-blur {
@@ -30,31 +30,31 @@
   }
 
   .glow-text {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   }
 
   .glow-sm {
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+    filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.2));
   }
 
   .glow-md {
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
   }
 
   .glow-lg {
-    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
   }
 
   .glow-purple {
-    filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.5));
+    filter: drop-shadow(0 0 6px rgba(147, 51, 234, 0.4));
   }
 
   .glow-blue {
-    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
+    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.4));
   }
 
   .glow-red {
-    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.4));
   }
   
   .holographic-text {
@@ -86,10 +86,14 @@
   }
   
   .futuristic-border {
-    @apply relative after:absolute after:inset-0 after:p-[1px] after:rounded-md after:bg-gradient-to-r after:from-white/20 after:via-white/40 after:to-white/20 after:-z-10 after:pointer-events-none;
+    @apply relative after:absolute after:inset-0 after:p-[1px] after:rounded-md after:bg-gradient-to-r after:from-white/10 after:via-white/20 after:to-white/10 after:-z-10 after:pointer-events-none;
   }
   
   .animate-float {
     animation: float 8s ease-in-out infinite;
+  }
+  
+  .admin-login .card {
+    @apply border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)];
   }
 }

@@ -121,10 +121,10 @@ export const FormContent: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-black/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.1)]">
+    <Card className="w-full max-w-md mx-auto bg-black/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.05)]">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
-          ACESSO
+        <CardTitle className="text-2xl font-bold text-center text-white">
+          Login
         </CardTitle>
         <CardDescription className="text-center text-zinc-400">
           Entre com suas credenciais para acessar
@@ -160,7 +160,7 @@ export const FormContent: React.FC = () => {
           <Button 
             type="submit" 
             disabled={isSubmitting} 
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 group"
+            className="w-full bg-gradient-to-r from-purple-600/90 to-blue-600/90 hover:from-purple-700 hover:to-blue-700 group"
           >
             {isSubmitting ? (
               <span className="flex items-center">
@@ -180,7 +180,7 @@ export const FormContent: React.FC = () => {
           isSubmitting={isSubmitting}
         />
       </CardContent>
-      <CardFooter className="flex justify-center border-t border-zinc-800/50 pt-6">
+      <CardFooter className="flex justify-center border-t border-zinc-800/30 pt-6">
         <p className="text-sm text-zinc-400">
           Não tem uma conta?{' '}
           <Link to="/register" className="text-purple-400 hover:text-purple-300 hover:underline">

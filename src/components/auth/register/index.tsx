@@ -101,11 +101,11 @@ export const RegisterForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-black/80 to-black/60 backdrop-blur-md border border-purple-500/20 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
+    <Card className="w-full max-w-md mx-auto bg-black/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.05)]">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center text-white">Criar Conta</CardTitle>
         <CardDescription className="text-center text-zinc-400">
-          Junte-se à comunidade JESTFLY hoje
+          Junte-se à nossa comunidade hoje
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -119,7 +119,7 @@ export const RegisterForm: React.FC = () => {
           showAdminField={showAdminField}
         />
       </CardContent>
-      <CardFooter className="flex justify-center border-t border-zinc-800 pt-6">
+      <CardFooter className="flex justify-center border-t border-zinc-800/30 pt-6">
         <p className="text-sm text-zinc-400">
           Já tem uma conta?{' '}
           <Link to="/login" className="text-purple-400 hover:text-purple-300 hover:underline">

@@ -10,7 +10,6 @@ interface FormFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder: string;
   label: string;
-  required?: boolean;
   icon: LucideIcon;
   rightElement?: React.ReactNode;
 }
@@ -22,7 +21,6 @@ export const FormField: React.FC<FormFieldProps> = ({
   onChange,
   placeholder,
   label,
-  required = true,
   icon: Icon,
   rightElement
 }) => {
@@ -30,7 +28,7 @@ export const FormField: React.FC<FormFieldProps> = ({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <Icon className="w-4 h-4 mr-2 text-purple-500" />
+          <Icon className="w-4 h-4 mr-2 text-purple-400/80" />
           <label className="text-sm font-medium text-zinc-300">{label}</label>
         </div>
         {rightElement}
@@ -42,8 +40,8 @@ export const FormField: React.FC<FormFieldProps> = ({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          required={required}
-          className="bg-zinc-900/40 border-zinc-700/50 text-white pl-3 focus-visible:ring-purple-500/50"
+          required
+          className="bg-zinc-900/30 backdrop-blur-md border-zinc-800/50 text-white pl-3 focus-visible:ring-purple-500/30 focus-visible:border-purple-500/50"
         />
       </div>
     </div>
