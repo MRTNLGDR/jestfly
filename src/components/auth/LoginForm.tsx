@@ -65,10 +65,10 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-black/80 to-black/60 backdrop-blur-md border border-purple-500/20 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
+    <Card className="w-full max-w-md mx-auto bg-black/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.1)]">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center text-white">
-          Acesso ao Sistema
+        <CardTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent">
+          JESTFLY
         </CardTitle>
         <CardDescription className="text-center text-zinc-400">
           Entre com suas credenciais para acessar
@@ -88,9 +88,8 @@ export const LoginForm: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-zinc-900/70 border-zinc-700 text-white pl-3 focus-visible:ring-purple-500/50"
+                className="bg-zinc-900/40 border-zinc-700/50 text-white pl-3 focus-visible:ring-purple-500/50"
               />
-              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-purple-500/80 to-blue-500/80 rounded-l-md"></div>
             </div>
           </div>
           <div className="space-y-2">
@@ -110,15 +109,14 @@ export const LoginForm: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-zinc-900/70 border-zinc-700 text-white pl-3 focus-visible:ring-purple-500/50"
+                className="bg-zinc-900/40 border-zinc-700/50 text-white pl-3 focus-visible:ring-purple-500/50"
               />
-              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-purple-500/80 to-blue-500/80 rounded-l-md"></div>
             </div>
           </div>
           <Button 
             type="submit" 
             disabled={isSubmitting} 
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 group"
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 group"
           >
             {isSubmitting ? 'Autenticando...' : (
               <span className="flex items-center">
@@ -134,7 +132,7 @@ export const LoginForm: React.FC = () => {
             <span className="w-full border-t border-zinc-700" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-black/50 px-2 text-zinc-400">Ou continue com</span>
+            <span className="bg-black/40 px-2 text-zinc-400">Ou continue com</span>
           </div>
         </div>
         
@@ -142,13 +140,13 @@ export const LoginForm: React.FC = () => {
           onClick={handleGoogleLogin} 
           disabled={isSubmitting}
           variant="outline" 
-          className="w-full mt-4 text-white bg-zinc-900/80 border-zinc-700 hover:bg-zinc-800/90"
+          className="w-full mt-4 text-white bg-zinc-900/50 border-zinc-700/50 hover:bg-zinc-800/60"
         >
           <FcGoogle className="mr-2 h-5 w-5" />
           Google
         </Button>
       </CardContent>
-      <CardFooter className="flex justify-center border-t border-zinc-800 pt-6">
+      <CardFooter className="flex justify-center border-t border-zinc-800/50 pt-6">
         <p className="text-sm text-zinc-400">
           Não tem uma conta?{' '}
           <Link to="/register" className="text-purple-400 hover:text-purple-300 hover:underline">

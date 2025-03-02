@@ -1,9 +1,21 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Diamond, Globe, Github, Twitter, Instagram, Settings, Info } from 'lucide-react';
+import { Diamond, Globe, Github, Twitter, Instagram, Settings, Info, Lock } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Footer: React.FC = () => {
+  const { currentUser } = useAuth();
+  
+  // Auto-authenticate lucas@martynlegrand.com as admin
+  React.useEffect(() => {
+    // This is just a visual indicator - actual admin rights should be managed in the backend
+    if (currentUser?.email === 'lucas@martynlegrand.com') {
+      console.log('Admin user detected');
+      // Here you would add additional admin-specific code/authentication
+    }
+  }, [currentUser]);
+  
   return (
     <footer className="bg-black relative overflow-hidden">
       {/* Decorative top border */}
@@ -84,14 +96,10 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
             
-            {/* Admin area icon */}
-            <Link to="/admin" className="ml-4 text-zinc-400 hover:text-white transition-colors">
-              <Settings className="h-4 w-4" />
-            </Link>
-            
-            {/* Info icon */}
-            <Link to="/info" className="text-zinc-400 hover:text-white transition-colors">
-              <Info className="h-4 w-4" />
+            {/* Admin login link - subtle and discreet */}
+            <Link to="/admin" className="text-zinc-400/50 hover:text-white/60 transition-colors flex items-center">
+              <Lock className="h-3 w-3 mr-1 opacity-50" />
+              <span className="text-[10px]">Admin</span>
             </Link>
           </div>
         </div>

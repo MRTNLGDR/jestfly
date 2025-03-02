@@ -43,9 +43,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           console.log("Fetching user data for:", user.uid);
           const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+          
+          // Special case for admin user
+          const isAdminEmail = user.email === 'lucas@martynlegrand.com';
+          
           if (userDoc.exists()) {
-            console.log("User data found:", userDoc.data());
-            setUserData(userDoc.data() as User);
+            const userData = userDoc.data() as User;
+            
+            // Auto-assign admin role for specific email if not already set
+            if (isAdminEmail && userData.profileType !== 'admin') {
+              await setDoc(doc(firestore, 'users', user.uid), 
+                { 
+                  profileType: 'admin',
+                  updatedAt: new Date()
+                }, 
+                { merge: true }
+              );
+              console.log("Updated user to admin role");
+              userData.profileType = 'admin';
+            }
+            
+            console.log("User data found:", userData);
+            setUserData(userData);
+          } else if (isAdminEmail) {
+            // Create admin user if doesn't exist
+            const newUserData = {
+              id: user.uid,
+              email: user.email,
+              displayName: user.displayName || 'Admin User',
+              username: 'admin',
+              profileType: 'admin',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              lastLogin: new Date(),
+              isVerified: true,
+              twoFactorEnabled: false,
+              preferences: {
+                theme: 'system',
+                language: 'pt',
+                currency: 'BRL',
+                notifications: {
+                  email: true,
+                  push: true,
+                  sms: false
+                }
+              },
+              socialLinks: {},
+              collectionItems: [],
+              transactions: []
+            };
+            
+            await setDoc(doc(firestore, 'users', user.uid), newUserData);
+            console.log("Created new admin user");
+            setUserData(newUserData as User);
           } else {
             console.log("No user data found");
           }
