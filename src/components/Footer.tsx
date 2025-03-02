@@ -56,18 +56,6 @@ const Footer: React.FC = () => {
               <FooterLink href="/terms">Terms of Service</FooterLink>
               <FooterLink href="/privacy">Privacy Policy</FooterLink>
               <FooterLink href="/community">Community</FooterLink>
-              <FooterLink href="/info">
-                <div className="flex items-center">
-                  <Info className="h-4 w-4 mr-2" />
-                  <span>Info</span>
-                </div>
-              </FooterLink>
-              <FooterLink href="/admin">
-                <div className="flex items-center">
-                  <Settings className="h-4 w-4 mr-2" />
-                  <span>Admin Panel</span>
-                </div>
-              </FooterLink>
             </ul>
           </div>
           
@@ -95,6 +83,16 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Terms</a>
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
+            
+            {/* Ícone para área de administrador */}
+            <Link to="/admin" className="ml-4 text-zinc-400 hover:text-white transition-colors">
+              <Settings className="h-4 w-4" />
+            </Link>
+            
+            {/* Ícone para informações */}
+            <Link to="/info" className="text-zinc-400 hover:text-white transition-colors">
+              <Info className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>

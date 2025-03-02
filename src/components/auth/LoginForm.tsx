@@ -7,6 +7,7 @@ import { Input } from "../ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { FcGoogle } from 'react-icons/fc';
 import { toast } from 'sonner';
+import { LockKeyhole, Mail, ArrowRight } from 'lucide-react';
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -44,48 +45,67 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-black/30 backdrop-blur-md border border-zinc-800">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center text-white">Welcome Back</CardTitle>
+    <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-black/80 to-black/60 backdrop-blur-md border border-purple-500/20 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold text-center text-white">
+          Acesso ao Sistema
+        </CardTitle>
         <CardDescription className="text-center text-zinc-400">
-          Login to access your JESTFLY account
+          Entre com suas credenciais para acessar
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-zinc-300">Email</label>
-            <Input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="bg-zinc-900/60 border-zinc-800 text-white"
-            />
+            <div className="flex items-center">
+              <Mail className="w-4 h-4 mr-2 text-purple-500" />
+              <label className="text-sm font-medium text-zinc-300">Email</label>
+            </div>
+            <div className="relative">
+              <Input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-zinc-900/70 border-zinc-700 text-white pl-3 focus-visible:ring-purple-500/50"
+              />
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-purple-500/80 to-blue-500/80 rounded-l-md"></div>
+            </div>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-zinc-300">Password</label>
-              <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                Forgot password?
+              <div className="flex items-center">
+                <LockKeyhole className="w-4 h-4 mr-2 text-purple-500" />
+                <label className="text-sm font-medium text-zinc-300">Senha</label>
+              </div>
+              <Link to="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300 hover:underline">
+                Esqueceu a senha?
               </Link>
             </div>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="bg-zinc-900/60 border-zinc-800 text-white"
-            />
+            <div className="relative">
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-zinc-900/70 border-zinc-700 text-white pl-3 focus-visible:ring-purple-500/50"
+              />
+              <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-purple-500/80 to-blue-500/80 rounded-l-md"></div>
+            </div>
           </div>
           <Button 
             type="submit" 
             disabled={isSubmitting} 
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 group"
           >
-            {isSubmitting ? 'Logging in...' : 'Login'}
+            {isSubmitting ? 'Autenticando...' : (
+              <span className="flex items-center">
+                Entrar 
+                <ArrowRight className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              </span>
+            )}
           </Button>
         </form>
         
@@ -94,7 +114,7 @@ export const LoginForm: React.FC = () => {
             <span className="w-full border-t border-zinc-700" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-black/30 px-2 text-zinc-400">Or continue with</span>
+            <span className="bg-black/50 px-2 text-zinc-400">Ou continue com</span>
           </div>
         </div>
         
@@ -102,17 +122,17 @@ export const LoginForm: React.FC = () => {
           onClick={handleGoogleLogin} 
           disabled={isSubmitting}
           variant="outline" 
-          className="w-full mt-4 text-white bg-zinc-900/60 border-zinc-800 hover:bg-zinc-800/80"
+          className="w-full mt-4 text-white bg-zinc-900/80 border-zinc-700 hover:bg-zinc-800/90"
         >
           <FcGoogle className="mr-2 h-5 w-5" />
           Google
         </Button>
       </CardContent>
-      <CardFooter className="flex justify-center">
+      <CardFooter className="flex justify-center border-t border-zinc-800 pt-6">
         <p className="text-sm text-zinc-400">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-primary hover:underline">
-            Sign up
+          Não tem uma conta?{' '}
+          <Link to="/register" className="text-purple-400 hover:text-purple-300 hover:underline">
+            Cadastre-se
           </Link>
         </p>
       </CardFooter>
