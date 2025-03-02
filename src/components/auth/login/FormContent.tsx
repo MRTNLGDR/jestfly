@@ -5,7 +5,7 @@ import { useAuth } from '../../../contexts/auth';
 import { Button } from "../../ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
 import { toast } from 'sonner';
-import { Mail, LockKeyhole, ArrowRight, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Mail, LockKeyhole, ArrowRight, CheckCircle, XCircle, Loader2, ShieldAlert } from 'lucide-react';
 import { FormField } from './FormField';
 import { SocialLoginOptions } from './SocialLoginOptions';
 import { LoginFormData } from './types';
@@ -16,12 +16,17 @@ export const FormContent: React.FC = () => {
     password: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAdminLogin, setIsAdminLogin] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const toggleAdminLogin = () => {
+    setIsAdminLogin(prev => !prev);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +51,12 @@ export const FormContent: React.FC = () => {
         icon: <CheckCircle className="h-5 w-5 text-green-500" />
       });
       
-      navigate('/profile');
+      // Verificar se é um e-mail de admin para redirecionar ao painel de admin
+      if (isAdminLogin || formData.email.includes('admin') || formData.email === 'lucas@martynlegrand.com') {
+        navigate('/admin');
+      } else {
+        navigate('/profile');
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       
@@ -55,16 +65,16 @@ export const FormContent: React.FC = () => {
       
       let errorMessage = 'Falha ao fazer login';
       
-      if (error.message?.includes('user-not-found')) {
+      if (error.message?.includes('user-not-found') || error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Usuário não encontrado';
-      } else if (error.message?.includes('wrong-password')) {
+      } else if (error.message?.includes('wrong-password') || error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Senha incorreta';
       } else if (error.message?.includes('invalid-email')) {
         errorMessage = 'Email inválido';
       } else if (error.message?.includes('too-many-requests')) {
         errorMessage = 'Muitas tentativas de login. Tente novamente mais tarde';
       } else if (error.message?.includes('api-key-not-valid')) {
-        errorMessage = 'Erro de configuração do Firebase. Entre em contato com o suporte.';
+        errorMessage = 'Erro de configuração. Entre em contato com o suporte.';
       }
       
       // Mostrar feedback visual de erro
@@ -107,7 +117,7 @@ export const FormContent: React.FC = () => {
       let errorMessage = 'Falha ao fazer login com Google';
       
       if (error.message?.includes('api-key-not-valid')) {
-        errorMessage = 'Erro de configuração do Firebase. Entre em contato com o suporte.';
+        errorMessage = 'Erro de configuração. Entre em contato com o suporte.';
       }
       
       // Mostrar feedback visual de erro
@@ -120,14 +130,27 @@ export const FormContent: React.FC = () => {
     }
   };
 
+  const cardClassName = `w-full max-w-md mx-auto glass-morphism ${isAdminLogin ? 'border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : ''}`;
+
   return (
-    <Card className="w-full max-w-md mx-auto bg-black/30 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(100,100,255,0.05)]">
+    <Card className={cardClassName}>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center text-white">
-          Login
-        </CardTitle>
-        <CardDescription className="text-center text-zinc-400">
-          Entre com suas credenciais para acessar
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-2xl font-bold text-white">
+            {isAdminLogin ? 'Admin Login' : 'Login'}
+          </CardTitle>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={toggleAdminLogin}
+            className={`rounded-full p-2 ${isAdminLogin ? 'text-red-400 hover:text-red-300' : 'text-zinc-400 hover:text-zinc-300'}`}
+          >
+            <ShieldAlert className="h-5 w-5" />
+          </Button>
+        </div>
+        <CardDescription className="text-zinc-400">
+          {isAdminLogin ? 'Acesso administrativo restrito' : 'Entre com suas credenciais para acessar'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -160,7 +183,9 @@ export const FormContent: React.FC = () => {
           <Button 
             type="submit" 
             disabled={isSubmitting} 
-            className="w-full bg-gradient-to-r from-purple-600/90 to-blue-600/90 hover:from-purple-700 hover:to-blue-700 group"
+            className={`w-full group ${isAdminLogin 
+              ? 'bg-gradient-to-r from-red-600/90 to-purple-600/90 hover:from-red-700 hover:to-purple-700' 
+              : 'bg-gradient-to-r from-purple-600/90 to-blue-600/90 hover:from-purple-700 hover:to-blue-700'}`}
           >
             {isSubmitting ? (
               <span className="flex items-center">
@@ -168,17 +193,19 @@ export const FormContent: React.FC = () => {
               </span>
             ) : (
               <span className="flex items-center">
-                Entrar 
+                {isAdminLogin ? 'Admin Login' : 'Entrar'} 
                 <ArrowRight className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
               </span>
             )}
           </Button>
         </form>
         
-        <SocialLoginOptions
-          onGoogleLogin={handleGoogleLogin}
-          isSubmitting={isSubmitting}
-        />
+        {!isAdminLogin && (
+          <SocialLoginOptions
+            onGoogleLogin={handleGoogleLogin}
+            isSubmitting={isSubmitting}
+          />
+        )}
       </CardContent>
       <CardFooter className="flex justify-center border-t border-zinc-800/30 pt-6">
         <p className="text-sm text-zinc-400">

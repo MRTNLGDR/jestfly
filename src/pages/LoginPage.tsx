@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { LoginForm } from '../components/auth/LoginForm';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { useAuth } from '../contexts/auth';
@@ -7,6 +7,12 @@ import { useAuth } from '../contexts/auth';
 const LoginPage: React.FC = () => {
   const { userData } = useAuth();
   const isAdmin = userData?.profileType === 'admin';
+  const [showAdminIndicator, setShowAdminIndicator] = useState(false);
+
+  useEffect(() => {
+    // Verifica se é admin e atualiza o indicador
+    setShowAdminIndicator(isAdmin);
+  }, [isAdmin]);
 
   return (
     <ProtectedRoute requireAuth={false}>
@@ -23,21 +29,24 @@ const LoginPage: React.FC = () => {
           ></div>
         </div>
         
-        {/* Gradient light effects - positioned away from center */}
+        {/* Gradient light effects - posicionados nas bordas */}
         <div className="absolute top-0 left-0 right-0 bottom-0 -z-5">
           <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-purple-600/10 rounded-full blur-[120px] transform -translate-x-1/4"></div>
           <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-blue-600/10 rounded-full blur-[120px] transform translate-x-1/4"></div>
           <div className="absolute top-1/2 right-0 w-1/4 h-1/4 bg-indigo-600/10 rounded-full blur-[80px] transform -translate-y-1/2"></div>
+          {showAdminIndicator && (
+            <div className="absolute top-1/3 left-1/2 w-1/4 h-1/4 bg-red-600/10 rounded-full blur-[100px] transform -translate-x-1/2"></div>
+          )}
         </div>
         
         <div className="relative z-10">
           {/* Formulário com estilo diferente para admin */}
-          <div className={isAdmin ? "admin-login" : ""}>
+          <div className={showAdminIndicator ? "admin-login" : ""}>
             <LoginForm />
           </div>
           
           {/* Indicador visual para login de admin */}
-          {isAdmin && (
+          {showAdminIndicator && (
             <div className="mt-4 text-center">
               <span className="px-4 py-1 bg-gradient-to-r from-red-600 to-purple-600 text-white text-xs rounded-full">
                 Acesso de Administrador
