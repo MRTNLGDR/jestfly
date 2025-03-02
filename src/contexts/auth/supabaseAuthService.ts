@@ -9,7 +9,7 @@ export const supabaseAuthService = {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('profile_type')
         .eq('id', userId)
         .single();
 
@@ -18,9 +18,8 @@ export const supabaseAuthService = {
         return false;
       }
 
-      // Verificamos se é admin baseado no full_name (temporariamente)
-      // Isso deve ser ajustado quando a coluna profile_type for adicionada
-      return data?.full_name?.includes('Admin') || false;
+      // Now we can check the profile_type directly
+      return data?.profile_type === 'admin';
     } catch (error) {
       console.error('Erro inesperado ao verificar status de admin:', error);
       return false;
@@ -44,6 +43,7 @@ export const supabaseAuthService = {
           .update({
             username: userData.username,
             full_name: userData.displayName,
+            profile_type: userData.profileType,
             updated_at: new Date().toISOString()
           })
           .eq('id', userId);
@@ -57,6 +57,7 @@ export const supabaseAuthService = {
             id: userId,
             username: userData.username,
             full_name: userData.displayName,
+            profile_type: userData.profileType,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });

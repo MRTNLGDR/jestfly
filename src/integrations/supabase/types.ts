@@ -239,6 +239,7 @@ export type Database = {
           full_name: string | null
           id: string
           preferences: Json | null
+          profile_type: string | null
           social_links: Json | null
           updated_at: string
           username: string | null
@@ -251,6 +252,7 @@ export type Database = {
           full_name?: string | null
           id: string
           preferences?: Json | null
+          profile_type?: string | null
           social_links?: Json | null
           updated_at?: string
           username?: string | null
@@ -263,6 +265,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           preferences?: Json | null
+          profile_type?: string | null
           social_links?: Json | null
           updated_at?: string
           username?: string | null

@@ -24,15 +24,8 @@ export const handleAuthStateChange = ({
       if (data.session?.user) {
         const profile = await supabaseAuthService.getUserProfile(data.session.user.id);
         if (profile) {
-          // Determinar o tipo de perfil baseado em algum critério
-          // Como o campo profile_type ainda não existe, usamos uma lógica temporária
-          let profileType: 'artist' | 'fan' | 'admin' | 'collaborator' = 'fan';
-          if (profile.full_name?.includes('Admin')) {
-            profileType = 'admin';
-          }
-          
-          // Converter o formato do perfil do Supabase para nosso formato User
-          const userDataFromSupabase = createSupabaseUserData(data.session.user, profile, profileType);
+          // Use our updated transformer function
+          const userDataFromSupabase = createSupabaseUserData(data.session.user, profile);
           setUserData(userDataFromSupabase);
         }
       }
@@ -98,15 +91,8 @@ export const handleAuthStateChange = ({
       const profile = await supabaseAuthService.getUserProfile(session.user.id);
       
       if (profile) {
-        // Determinar o tipo de perfil baseado em algum critério
-        // Como o campo profile_type ainda não existe, usamos uma lógica temporária
-        let profileType: 'artist' | 'fan' | 'admin' | 'collaborator' = 'fan';
-        if (profile.full_name?.includes('Admin')) {
-          profileType = 'admin';
-        }
-        
-        // Criar objeto de usuário a partir dos dados do Supabase
-        const userDataFromSupabase = createSupabaseUserData(session.user, profile, profileType);
+        // Use our updated transformer function
+        const userDataFromSupabase = createSupabaseUserData(session.user, profile);
         setUserData(userDataFromSupabase);
       }
     } else if (event === 'SIGNED_OUT') {

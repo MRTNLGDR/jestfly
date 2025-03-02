@@ -2,6 +2,7 @@
 import { User } from '../../models/User';
 import { authService } from './authService';
 import { supabaseAuthService } from './supabaseAuthService';
+import { createSupabaseUserData } from './userDataTransformer';
 
 // Login method
 export const login = async (
@@ -18,39 +19,8 @@ export const login = async (
       const profile = await supabaseAuthService.getUserProfile(user.id);
       
       if (profile) {
-        // Determinar o tipo de perfil baseado em algum critério
-        // Como o campo profile_type ainda não existe, usamos uma lógica temporária
-        let profileType: 'artist' | 'fan' | 'admin' | 'collaborator' = 'fan';
-        if (profile.full_name?.includes('Admin')) {
-          profileType = 'admin';
-        }
-        
-        const userDataFromSupabase: User = {
-          id: profile.id,
-          email: user.email || '',
-          username: profile.username || '',
-          displayName: profile.full_name || user.email?.split('@')[0] || '',
-          profileType,
-          createdAt: new Date(profile.created_at),
-          updatedAt: new Date(profile.updated_at),
-          lastLogin: new Date(),
-          isVerified: user.email_confirmed_at !== null,
-          twoFactorEnabled: false,
-          socialLinks: {},
-          preferences: {
-            theme: 'system',
-            language: 'pt',
-            currency: 'BRL',
-            notifications: {
-              email: true,
-              push: true,
-              sms: false
-            }
-          },
-          collectionItems: [],
-          transactions: []
-        };
-        
+        // Use our updated transformer function
+        const userDataFromSupabase = createSupabaseUserData(user, profile);
         setUserData(userDataFromSupabase);
         return;
       }
