@@ -23,6 +23,12 @@ import PressKitPage from './pages/PressKitPage';
 import AirdropPage from './pages/AirdropPage';
 import EcommercePage from './pages/EcommercePage';
 import LanguageProvider from './contexts/LanguageContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -34,7 +40,7 @@ function App() {
     transmission: 0.98, // Near perfect transmission for glass effect
     thickness: 0.8, // Increased thickness for more internal refraction
     envMapIntensity: 5.0, // Boosted reflections to showcase neon environment
-    clearcoat: 1.0, // Maximum clearcoat for extra glossiness
+    clearcoat: 1.0, // Maximum clearcoat for glossiness
     clearcoatRoughness: 0.0, // Perfect clearcoat smoothness
     ior: 2.5, // Higher index of refraction for diamond-like effect
     iridescence: 1.0, // Strong iridescence for color shifts
@@ -69,28 +75,54 @@ function App() {
   ];
   
   return (
-    <LanguageProvider>
-      <Router>
-        <div className="app">
-          <GlassHeader menuItems={menuItems} />
-          <Routes>
-            <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-            <Route path="/store/*" element={<NewStorePage />} />
-            <Route path="/community/*" element={<CommunityPage />} />
-            <Route path="/bookings" element={<BookingsPage />} />
-            <Route path="/resources" element={<EcommercePage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/demo-submission" element={<DemoSubmissionPage />} />
-            <Route path="/live-stream" element={<LiveStreamPage />} />
-            <Route path="/press-kit" element={<PressKitPage />} />
-            <Route path="/airdrop" element={<AirdropPage />} />
-            <Route path="/admin" element={<AdminPanel />} />
-          </Routes>
-          {/* CyberMenu component removed */}
-          <Footer />
-        </div>
-      </Router>
-    </LanguageProvider>
+    <AuthProvider>
+      <LanguageProvider>
+        <Router>
+          <div className="app">
+            <GlassHeader menuItems={menuItems} />
+            <Routes>
+              <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
+              <Route path="/store/*" element={<NewStorePage />} />
+              <Route path="/community/*" element={<CommunityPage />} />
+              <Route path="/bookings" element={<BookingsPage />} />
+              <Route path="/resources" element={<EcommercePage />} />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/demo-submission" 
+                element={
+                  <ProtectedRoute>
+                    <DemoSubmissionPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/live-stream" element={<LiveStreamPage />} />
+              <Route path="/press-kit" element={<PressKitPage />} />
+              <Route path="/airdrop" element={<AirdropPage />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute requiredRoles={['admin']}>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            </Routes>
+            <Footer />
+          </div>
+        </Router>
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
 

@@ -1,85 +1,196 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User, Session } from '@supabase/supabase-js';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { auth, firestore } from '../firebase/config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { User } from '../models/User';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  currentUser: FirebaseUser | null;
+  userData: User | null;
+  login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  register: (email: string, password: string, userData: Partial<User>) => Promise<void>;
+  logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: User | null;
-  }>;
-  signUp: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: User | null;
-  }>;
-  signOut: () => Promise<void>;
+  error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      
+      if (user) {
+        // Fetch user data from Firestore
+        try {
+          const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data() as User);
+          }
+        } catch (err) {
+          console.error("Error fetching user data:", err);
+        }
+      } else {
+        setUserData(null);
+      }
+      
       setLoading(false);
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return unsubscribe;
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      return { data: data?.user ?? null, error };
-    } catch (error) {
-      return { data: null, error: error as Error };
+      setError(null);
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const loginWithGoogle = async () => {
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      return { data: data?.user ?? null, error };
-    } catch (error) {
-      return { data: null, error: error as Error };
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Check if this is a new user
+      const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+      if (!userDoc.exists()) {
+        // Create user data for new Google sign-ins
+        await setDoc(doc(firestore, 'users', user.uid), {
+          id: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email?.split('@')[0],
+          profileType: 'fan', // Default profile type
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastLogin: new Date(),
+          isVerified: user.emailVerified,
+          twoFactorEnabled: false,
+          preferences: {
+            theme: 'system',
+            language: 'en',
+            currency: 'USD',
+            notifications: {
+              email: true,
+              push: true,
+              sms: false
+            }
+          },
+          socialLinks: {},
+          collectionItems: []
+        });
+      } else {
+        // Update last login time for existing users
+        await setDoc(doc(firestore, 'users', user.uid), 
+          { lastLogin: new Date() }, 
+          { merge: true }
+        );
+      }
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
     }
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const register = async (email: string, password: string, userData: Partial<User>) => {
+    try {
+      setError(null);
+      const result = await createUserWithEmailAndPassword(auth, email, password);
+      const user = result.user;
+      
+      // Create user document in Firestore
+      await setDoc(doc(firestore, 'users', user.uid), {
+        id: user.uid,
+        email,
+        ...userData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastLogin: new Date(),
+        isVerified: false,
+        twoFactorEnabled: false,
+        preferences: userData.preferences || {
+          theme: 'system',
+          language: 'en',
+          currency: 'USD',
+          notifications: {
+            email: true,
+            push: true,
+            sms: false
+          }
+        },
+        socialLinks: userData.socialLinks || {},
+        collectionItems: []
+      });
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      setError(null);
+      await sendPasswordResetEmail(auth, email);
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
   };
 
   const value = {
-    user,
-    session,
+    currentUser,
+    userData,
+    login,
+    loginWithGoogle,
+    register,
+    logout,
+    resetPassword,
     loading,
-    signIn,
-    signUp,
-    signOut,
+    error
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
