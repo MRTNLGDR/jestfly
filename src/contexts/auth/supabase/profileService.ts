@@ -1,20 +1,14 @@
 
-/**
- * Supabase Profile Service
- * 
- * This file is a placeholder to fix build errors.
- * The application now uses Firebase for authentication instead of Supabase.
- */
+// ATENÇÃO: Este arquivo é um placeholder para manter a compatibilidade de build
+// A aplicação migrou para Firebase e não usa mais os serviços Supabase
+console.warn('[Deprecated] profileService.ts foi carregado, mas não está mais em uso ativo. A aplicação migrou para Firebase.');
 
-import { User } from "../../../models/User";
+export const getProfile = async (userId: string) => {
+  console.warn('getProfile chamado, mas não está mais em uso ativo.');
+  return null;
+};
 
-export const profileService = {
-  syncUserProfile: async (userId: string, userData: Partial<User>): Promise<void> => {
-    console.warn('Using profileService.syncUserProfile with Supabase, but app has migrated to Firebase');
-  },
-  
-  getUserProfile: async (userId: string): Promise<User | null> => {
-    console.warn('Using profileService.getUserProfile with Supabase, but app has migrated to Firebase');
-    return null;
-  }
+export const updateProfile = async (userId: string, data: any) => {
+  console.warn('updateProfile chamado, mas não está mais em uso ativo.');
+  return null;
 };

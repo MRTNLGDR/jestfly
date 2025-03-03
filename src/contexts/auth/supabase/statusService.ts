@@ -1,29 +1,13 @@
+// ATENÇÃO: Este arquivo é um placeholder para manter a compatibilidade de build
+// A aplicação migrou para Firebase e não usa mais os serviços Supabase
+console.warn('[Deprecated] statusService.ts foi carregado, mas não está mais em uso ativo. A aplicação migrou para Firebase.');
 
-/**
- * Supabase Status Service
- * 
- * This file is a placeholder to fix build errors.
- * The application now uses Firebase for authentication instead of Supabase.
- */
-
-export const statusService = {
-  isGoogleAuthEnabled: async (): Promise<boolean> => {
-    console.warn('Using statusService.isGoogleAuthEnabled with Supabase, but app has migrated to Firebase');
-    return true;
-  },
-  
-  checkAdminStatus: async (userId: string): Promise<boolean> => {
-    console.warn('Using statusService.checkAdminStatus with Supabase, but app has migrated to Firebase');
-    return false;
-  },
-  
-  checkGoogleAuthEnabled: async (): Promise<boolean> => {
-    console.warn('Using statusService.checkGoogleAuthEnabled with Supabase, but app has migrated to Firebase');
-    return true;
-  }
+export const getAuthStatus = async () => {
+  console.warn('getAuthStatus chamado, mas não está mais em uso ativo.');
+  return { isAuthenticated: false, user: null };
 };
 
-export const checkGoogleAuthEnabled = async (): Promise<boolean> => {
-  console.warn('Using checkGoogleAuthEnabled with Supabase, but app has migrated to Firebase');
-  return true;
+export const watchAuthStatus = (callback: (status: any) => void) => {
+  console.warn('watchAuthStatus chamado, mas não está mais em uso ativo.');
+  return { unsubscribe: () => {} };
 };

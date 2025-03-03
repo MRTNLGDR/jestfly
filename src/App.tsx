@@ -1,3 +1,4 @@
+
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import GlassHeader from './components/GlassHeader';
@@ -18,6 +19,7 @@ import AirdropPage from './pages/AirdropPage';
 import EcommercePage from './pages/EcommercePage';
 import AdminPanel from './pages/AdminPanel';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
@@ -114,6 +116,11 @@ function App() {
                     <div className="container mx-auto py-20">
                       <RegisterForm />
                     </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/forgot-password" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <ForgotPasswordPage />
                   </ProtectedRoute>
                 } />
               </Routes>

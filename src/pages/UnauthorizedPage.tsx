@@ -1,36 +1,46 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from "../components/ui/button";
-import { ShieldAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ShieldAlert, Home, ArrowLeft } from 'lucide-react';
+import { Button } from '../components/ui/button';
 
 const UnauthorizedPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen w-full py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center bg-black">
-      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-900/20 via-black to-black -z-10"></div>
-      
-      {/* Purple glow effect */}
-      <div className="absolute top-0 right-0 w-[40vw] h-[40vw] rounded-full bg-purple-600/10 blur-[120px] -z-10"></div>
-      <div className="absolute bottom-0 left-0 w-[30vw] h-[30vw] rounded-full bg-blue-600/10 blur-[120px] -z-10"></div>
-      
-      <div className="text-center max-w-md">
-        <div className="w-24 h-24 mx-auto bg-red-500/10 rounded-full flex items-center justify-center mb-6">
-          <ShieldAlert size={48} className="text-red-500" />
+    <div className="flex items-center justify-center min-h-[80vh] px-4">
+      <div className="text-center space-y-6 max-w-md">
+        <div className="flex justify-center">
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-purple-600/20 animate-pulse" />
+            <div className="relative bg-zinc-900/90 p-4 rounded-full border border-zinc-700">
+              <ShieldAlert className="h-16 w-16 text-red-500" />
+            </div>
+          </div>
         </div>
         
-        <h1 className="text-4xl font-bold text-white mb-4">Unauthorized Access</h1>
+        <h1 className="text-3xl font-bold text-white">Acesso Negado</h1>
         
-        <p className="text-zinc-400 mb-8">
-          You don't have permission to access this page. Please contact an administrator if you believe this is an error.
+        <p className="text-zinc-400">
+          Você não tem permissão para acessar esta área. Esta seção requer privilégios específicos ou um tipo de conta diferente.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild variant="outline" className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">
-            <Link to="/">Back to Home</Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+          <Button 
+            onClick={() => navigate(-1)} 
+            variant="outline"
+            className="flex items-center justify-center gap-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
           </Button>
           
-          <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600">
-            <Link to="/login">Sign In</Link>
+          <Button 
+            onClick={() => navigate('/')} 
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
+          >
+            <Home className="h-4 w-4" />
+            Ir para Home
           </Button>
         </div>
       </div>
