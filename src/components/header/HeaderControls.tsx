@@ -6,7 +6,7 @@ import CurrencySwitcher from './CurrencySwitcher';
 import ZoomControls from './ZoomControls';
 import PreOrderButton from './PreOrderButton';
 import { useIsMobile } from '../../hooks/use-mobile';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/auth';
 import { Button } from '../ui/button';
 import { LogOut, User } from 'lucide-react';
 

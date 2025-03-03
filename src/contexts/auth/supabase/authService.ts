@@ -1,24 +1,18 @@
 
-/**
- * @deprecated This service is deprecated as the app now uses Firebase instead of Supabase for authentication.
- */
+// This is a stub implementation for Supabase auth service
 
-import { supabase } from '../../../integrations/supabase/client';
 import { statusService, checkGoogleAuthEnabled } from './statusService';
 import { profileService } from './profileService';
 
-export const authService = {
-  // Placeholder methods with warnings
-  login: async () => {
-    console.warn('authService is deprecated. The app now uses Firebase.');
-    return null;
+export const supabaseAuthService = {
+  fetchUserProfile: profileService.fetchUserProfile,
+  updateUserProfile: profileService.updateUserProfile,
+  checkSessionStatus: statusService.checkSessionStatus,
+  subscribeToAuthChanges: () => {
+    console.warn('supabaseAuthService.subscribeToAuthChanges is a stub');
+    return () => {}; // Return unsubscribe function
   },
-  logout: async () => {
-    console.warn('authService is deprecated. The app now uses Firebase.');
-    return null;
-  },
-  register: async () => {
-    console.warn('authService is deprecated. The app now uses Firebase.');
-    return null;
-  },
+  isGoogleAuthEnabled: async () => {
+    return await checkGoogleAuthEnabled();
+  }
 };

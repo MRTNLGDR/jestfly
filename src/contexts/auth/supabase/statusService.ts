@@ -1,16 +1,14 @@
 
-// This file is a placeholder for the Supabase status service
-// which has been deprecated in favor of Firebase auth
-// It's kept to prevent import errors in existing code
+// Stub file for statusService
 
-console.warn('The Supabase auth service is deprecated and will be removed in a future version');
-
-export const checkSessionStatus = async () => {
-  console.warn('Using deprecated Supabase auth service');
-  return null;
+export const statusService = {
+  checkSessionStatus: async () => {
+    console.warn('statusService.checkSessionStatus is a stub');
+    return { isAuthenticated: false };
+  },
 };
 
-export const subscribeToAuthChanges = () => {
-  console.warn('Using deprecated Supabase auth service');
-  return () => {}; // return empty cleanup function
+export const checkGoogleAuthEnabled = async (): Promise<boolean> => {
+  console.warn('checkGoogleAuthEnabled is a stub');
+  return false;
 };

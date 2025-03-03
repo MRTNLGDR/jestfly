@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth';
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -22,10 +21,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     
     try {
       if (isLogin) {
-        // Use login instead of signIn
         await login(email, password);
       } else {
-        // Use register instead of signUp
         await register(email, password, {
           displayName: email.split('@')[0],
           username: email.split('@')[0],
