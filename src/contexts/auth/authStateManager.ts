@@ -45,18 +45,32 @@ export const useAuthState = () => {
       // Get email from auth session
       const { data: { session } } = await supabase.auth.getSession();
       
-      // Create combined profile with roles
-      const profileWithRoles = {
-        ...profile,
-        // Make sure profile_type is properly typed as expected by SupabaseProfileData
-        profile_type: (profile?.profile_type || 'fan') as 'artist' | 'fan' | 'admin' | 'collaborator',
-        // Ensure social_links is properly typed as Record<string, string>
-        social_links: profile?.social_links ? JSON.parse(JSON.stringify(profile.social_links)) : {},
-        roles: roles?.map(r => r.role) || []
-      };
-      
-      // Transform data to User model
-      if (session?.user) {
+      if (profile && session?.user) {
+        // Cast profile_type to the expected union type
+        const profileType = profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator';
+        
+        // Parse preferences if it's a string (JSON)
+        let preferences = profile.preferences;
+        if (typeof preferences === 'string') {
+          try {
+            preferences = JSON.parse(preferences);
+          } catch (e) {
+            console.error('Error parsing preferences JSON:', e);
+            preferences = {};
+          }
+        }
+        
+        // Create combined profile with roles
+        const profileWithRoles = {
+          ...profile,
+          profile_type: profileType,
+          // Ensure social_links is properly typed as Record<string, string>
+          social_links: profile.social_links ? JSON.parse(JSON.stringify(profile.social_links)) : {},
+          preferences: preferences || {},
+          roles: roles?.map(r => r.role) || []
+        };
+        
+        // Transform data to User model
         const supabaseAuthUser: SupabaseAuthUser = {
           email: session.user.email || '',
           email_confirmed_at: session.user.email_confirmed_at

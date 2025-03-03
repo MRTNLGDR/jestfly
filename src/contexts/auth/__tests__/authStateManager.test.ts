@@ -1,11 +1,12 @@
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAuthState } from '../authStateManager';
 import { auth, firestore } from '../../../firebase/config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { supabase } from '../../../integrations/supabase/client';
 import { User } from '../../../models/User';
+import { doc, getDoc } from 'firebase/firestore';
 
 // Mock Firebase Auth
 vi.mock('firebase/auth', () => ({
@@ -14,15 +15,17 @@ vi.mock('firebase/auth', () => ({
 }));
 
 // Mock Firebase Firestore
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn(),
+  getDoc: vi.fn()
+}));
+
+// Mock Firebase config
 vi.mock('../../../firebase/config', () => ({
   auth: {
     currentUser: null,
   },
-  firestore: {
-    collection: vi.fn(),
-    doc: vi.fn(),
-    getDoc: vi.fn(),
-  },
+  firestore: {},
 }));
 
 // Mock Supabase client
@@ -53,7 +56,13 @@ describe('useAuthState', () => {
     });
     
     vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
+      data: { 
+        subscription: { 
+          unsubscribe: vi.fn(),
+          id: 'test-id',
+          callback: vi.fn()
+        } 
+      },
     });
     
     vi.mocked(supabase.from).mockReturnValue({
@@ -92,6 +101,11 @@ describe('useAuthState', () => {
             id: 'user123',
             email: 'test@example.com',
             email_confirmed_at: '2023-01-01T00:00:00Z',
+            app_metadata: {},
+            user_metadata: {},
+            aud: 'authenticated',
+            created_at: '2023-01-01',
+            role: ''
           },
         },
       },
@@ -103,12 +117,12 @@ describe('useAuthState', () => {
       id: 'user123',
       username: 'testuser',
       full_name: 'Test User',
-      profile_type: 'artist',
+      profile_type: 'artist' as 'artist' | 'fan' | 'admin' | 'collaborator',
       avatar_url: 'https://example.com/avatar.jpg',
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-02T00:00:00Z',
       preferences: {
-        theme: 'dark',
+        theme: 'dark' as 'dark' | 'light' | 'system',
         notifications: {
           email: true,
           push: true,
@@ -176,6 +190,11 @@ describe('useAuthState', () => {
           user: {
             id: 'user123',
             email: 'test@example.com',
+            app_metadata: {},
+            user_metadata: {},
+            aud: 'authenticated',
+            created_at: '2023-01-01',
+            role: ''
           },
         },
       },
@@ -251,13 +270,8 @@ describe('useAuthState', () => {
     };
     
     // Setup mocks for doc and getDoc
-    const docMock = vi.fn().mockReturnValue('doc-ref');
-    const getDocMock = vi.fn().mockResolvedValue(mockUserDoc);
-    
-    // @ts-ignore - We know this is a mock
-    firestore.doc = docMock;
-    // @ts-ignore - We know this is a mock
-    firestore.getDoc = getDocMock;
+    vi.mocked(doc).mockReturnValue('doc-ref' as any);
+    vi.mocked(getDoc).mockResolvedValue(mockUserDoc as any);
     
     const { result } = renderHook(() => useAuthState());
     
@@ -283,13 +297,8 @@ describe('useAuthState', () => {
     });
     
     // Setup mocks for doc and getDoc
-    const docMock = vi.fn().mockReturnValue('doc-ref');
-    const getDocMock = vi.fn().mockRejectedValue(new Error('Firestore error'));
-    
-    // @ts-ignore - We know this is a mock
-    firestore.doc = docMock;
-    // @ts-ignore - We know this is a mock
-    firestore.getDoc = getDocMock;
+    vi.mocked(doc).mockReturnValue('doc-ref' as any);
+    vi.mocked(getDoc).mockRejectedValue(new Error('Firestore error'));
     
     const { result } = renderHook(() => useAuthState());
     

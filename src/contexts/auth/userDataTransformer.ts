@@ -59,10 +59,13 @@ export const createSupabaseUserData = (
     sms: false
   };
 
+  // Get existing notifications or empty object
+  const existingNotifications = profileData.preferences?.notifications || {};
+
   // Merge profile notifications with defaults to ensure required properties
   const notificationsWithDefaults = {
     ...defaultNotifications,
-    ...(profileData.preferences?.notifications || {})
+    ...existingNotifications
   };
   
   // Create a new User object with data from Supabase
