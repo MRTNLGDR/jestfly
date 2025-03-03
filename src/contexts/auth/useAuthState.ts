@@ -78,7 +78,12 @@ export const useAuthState = (): AuthStateHook => {
                   JSON.parse(profileData.social_links) : 
                   profileData.social_links as Record<string, string>) : 
                 {},
-              preferences: profileData.preferences,
+              // Ensure preferences is properly typed
+              preferences: profileData.preferences ? 
+                (typeof profileData.preferences === 'string' ? 
+                  JSON.parse(profileData.preferences) : 
+                  profileData.preferences) : 
+                {},
               wallet_address: profileData.wallet_address,
               created_at: profileData.created_at,
               updated_at: profileData.updated_at,
@@ -179,7 +184,12 @@ export const useAuthState = (): AuthStateHook => {
                   JSON.parse(profileData.social_links) : 
                   profileData.social_links as Record<string, string>) : 
                 {},
-              preferences: profileData.preferences,
+              // Ensure preferences is properly typed
+              preferences: profileData.preferences ? 
+                (typeof profileData.preferences === 'string' ? 
+                  JSON.parse(profileData.preferences) : 
+                  profileData.preferences) : 
+                {},
               wallet_address: profileData.wallet_address,
               created_at: profileData.created_at,
               updated_at: profileData.updated_at,
