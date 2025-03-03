@@ -50,8 +50,14 @@ export const useAuthState = () => {
         ...profile,
         // Make sure profile_type is properly typed as expected by SupabaseProfileData
         profile_type: (profile?.profile_type || 'fan') as 'artist' | 'fan' | 'admin' | 'collaborator',
+        // Parse preferences if it's a string or ensure it's an object
+        preferences: typeof profile?.preferences === 'string' 
+          ? JSON.parse(profile.preferences) 
+          : (profile?.preferences || {}),
         // Ensure social_links is properly typed as Record<string, string>
-        social_links: profile?.social_links ? JSON.parse(JSON.stringify(profile.social_links)) : {},
+        social_links: typeof profile?.social_links === 'string'
+          ? JSON.parse(profile.social_links)
+          : (profile?.social_links || {}),
         roles: roles?.map(r => r.role) || []
       };
       

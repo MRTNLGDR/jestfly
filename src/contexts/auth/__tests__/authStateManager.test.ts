@@ -25,6 +25,17 @@ vi.mock('../../../firebase/config', () => ({
   },
 }));
 
+// Create a mock Supabase User type
+type MockSupabaseUser = {
+  id: string;
+  email?: string | null;
+  email_confirmed_at?: string | null;
+  app_metadata?: Record<string, any>;
+  user_metadata?: Record<string, any>;
+  aud?: string;
+  created_at?: string;
+};
+
 // Mock Supabase client
 vi.mock('../../../integrations/supabase/client', () => ({
   supabase: {
@@ -53,7 +64,13 @@ describe('useAuthState', () => {
     });
     
     vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
+      data: { 
+        subscription: { 
+          unsubscribe: vi.fn(),
+          id: 'mock-id',
+          callback: vi.fn()
+        } 
+      },
     });
     
     vi.mocked(supabase.from).mockReturnValue({
@@ -85,14 +102,20 @@ describe('useAuthState', () => {
   
   it('should fetch user data from Supabase when session exists', async () => {
     // Mock Supabase session
+    const mockSupabaseUser: MockSupabaseUser = {
+      id: 'user123',
+      email: 'test@example.com',
+      email_confirmed_at: '2023-01-01T00:00:00Z',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z',
+    };
+    
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: {
         session: {
-          user: {
-            id: 'user123',
-            email: 'test@example.com',
-            email_confirmed_at: '2023-01-01T00:00:00Z',
-          },
+          user: mockSupabaseUser,
         },
       },
       error: null,
@@ -170,13 +193,19 @@ describe('useAuthState', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
     // Mock Supabase session
+    const mockSupabaseUser: MockSupabaseUser = {
+      id: 'user123',
+      email: 'test@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z',
+    };
+    
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: {
         session: {
-          user: {
-            id: 'user123',
-            email: 'test@example.com',
-          },
+          user: mockSupabaseUser,
         },
       },
       error: null,
