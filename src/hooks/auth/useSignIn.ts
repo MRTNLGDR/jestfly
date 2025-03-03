@@ -64,11 +64,15 @@ export const useSignIn = (setProfile: (profile: any) => void) => {
         if (profileData) {
           console.log('Perfil recuperado após login, tipo:', profileData.profile_type);
           setProfile(profileData);
-        
-          // Toast de sucesso será exibido pelo componente que chamou o signIn
           
-          // Não redirecionamos aqui para evitar redirecionamento duplo
-          // O componente que chamou o signIn deve cuidar do redirecionamento
+          // Toast de sucesso
+          toast({
+            title: "Login bem-sucedido",
+            description: `Bem-vindo(a), ${profileData.display_name}!`,
+            variant: "default",
+          });
+          
+          // Componente chamador do signIn deve cuidar do redirecionamento
         } else {
           console.error('Perfil não encontrado após login bem-sucedido');
           toast({
@@ -76,7 +80,6 @@ export const useSignIn = (setProfile: (profile: any) => void) => {
             description: "Seu login foi bem-sucedido, mas não encontramos seu perfil.",
             variant: "destructive",
           });
-          // Não redirecionamos se não há perfil
         }
         
         setLoading(false);

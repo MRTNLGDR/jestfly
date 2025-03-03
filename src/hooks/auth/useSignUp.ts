@@ -93,6 +93,11 @@ export const useSignUp = (setProfile: (profile: any) => void) => {
             setProfile(profileData);
             
             // Redirecionar após encontrar perfil
+            toast({
+              title: "Conta criada com sucesso!",
+              description: "Você está agora conectado ao JESTFLY.",
+              variant: "default",
+            });
             navigate('/');
           } else {
             console.warn('Perfil não encontrado após registro, pode haver um atraso na criação');
@@ -102,17 +107,22 @@ export const useSignUp = (setProfile: (profile: any) => void) => {
               if (retryProfile) {
                 console.log('Perfil encontrado na segunda tentativa:', retryProfile);
                 setProfile(retryProfile);
+                toast({
+                  title: "Conta criada com sucesso!",
+                  description: "Você está agora conectado ao JESTFLY.",
+                  variant: "default",
+                });
                 navigate('/');
+              } else {
+                toast({
+                  title: "Conta criada",
+                  description: "Verifique seu e-mail para confirmar o cadastro e faça login novamente.",
+                  variant: "default",
+                });
               }
             }, 2000);
           }
         }, 1000); // Pequeno atraso para dar tempo ao trigger
-        
-        toast({
-          title: "Conta criada com sucesso!",
-          description: "Verifique seu e-mail para confirmar o cadastro.",
-          variant: "default",
-        });
       }
       
       setLoading(false);

@@ -43,6 +43,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             required
             value={registerData.email}
             onChange={handleChange}
+            disabled={loading}
           />
           
           <FormField
@@ -52,6 +53,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             required
             value={registerData.display_name}
             onChange={handleChange}
+            disabled={loading}
           />
           
           <FormField
@@ -61,6 +63,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             required
             value={registerData.username}
             onChange={handleChange}
+            disabled={loading}
           />
           
           <div className="space-y-2">
@@ -68,6 +71,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             <Select
               value={registerData.profile_type}
               onValueChange={handleSelectChange}
+              disabled={loading}
             >
               <SelectTrigger className="bg-black/30 border-white/20 text-white">
                 <SelectValue placeholder="Selecione seu tipo de perfil" />
@@ -89,6 +93,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             minLength={6}
             value={registerData.password}
             onChange={handleChange}
+            disabled={loading}
           />
           
           <FormField
@@ -99,6 +104,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
             required
             value={registerData.confirmPassword}
             onChange={handleChange}
+            disabled={loading}
           />
           
           {error && (

@@ -66,7 +66,7 @@ export const useLoginForm = () => {
       setIsLoading(true);
       let demoEmail, demoPassword;
       
-      // Usar os emails e senhas dos usuários demo atualizados de acordo com o migration
+      // Usar os emails e senhas dos usuários demo
       switch (type) {
         case 'fan':
           demoEmail = 'fan@jestfly.com';
@@ -107,9 +107,6 @@ export const useLoginForm = () => {
         // Redirecionamento baseado no tipo de perfil
         if (type === 'admin') {
           navigate('/admin');
-        } else if (type === 'artist') {
-          // Artistas podem ser direcionados para uma página específica
-          navigate('/');
         } else {
           navigate('/');
         }

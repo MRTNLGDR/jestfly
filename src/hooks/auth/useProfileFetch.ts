@@ -8,7 +8,9 @@ export const useProfileFetch = () => {
 
   const fetchProfile = async (userId: string): Promise<ProfileData | null> => {
     try {
+      setLoading(true);
       console.log(`Buscando perfil para userId: ${userId}`);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -17,13 +19,16 @@ export const useProfileFetch = () => {
       
       if (error) {
         console.error('Erro ao buscar perfil:', error);
+        setLoading(false);
         return null;
       }
       
       console.log('Perfil recuperado:', data);
+      setLoading(false);
       return data as ProfileData;
     } catch (error) {
       console.error('Exceção ao buscar perfil:', error);
+      setLoading(false);
       return null;
     }
   };

@@ -40,6 +40,7 @@ const LoginForm: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="seu@email.com"
+            disabled={loading}
             className="pl-9"
           />
           
@@ -53,6 +54,7 @@ const LoginForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="********"
+                disabled={loading}
                 className="pl-9"
               />
               <Link 
@@ -88,13 +90,24 @@ const LoginForm: React.FC = () => {
           </Button>
         </form>
 
-        <DemoLoginButtons 
-          onFanLogin={() => handleDemoLogin('fan')}
-          onArtistLogin={() => handleDemoLogin('artist')}
-          onCollaboratorLogin={() => handleDemoLogin('collaborator')}
-          onAdminLogin={() => handleDemoLogin('admin')}
-          disabled={loading}
-        />
+        <div className="mt-6">
+          <div className="relative mb-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-white/10"></span>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-black px-2 text-white/60">Ou acesse como</span>
+            </div>
+          </div>
+
+          <DemoLoginButtons 
+            onFanLogin={() => handleDemoLogin('fan')}
+            onArtistLogin={() => handleDemoLogin('artist')}
+            onCollaboratorLogin={() => handleDemoLogin('collaborator')}
+            onAdminLogin={() => handleDemoLogin('admin')}
+            disabled={loading}
+          />
+        </div>
       </CardContent>
       
       <CardFooter className="flex justify-center border-t border-white/10 pt-4">
