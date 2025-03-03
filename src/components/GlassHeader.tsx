@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useTranslation } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
@@ -24,7 +24,7 @@ interface GlassHeaderProps {
 }
 
 const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
-  const { translate } = useTranslation();
+  const { t: translate } = useLanguage();
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -10,6 +10,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
+  const [profileType, setProfileType] = useState<'fan' | 'artist' | 'collaborator' | 'admin'>('fan');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -25,7 +28,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
         const { error } = await signIn(email, password);
         if (error) throw error;
       } else {
-        const { error } = await signUp(email, password);
+        const userData = {
+          display_name: displayName,
+          username: username,
+          profile_type: profileType
+        };
+        const { error } = await signUp(email, password, userData);
         if (error) throw error;
       }
       
@@ -66,6 +74,58 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
               required
             />
           </div>
+          
+          {!isLogin && (
+            <>
+              <div className="mb-4">
+                <label className="block text-white/80 mb-2" htmlFor="displayName">
+                  Display Name
+                </label>
+                <input
+                  id="displayName"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                  placeholder="Your display name"
+                  required={!isLogin}
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-white/80 mb-2" htmlFor="username">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                  placeholder="username"
+                  required={!isLogin}
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-white/80 mb-2" htmlFor="profileType">
+                  Account Type
+                </label>
+                <select
+                  id="profileType"
+                  value={profileType}
+                  onChange={(e) => setProfileType(e.target.value as 'fan' | 'artist' | 'collaborator' | 'admin')}
+                  className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                  required={!isLogin}
+                >
+                  <option value="fan">Fan</option>
+                  <option value="artist">Artist</option>
+                  <option value="collaborator">Collaborator</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </>
+          )}
           
           <div className="mb-6">
             <label className="block text-white/80 mb-2" htmlFor="password">
