@@ -1,3 +1,4 @@
+
 import { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js';
 import { createContext, useContext } from 'react';
 import { User } from '../../models/User';
@@ -162,3 +163,6 @@ export const setupSupabaseAuth = (): AuthStateManager => {
     updateUser
   };
 };
+
+// Re-export useAuthState for tests
+export { useAuthState };

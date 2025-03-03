@@ -6,3 +6,4 @@ export * from './initialization.test';
 export * from './profile-data.test';
 export * from './error-handling.test';
 export * from './auth-state-changes.test';
+export * from './mock-helpers';
