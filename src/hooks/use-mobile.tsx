@@ -1,23 +1,41 @@
 
-import { useState, useEffect } from 'react';
+import * as React from "react"
 
-export const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+const MOBILE_BREAKPOINT = 768
+
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState<boolean>(false)
+  const [isInitialized, setIsInitialized] = React.useState<boolean>(false)
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+      if (!isInitialized) setIsInitialized(true)
+    }
     
-    // Check initially
-    checkIfMobile();
+    // Check immediately
+    checkMobile()
     
-    // Add event listener
-    window.addEventListener('resize', checkIfMobile);
+    // Use a safer way to add event listener
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
     
-    // Clean up
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-  
-  return isMobile;
-};
+    // Use the appropriate event listener based on browser support
+    if (mql.addEventListener) {
+      mql.addEventListener("change", checkMobile)
+    } else {
+      // Fallback for older browsers
+      window.addEventListener("resize", checkMobile)
+    }
+    
+    return () => {
+      if (mql.removeEventListener) {
+        mql.removeEventListener("change", checkMobile)
+      } else {
+        window.removeEventListener("resize", checkMobile)
+      }
+    }
+  }, [isInitialized])
+
+  // Return false during SSR, true value only after initialization
+  return isInitialized ? isMobile : false
+}

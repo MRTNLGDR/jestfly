@@ -2,22 +2,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AuthProvider } from '../AuthProvider';
-import { useAuthState } from '../useAuthState';
-import * as authMethods from '../methods';
+import { useAuthState } from '../authStateManager';
+import { login, loginWithGoogle, register, logout, resetPassword } from '../authMethods';
 
 // Mock auth hooks and methods
-vi.mock('../useAuthState', () => ({
+vi.mock('../authStateManager', () => ({
   useAuthState: vi.fn()
 }));
 
-vi.mock('../methods', () => ({
+vi.mock('../authMethods', () => ({
   login: vi.fn(),
   loginWithGoogle: vi.fn(),
   register: vi.fn(),
   logout: vi.fn(),
-  resetPassword: vi.fn(),
-  verifyAdminCode: vi.fn(),
-  updateUserProfile: vi.fn()
+  resetPassword: vi.fn()
 }));
 
 // Mock React context
@@ -107,13 +105,11 @@ describe('AuthProvider', () => {
     expect(contextValueSpy).toHaveBeenCalledWith(expect.objectContaining({
       currentUser: mockAuthState.currentUser,
       userData: mockAuthState.userData,
-      login: authMethods.login,
-      loginWithGoogle: authMethods.loginWithGoogle,
-      register: authMethods.register,
-      logout: authMethods.logout,
-      resetPassword: authMethods.resetPassword,
-      verifyAdminCode: authMethods.verifyAdminCode,
-      updateUserProfile: authMethods.updateUserProfile,
+      login: login,
+      loginWithGoogle: loginWithGoogle,
+      register: register,
+      logout: logout,
+      resetPassword: resetPassword,
       loading: false,
       error: null
     }));

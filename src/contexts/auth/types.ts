@@ -10,8 +10,6 @@ export interface AuthContextType {
   register: (email: string, password: string, userData: Partial<User>) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  verifyAdminCode: (userId: string, adminCode: string) => Promise<boolean>;
-  updateUserProfile: (userId: string, userData: Partial<User>) => Promise<void>;
   loading: boolean;
   error: string | null;
 }

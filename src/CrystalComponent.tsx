@@ -1,6 +1,7 @@
+
 import { useEffect, useRef } from 'react';
 import * as BABYLON from '@babylonjs/core';
-import { ModelParameters, defaultModelParams } from './types/modelParameters';
+import { ModelParameters, defaultModelParams } from './types/model';
 
 interface CrystalComponentProps {
   parameters?: Partial<ModelParameters>;

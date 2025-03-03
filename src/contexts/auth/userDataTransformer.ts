@@ -1,114 +1,130 @@
 
+/**
+ * Utilities for transforming user data between Supabase and app data models
+ */
+
 import { User } from '../../models/User';
 
+/**
+ * Interface representing a Supabase auth user
+ */
 export interface SupabaseAuthUser {
   email: string;
   email_confirmed_at?: string | null;
+  [key: string]: any;
 }
 
+/**
+ * Interface representing Supabase profile data
+ */
 export interface SupabaseProfileData {
   id: string;
-  username?: string | null;
-  full_name?: string | null;
+  username?: string;
+  full_name?: string;
   profile_type?: 'artist' | 'fan' | 'admin' | 'collaborator';
-  avatar_url?: string | null;
-  bio?: string | null;
-  social_links?: Record<string, string> | null;
+  avatar_url?: string;
+  bio?: string;
+  social_links?: Record<string, string>;
+  wallet_address?: string;
+  created_at?: string;
+  updated_at?: string;
   preferences?: {
     theme?: 'light' | 'dark' | 'system';
-    notifications?: {
-      email: boolean;
-      push: boolean;
-      sms: boolean;
-      [key: string]: boolean | undefined;
-    };
+    notifications?: Record<string, boolean>;
     language?: string;
     currency?: string;
     [key: string]: any;
   };
-  wallet_address?: string | null;
-  created_at?: string;
-  updated_at?: string;
   roles?: string[];
+  [key: string]: any;
 }
 
 /**
- * Transforma os dados do usuário do Supabase para o formato usado na aplicação
+ * Transform Supabase user data into the app's User model
+ * @param supabaseUser The user data from Supabase auth
+ * @param profileData The profile data from Supabase profiles table
+ * @returns A user object conforming to the app's User model
  */
 export const createSupabaseUserData = (
-  authUser: SupabaseAuthUser,
+  supabaseUser: SupabaseAuthUser,
   profileData: SupabaseProfileData
 ): User => {
-  // Criar objeto User a partir dos dados do Supabase
-  return {
+  // Extract the username from email if not provided
+  const usernameFromEmail = supabaseUser.email?.split('@')[0] || '';
+  
+  // Create default notifications object that meets the expected type
+  const defaultNotifications = {
+    email: true,
+    push: true,
+    sms: false
+  };
+
+  // Merge profile notifications with defaults to ensure required properties
+  const notificationsWithDefaults = {
+    ...defaultNotifications,
+    ...(profileData.preferences?.notifications || {})
+  };
+  
+  // Create a new User object with data from Supabase
+  const user: User = {
     id: profileData.id,
-    email: authUser.email,
-    username: profileData.username || '',
-    displayName: profileData.full_name || profileData.username || '',
+    email: supabaseUser.email,
+    displayName: profileData.full_name || usernameFromEmail,
+    username: profileData.username || usernameFromEmail,
     profileType: profileData.profile_type || 'fan',
-    avatar: profileData.avatar_url || undefined,
-    bio: profileData.bio || undefined,
+    avatar: profileData.avatar_url,
+    bio: profileData.bio,
     socialLinks: profileData.social_links || {},
-    walletAddress: profileData.wallet_address || undefined,
+    walletAddress: profileData.wallet_address,
     createdAt: profileData.created_at ? new Date(profileData.created_at) : new Date(),
     updatedAt: profileData.updated_at ? new Date(profileData.updated_at) : new Date(),
     lastLogin: new Date(),
-    isVerified: !!authUser.email_confirmed_at,
+    isVerified: !!supabaseUser.email_confirmed_at,
     twoFactorEnabled: false,
     preferences: {
-      theme: (profileData.preferences?.theme as 'light' | 'dark' | 'system') || 'system',
-      notifications: profileData.preferences?.notifications || {
-        email: true,
-        push: true,
-        sms: false
-      },
-      language: profileData.preferences?.language || 'pt',
-      currency: profileData.preferences?.currency || 'BRL',
-      ...(profileData.preferences || {})
+      theme: profileData.preferences?.theme || 'system',
+      notifications: notificationsWithDefaults,
+      language: profileData.preferences?.language || 'en',
+      currency: profileData.preferences?.currency || 'USD',
     },
-    roles: profileData.roles || []
+    roles: profileData.roles || [],
   };
+  
+  return user;
 };
 
 /**
- * Prepara os dados do usuário para atualização no Supabase
+ * Transform app User model to Supabase profile format for updates
+ * @param userData User data from the app's User model
+ * @returns Object formatted for Supabase profile updates
  */
-export const prepareUserDataForSupabase = (
-  userData: Partial<User>
-): Partial<SupabaseProfileData> => {
-  const profileData: Partial<SupabaseProfileData> = {};
-
+export const prepareUserDataForSupabase = (userData: Partial<User>): Record<string, any> => {
+  const result: Record<string, any> = {};
+  
+  // Map fields with different names
   if (userData.displayName !== undefined) {
-    profileData.full_name = userData.displayName;
+    result.full_name = userData.displayName;
   }
-
-  if (userData.username !== undefined) {
-    profileData.username = userData.username;
-  }
-
-  if (userData.bio !== undefined) {
-    profileData.bio = userData.bio;
-  }
-
+  
   if (userData.avatar !== undefined) {
-    profileData.avatar_url = userData.avatar;
+    result.avatar_url = userData.avatar;
   }
-
+  
   if (userData.profileType !== undefined) {
-    profileData.profile_type = userData.profileType;
+    result.profile_type = userData.profileType;
   }
-
-  if (userData.socialLinks !== undefined) {
-    profileData.social_links = userData.socialLinks;
-  }
-
-  if (userData.walletAddress !== undefined) {
-    profileData.wallet_address = userData.walletAddress;
-  }
-
-  if (userData.preferences !== undefined) {
-    profileData.preferences = userData.preferences;
-  }
-
-  return profileData;
+  
+  // Copy fields with the same name
+  const directMappedFields = [
+    'username', 'bio', 'social_links', 'wallet_address', 'preferences'
+  ];
+  
+  directMappedFields.forEach(field => {
+    const appField = field === 'social_links' ? 'socialLinks' : field;
+    if (userData[appField as keyof Partial<User>] !== undefined) {
+      result[field] = userData[appField as keyof Partial<User>];
+    }
+  });
+  
+  return result;
 };

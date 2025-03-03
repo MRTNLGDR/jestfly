@@ -3,10 +3,8 @@ import React from 'react';
 
 const WelcomeText: React.FC = () => {
   return (
-    <div className="hidden md:block">
-      <p className="text-xs font-medium text-white/70">
-        <span className="text-white">JESTFLY</span> • Experience the Future
-      </p>
+    <div className="hidden md:flex items-center space-x-4">
+      <span className="text-xs tracking-widest opacity-70">N1:WELCOME TO THE FUTURE</span>
     </div>
   );
 };
