@@ -140,8 +140,8 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
       isVerified: data.is_verified || false,
       twoFactorEnabled: data.two_factor_enabled || false,
       // Definir valores para campos que podem não existir na tabela profiles
-      permissions: Array.isArray(data.permissions) ? data.permissions : [],
-      roles: Array.isArray(data.roles) ? data.roles : [],
+      permissions: Array.isArray(data.permissions) ? data.permissions as string[] : [],
+      roles: Array.isArray(data.roles) ? data.roles as string[] : [],
       // Garantir que preferences tenha o formato correto
       preferences: typeof data.preferences === 'object' ? 
         {

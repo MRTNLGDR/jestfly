@@ -2,18 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/auth';
 import { Note } from '../models/Note';
-import NotesList from '../components/notes/NotesList';
-import NoteEditor from '../components/notes/NoteEditor';
-import NotesContent from '../components/notes/NotesContent';
+import { NotesList } from '../components/notes/NotesList';
+import { NoteEditor } from '../components/notes/NoteEditor';
+import { NotesContent } from '../components/notes/NotesContent';
 import { NoteViewToggle } from '../components/notes/NoteViewToggle';
-import EmptyNoteState from '../components/notes/EmptyNoteState';
+import { EmptyNoteState } from '../components/notes/EmptyNoteState';
 import { notesService } from '../services/notesService';
 
 const NotesPage: React.FC = () => {
   const { userData } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
-  const [view, setView] = useState<'list' | 'grid' | 'graph'>('list');
+  const [view, setView] = useState<'list' | 'graph'>('list');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -112,7 +112,7 @@ const NotesPage: React.FC = () => {
           <div className="w-1/3 bg-zinc-900/50 border border-zinc-800 rounded-lg overflow-hidden">
             <NotesList 
               notes={notes} 
-              onSelectNote={handleSelectNote} 
+              onNoteSelect={handleSelectNote} 
               selectedNoteId={selectedNote?.id}
               isLoading={isLoading}
               view={view}
