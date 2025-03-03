@@ -61,6 +61,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     
     try {
       console.log('Tentando registro com:', registerData.email);
+      console.log('Iniciando registro com email:', registerData.email, 'e dados:', registerData);
+      
       const { error } = await signUp(
         registerData.email, 
         registerData.password,

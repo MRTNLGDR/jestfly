@@ -52,8 +52,15 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log(`Tentando login com email: ${email}`);
+      console.log(`Iniciando login com email: ${email}`);
       setLoading(true);
+      
+      // Garantir que o email e senha não estejam vazios
+      if (!email || !password) {
+        console.error('Email ou senha vazios');
+        setLoading(false);
+        return { data: null, error: new Error('Email e senha são obrigatórios') };
+      }
       
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
@@ -68,13 +75,13 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
         return { data: null, error };
       }
       
-      if (data.user) {
-        console.log('Login bem-sucedido:', data.user.id);
+      if (data && data.user) {
+        console.log('Login bem-sucedido, ID do usuário:', data.user.id);
         
         // Buscar perfil após login
         const profileData = await fetchProfile(data.user.id);
         if (profileData) {
-          console.log('Perfil recuperado após login:', profileData.profile_type);
+          console.log('Perfil recuperado após login, tipo:', profileData.profile_type);
           setProfile(profileData);
         
           // Verificar o tipo de perfil e redirecionar adequadamente
@@ -98,8 +105,11 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
             description: "Seu login foi bem-sucedido, mas não encontramos seu perfil.",
             variant: "destructive",
           });
+          // Ainda redireciona para página inicial mesmo sem perfil
           navigate('/');
         }
+      } else {
+        console.error('Login bem-sucedido mas não retornou dados do usuário');
       }
       
       setLoading(false);
