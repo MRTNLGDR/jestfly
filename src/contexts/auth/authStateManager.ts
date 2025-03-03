@@ -1,193 +1,164 @@
-
-import { useState, useEffect } from 'react';
-import { User as FirebaseUser } from 'firebase/auth';
-import { auth, firestore } from '../../firebase/config';
+import { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js';
+import { createContext, useContext } from 'react';
 import { User } from '../../models/User';
-import { doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { supabase } from '../../integrations/supabase/client';
-import { createSupabaseUserData, SupabaseAuthUser } from './userDataTransformer';
+import { useAuthState } from './useAuthState';
+
+// Importar o necessário de userDataTransformer
+import { createSupabaseUserData, SupabaseAuthUser, SupabaseProfileData } from './userDataTransformer';
+
+// Define o tipo para o contexto de autenticação
+export interface AuthContextType {
+  supabaseClient: SupabaseClient | null;
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  signIn: (email: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  updateUser: (data: Partial<User>) => Promise<void>;
+}
+
+// Cria o contexto de autenticação com um valor padrão
+export const AuthContext = createContext<AuthContextType>({
+  supabaseClient: null,
+  user: null,
+  session: null,
+  isLoading: true,
+  signIn: async () => {},
+  signOut: async () => {},
+  updateUser: async () => {}
+});
+
+// Hook personalizado para acessar o contexto de autenticação
+export const useAuth = (): AuthContextType => {
+  return useContext(AuthContext);
+};
+
+// Define o tipo para o gerenciador de estado de autenticação
+export interface AuthStateManager {
+  onAuthStateChange: (
+    callback: (event: AuthChangeEvent, session: Session | null) => void
+  ) => { data: { subscription: { unsubscribe: () => void; id: string } } };
+  getSession: () => Promise<{ data: { session: Session | null } }>;
+  signIn: (email: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  updateUser: (data: Partial<User>) => Promise<void>;
+}
 
 /**
- * Custom hook to handle Supabase authentication state
+ * Configura a autenticação com Supabase
  */
-const useSupabaseAuth = (onUserDataChange: (data: User | null) => void) => {
-  // Function to fetch user data from Supabase
-  const fetchUserData = async (userId: string) => {
+export const setupSupabaseAuth = (): AuthStateManager => {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error(
+      'As variáveis de ambiente Supabase URL e Anon Key devem ser definidas.'
+    );
+  }
+
+  const supabase = useAuthState();
+
+  const signIn = async (email: string): Promise<void> => {
     try {
-      // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-        return null;
-      }
-
-      // Fetch user roles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-
-      if (rolesError) {
-        console.error('Error fetching roles:', rolesError);
-      }
-      
-      // Get email from auth session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (profile && session?.user) {
-        // Prepare roles array
-        const userRoles = roles?.map(r => r.role) || [];
-
-        // Parse social_links para garantir que seja um objeto Record<string, string>
-        let socialLinks: Record<string, string> = {};
-        if (profile.social_links) {
-          // Se for uma string JSON, analisa-o
-          if (typeof profile.social_links === 'string') {
-            try {
-              socialLinks = JSON.parse(profile.social_links);
-            } catch (e) {
-              console.warn('Failed to parse social_links JSON:', e);
-            }
-          } 
-          // Se já for um objeto, usa diretamente
-          else if (typeof profile.social_links === 'object') {
-            socialLinks = profile.social_links as Record<string, string>;
-          }
-        }
-
-        // Garantir que as preferências estejam no formato correto
-        const preferences = profile.preferences || {};
-        
-        // Garantir que notifications tenha os campos obrigatórios
-        const notifications = {
-          email: true,
-          push: true,
-          sms: false,
-          ...(preferences.notifications || {})
-        };
-
-        // Create combined profile data with proper type handling
-        const profileWithRoles: SupabaseProfileData = {
-          ...profile,
-          profile_type: profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator',
-          social_links: socialLinks,
-          preferences: {
-            ...preferences,
-            notifications
-          },
-          roles: userRoles
-        };
-        
-        // Transform data to User model
-        const supabaseAuthUser: SupabaseAuthUser = {
-          email: session.user.email || '',
-          email_confirmed_at: session.user.email_confirmed_at
-        };
-        
-        const user = createSupabaseUserData(
-          supabaseAuthUser,
-          profileWithRoles
-        );
-
-        return user;
-      }
-      
-      return null;
-    } catch (err) {
-      console.error("Error fetching user data from Supabase:", err);
-      return null;
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) throw error;
+      alert('Verifique seu email para o link mágico.');
+    } catch (error: any) {
+      alert(error.error_description || error.message);
     }
   };
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserData(session.user.id).then(userData => {
-          if (userData) {
-            onUserDataChange(userData);
-          }
-        });
-      }
-    });
+  const signOut = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error: any) {
+      alert(error.error_description || error.message);
+    }
+  };
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Supabase auth event:', event);
-        
-        if (session?.user) {
-          const userData = await fetchUserData(session.user.id);
-          if (userData) {
-            onUserDataChange(userData);
-          }
-        } else {
-          onUserDataChange(null);
+  const updateUser = async (data: Partial<User>): Promise<void> => {
+    try {
+      const { error } = await supabase.auth.updateUser(data);
+      if (error) throw error;
+    } catch (error: any) {
+      alert(error.error_description || error.message);
+    }
+  };
+
+  // Função para processar os dados de perfil do usuário
+  const processProfileData = async (session: Session): Promise<User> => {
+    if (!session?.user) {
+      throw new Error('Sessão inválida ou usuário não encontrado.');
+    }
+    
+    // Buscar perfil do usuário
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('*, user_roles(role)')
+      .eq('id', session.user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Erro ao buscar perfil:', profileError);
+      
+      // Se não encontrar perfil, criar um novo
+      const newProfileData: SupabaseProfileData = {
+        id: session.user.id,
+        username: session.user.email?.split('@')[0] || '',
+        full_name: session.user.email?.split('@')[0] || '',
+        profile_type: 'fan',
+        preferences: {
+          theme: 'system',
+          notifications: {
+            email: true,
+            push: true,
+            sms: false
+          },
+          language: 'pt',
+          currency: 'BRL'
         }
+      };
+
+      // Criar o perfil inicial
+      const { error: createError } = await supabase
+        .from('profiles')
+        .insert(newProfileData);
+
+      if (createError) {
+        console.error('Erro ao criar perfil:', createError);
+      }
+
+      return createSupabaseUserData(
+        { 
+          email: session.user.email || '', 
+          email_confirmed_at: session.user.email_confirmed_at 
+        }, 
+        newProfileData
+      );
+    }
+
+    // Transformar os papéis do formato do banco para o formato da aplicação
+    const roles = profileData.user_roles 
+      ? profileData.user_roles.map((r: any) => r.role)
+      : [];
+
+    // Converter dados para o formato da aplicação
+    return createSupabaseUserData(
+      { 
+        email: session.user.email || '', 
+        email_confirmed_at: session.user.email_confirmed_at 
+      },
+      { 
+        ...profileData, 
+        roles 
       }
     );
+  };
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [onUserDataChange]);
-};
-
-/**
- * Custom hook to handle Firebase authentication state
- */
-const useFirebaseAuth = (userData: User | null, onUserChange: (user: FirebaseUser | null) => void, onUserDataChange: (data: User | null) => void) => {
-  useEffect(() => {
-    const unsubscribeFirebase = onAuthStateChanged(auth, async (user) => {
-      onUserChange(user);
-      
-      if (user && !userData) {
-        try {
-          const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-          if (userDoc.exists()) {
-            onUserDataChange(userDoc.data() as User);
-          }
-        } catch (err) {
-          console.error("Error fetching user data from Firebase:", err);
-        }
-      }
-    });
-
-    return () => {
-      unsubscribeFirebase();
-    };
-  }, [userData, onUserChange, onUserDataChange]);
-};
-
-/**
- * Main hook to manage authentication state from multiple providers
- */
-export const useAuthState = () => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Use Supabase authentication
-  useSupabaseAuth(setUserData);
-  
-  // Use Firebase authentication as fallback
-  useFirebaseAuth(userData, setCurrentUser, setUserData);
-
-  // Set loading to false when auth state is initialized
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  return { currentUser, userData, setUserData, loading, error, setError };
+  return {
+    onAuthStateChange: supabase.auth.onAuthStateChange,
+    getSession: supabase.auth.getSession,
+    signIn,
+    signOut,
+    updateUser
+  };
 };
