@@ -16,7 +16,8 @@ vi.mock('../methods', () => ({
   register: vi.fn(),
   logout: vi.fn(),
   resetPassword: vi.fn(),
-  verifyAdminCode: vi.fn()
+  verifyAdminCode: vi.fn(),
+  updateUserProfile: vi.fn()
 }));
 
 // Mock React context
@@ -111,6 +112,8 @@ describe('AuthProvider', () => {
       register: authMethods.register,
       logout: authMethods.logout,
       resetPassword: authMethods.resetPassword,
+      verifyAdminCode: authMethods.verifyAdminCode,
+      updateUserProfile: authMethods.updateUserProfile,
       loading: false,
       error: null
     }));

@@ -4,3 +4,4 @@ export * from './emailPasswordAuth';
 export * from './socialAuth';
 export * from './sessionManagement';
 export * from './adminAuth';
+export * from './profileManagement';

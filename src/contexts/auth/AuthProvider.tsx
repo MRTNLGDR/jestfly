@@ -7,7 +7,9 @@ import {
   loginWithGoogle, 
   register, 
   logout, 
-  resetPassword 
+  resetPassword,
+  verifyAdminCode,
+  updateUserProfile
 } from './methods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -28,8 +30,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     resetPassword,
+    verifyAdminCode,
+    updateUserProfile,
     loading,
-    error: error || null // Convert to string or null to match the expected type
+    error: error || null // Converte para string ou null para corresponder ao tipo esperado
   };
 
   return (
