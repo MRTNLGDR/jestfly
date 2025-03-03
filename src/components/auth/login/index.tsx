@@ -15,5 +15,4 @@ export * from './FormInputs';
 export * from './FormField';
 export * from './SocialLoginOptions';
 export * from './LoginHandler';
-export * from './GoogleLoginHandler';
 export * from './types';

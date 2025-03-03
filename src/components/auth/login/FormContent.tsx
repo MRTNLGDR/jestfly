@@ -2,7 +2,6 @@
 import React from 'react';
 import { CardContent } from "../../ui/card";
 import { LoginHandler } from './LoginHandler';
-import { useGoogleAuth } from './GoogleLoginHandler';
 import { LoginHeader } from './LoginHeader';
 import { LoginForm } from './LoginForm';
 import { LoginFooter } from './LoginFooter';
@@ -10,8 +9,6 @@ import { SocialLoginOptions } from './SocialLoginOptions';
 import { LoginCard } from './LoginCard';
 
 export const FormContent: React.FC = () => {
-  const { isGoogleEnabled, isSubmitting: isGoogleSubmitting, handleGoogleLogin } = useGoogleAuth();
-
   return (
     <LoginHandler>
       {({ formData, handleChange, handleSubmit, isSubmitting, isAdminLogin, toggleAdminLogin }) => (
@@ -29,9 +26,7 @@ export const FormContent: React.FC = () => {
             
             {!isAdminLogin && (
               <SocialLoginOptions
-                onGoogleLogin={handleGoogleLogin}
-                isSubmitting={isSubmitting || isGoogleSubmitting}
-                isGoogleEnabled={isGoogleEnabled}
+                isSubmitting={isSubmitting}
               />
             )}
           </CardContent>
