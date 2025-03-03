@@ -101,7 +101,10 @@ const NotesPage: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-white">Notas</h1>
           <div className="flex items-center gap-4">
-            <NoteViewToggle currentView={view} onViewChange={setView} />
+            <NoteViewToggle 
+              currentView={view} 
+              onViewChange={setView} 
+            />
             <button
               onClick={handleCreateNote}
               className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md"
