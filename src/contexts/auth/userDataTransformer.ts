@@ -13,10 +13,15 @@ export interface SupabaseProfileData {
   profile_type?: 'artist' | 'fan' | 'admin' | 'collaborator';
   avatar_url?: string | null;
   bio?: string | null;
-  social_links?: Record<string, string>;
+  social_links?: Record<string, string> | null;
   preferences?: {
     theme?: 'light' | 'dark' | 'system';
-    notifications?: Record<string, boolean>;
+    notifications?: {
+      email: boolean;
+      push: boolean;
+      sms: boolean;
+      [key: string]: boolean | undefined;
+    };
     language?: string;
     currency?: string;
     [key: string]: any;
@@ -63,4 +68,47 @@ export const createSupabaseUserData = (
     },
     roles: profileData.roles || []
   };
+};
+
+/**
+ * Prepara os dados do usuário para atualização no Supabase
+ */
+export const prepareUserDataForSupabase = (
+  userData: Partial<User>
+): Partial<SupabaseProfileData> => {
+  const profileData: Partial<SupabaseProfileData> = {};
+
+  if (userData.displayName !== undefined) {
+    profileData.full_name = userData.displayName;
+  }
+
+  if (userData.username !== undefined) {
+    profileData.username = userData.username;
+  }
+
+  if (userData.bio !== undefined) {
+    profileData.bio = userData.bio;
+  }
+
+  if (userData.avatar !== undefined) {
+    profileData.avatar_url = userData.avatar;
+  }
+
+  if (userData.profileType !== undefined) {
+    profileData.profile_type = userData.profileType;
+  }
+
+  if (userData.socialLinks !== undefined) {
+    profileData.social_links = userData.socialLinks;
+  }
+
+  if (userData.walletAddress !== undefined) {
+    profileData.wallet_address = userData.walletAddress;
+  }
+
+  if (userData.preferences !== undefined) {
+    profileData.preferences = userData.preferences;
+  }
+
+  return profileData;
 };

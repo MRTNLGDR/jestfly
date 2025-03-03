@@ -44,10 +44,43 @@ const useSupabaseAuth = (onUserDataChange: (data: User | null) => void) => {
         // Prepare roles array
         const userRoles = roles?.map(r => r.role) || [];
 
+        // Parse social_links para garantir que seja um objeto Record<string, string>
+        let socialLinks: Record<string, string> = {};
+        if (profile.social_links) {
+          // Se for uma string JSON, analisa-o
+          if (typeof profile.social_links === 'string') {
+            try {
+              socialLinks = JSON.parse(profile.social_links);
+            } catch (e) {
+              console.warn('Failed to parse social_links JSON:', e);
+            }
+          } 
+          // Se já for um objeto, usa diretamente
+          else if (typeof profile.social_links === 'object') {
+            socialLinks = profile.social_links as Record<string, string>;
+          }
+        }
+
+        // Garantir que as preferências estejam no formato correto
+        const preferences = profile.preferences || {};
+        
+        // Garantir que notifications tenha os campos obrigatórios
+        const notifications = {
+          email: true,
+          push: true,
+          sms: false,
+          ...(preferences.notifications || {})
+        };
+
         // Create combined profile data with proper type handling
-        const profileWithRoles = {
+        const profileWithRoles: SupabaseProfileData = {
           ...profile,
           profile_type: profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator',
+          social_links: socialLinks,
+          preferences: {
+            ...preferences,
+            notifications
+          },
           roles: userRoles
         };
         
