@@ -3,6 +3,7 @@ import React from 'react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import ThemeToggle from './ThemeToggle';
 
 interface PreferencesTabProps {
   preferences: {
@@ -41,24 +42,13 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({
         <h2 className="text-2xl font-bold mb-6 text-white">Preferências do Usuário</h2>
         
         <form onSubmit={handlePreferencesUpdate} className="space-y-6">
+          {/* Theme Toggle Section */}
+          <ThemeToggle />
+          
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-white">Aparência</h3>
+            <h3 className="text-lg font-medium text-white">Regional</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="theme" className="text-white">Tema</Label>
-                <select
-                  id="theme"
-                  value={preferences.theme}
-                  onChange={(e) => setPreferences(prev => ({ ...prev, theme: e.target.value }))}
-                  className="w-full rounded bg-black/20 border border-white/10 p-2 text-white"
-                >
-                  <option value="dark">Escuro</option>
-                  <option value="light">Claro</option>
-                  <option value="system">Sistema</option>
-                </select>
-              </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="language" className="text-white">Idioma</Label>
                 <select
@@ -72,13 +62,7 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({
                   <option value="es">Español</option>
                 </select>
               </div>
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-white">Regional</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
               <div className="space-y-2">
                 <Label htmlFor="currency" className="text-white">Moeda</Label>
                 <select
