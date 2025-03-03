@@ -6,7 +6,7 @@ import { User } from '../../models/User';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { supabase } from '../../integrations/supabase/client';
-import { createSupabaseUserData } from './userDataTransformer';
+import { createSupabaseUserData, SupabaseAuthUser } from './userDataTransformer';
 
 /**
  * Custom hook to manage authentication state
@@ -52,12 +52,19 @@ export const useAuthState = () => {
       };
       
       // Transform data to User model
-      const user = createSupabaseUserData(
-        session?.user || { email: '', email_confirmed_at: null },
-        profileWithRoles
-      );
+      if (session?.user) {
+        const supabaseAuthUser: SupabaseAuthUser = {
+          email: session.user.email || '',
+          email_confirmed_at: session.user.email_confirmed_at
+        };
+        
+        const user = createSupabaseUserData(
+          supabaseAuthUser,
+          profileWithRoles
+        );
 
-      setUserData(user);
+        setUserData(user);
+      }
     } catch (err) {
       console.error("Error fetching user data from Supabase:", err);
     }

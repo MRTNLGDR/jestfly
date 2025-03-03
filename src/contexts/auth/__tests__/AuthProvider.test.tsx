@@ -20,9 +20,9 @@ vi.mock('../authMethods', () => ({
 
 // Mock React context
 vi.mock('react', async () => {
-  const actual = await vi.importActual('react');
+  const actualReact = await vi.importActual('react');
   return {
-    ...actual as Object,
+    ...actualReact,
     createContext: vi.fn().mockReturnValue({
       Provider: ({ children }: { children: React.ReactNode }) => <div data-testid="context-provider">{children}</div>,
     }),
@@ -84,15 +84,15 @@ describe('AuthProvider', () => {
     const contextValueSpy = vi.fn();
     
     // Mock createContext to capture provided value
-    const RealReact = vi.importActual('react') as typeof import('react');
+    const RealReact = vi.importActual('react');
     const mockContext = {
       Provider: ({ value, children }: { value: any, children: React.ReactNode }) => {
         contextValueSpy(value);
-        return RealReact.createElement('div', { 'data-testid': 'context-provider' }, children);
+        return (RealReact as any).createElement('div', { 'data-testid': 'context-provider' }, children);
       }
     };
     
-    (RealReact.createContext as any).mockReturnValue(mockContext);
+    ((RealReact as any).createContext as any).mockReturnValue(mockContext);
     
     const TestChild = () => <div>Test Child</div>;
     

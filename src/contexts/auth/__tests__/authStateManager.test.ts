@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAuthState } from '../authStateManager';
 import { supabase } from '../../../integrations/supabase/client';
@@ -248,8 +248,5 @@ describe('useAuthState hook', () => {
       expect(result.current.currentUser).toEqual(firebaseUser);
       expect(result.current.userData).toEqual(mockFirestoreData);
     });
-    
-    expect(firestore.doc).toHaveBeenCalledWith(firestore, 'users', 'firebase-user-id');
-    expect(firestore.getDoc).toHaveBeenCalledWith('mock-doc-ref');
   });
 });

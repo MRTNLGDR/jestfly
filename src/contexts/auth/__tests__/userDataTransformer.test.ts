@@ -16,7 +16,7 @@ describe('userDataTransformer', () => {
         id: 'user-123',
         username: 'testuser',
         full_name: 'Test User',
-        profile_type: 'fan',
+        profile_type: 'fan' as const,
         avatar_url: 'https://example.com/avatar.jpg',
         social_links: {
           instagram: 'test_instagram',
@@ -25,7 +25,7 @@ describe('userDataTransformer', () => {
         created_at: '2023-01-01T00:00:00Z',
         updated_at: '2023-01-02T00:00:00Z',
         preferences: {
-          theme: 'dark',
+          theme: 'dark' as const,
           notifications: {
             email: true,
             push: false
@@ -162,7 +162,14 @@ describe('userDataTransformer', () => {
       const partialUser: Partial<User> = {
         displayName: 'Just Name',
         preferences: {
-          theme: 'dark'
+          theme: 'dark',
+          notifications: {
+            email: true,
+            push: true,
+            sms: false
+          },
+          language: 'en',
+          currency: 'USD'
         }
       };
       
@@ -171,7 +178,14 @@ describe('userDataTransformer', () => {
       expect(result).toEqual({
         full_name: 'Just Name',
         preferences: {
-          theme: 'dark'
+          theme: 'dark',
+          notifications: {
+            email: true,
+            push: true,
+            sms: false
+          },
+          language: 'en',
+          currency: 'USD'
         }
       });
     });

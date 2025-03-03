@@ -4,6 +4,7 @@ import { auth } from '../../../firebase/config';
 import { supabase } from '../../../integrations/supabase/client';
 import { login, loginWithGoogle, register, logout, resetPassword } from '../authMethods';
 import { toast } from 'sonner';
+import { User } from '../../../models/User';
 
 // Mock dependencies
 vi.mock('../../../firebase/config', () => ({
@@ -147,7 +148,7 @@ describe('Auth Methods', () => {
 
   describe('register', () => {
     it('should register a new user successfully', async () => {
-      const userData = {
+      const userData: Partial<User> = {
         displayName: 'Test User',
         username: 'testuser',
         profileType: 'fan'
@@ -172,7 +173,7 @@ describe('Auth Methods', () => {
     });
 
     it('should verify admin code for admin registration', async () => {
-      const userData = {
+      const userData: Partial<User> = {
         displayName: 'Admin User',
         username: 'adminuser',
         profileType: 'admin',
@@ -213,13 +214,17 @@ describe('Auth Methods', () => {
         error: { message: 'User already registered' }
       });
 
-      await expect(register('existing@example.com', 'password', { displayName: 'Existing', username: 'existing' })).rejects.toThrow();
+      await expect(register('existing@example.com', 'password', { 
+        displayName: 'Existing', 
+        username: 'existing',
+        profileType: 'fan'
+      })).rejects.toThrow();
       
       expect(toast.error).toHaveBeenCalledWith('Este email já está em uso');
     });
 
     it('should handle invalid admin code error', async () => {
-      const userData = {
+      const userData: Partial<User> = {
         displayName: 'Fake Admin',
         username: 'fakeadmin',
         profileType: 'admin',

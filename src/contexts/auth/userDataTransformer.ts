@@ -8,7 +8,7 @@ import { User } from '../../models/User';
 /**
  * Interface representing a Supabase auth user
  */
-interface SupabaseAuthUser {
+export interface SupabaseAuthUser {
   email: string;
   email_confirmed_at?: string | null;
   [key: string]: any;
@@ -17,11 +17,11 @@ interface SupabaseAuthUser {
 /**
  * Interface representing Supabase profile data
  */
-interface SupabaseProfileData {
+export interface SupabaseProfileData {
   id: string;
   username?: string;
   full_name?: string;
-  profile_type?: string;
+  profile_type?: 'artist' | 'fan' | 'admin' | 'collaborator';
   avatar_url?: string;
   bio?: string;
   social_links?: Record<string, string>;
@@ -58,7 +58,7 @@ export const createSupabaseUserData = (
     email: supabaseUser.email,
     displayName: profileData.full_name || usernameFromEmail,
     username: profileData.username || usernameFromEmail,
-    profileType: (profileData.profile_type as User['profileType']) || 'fan',
+    profileType: profileData.profile_type || 'fan',
     avatar: profileData.avatar_url,
     bio: profileData.bio,
     socialLinks: profileData.social_links || {},
