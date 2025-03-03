@@ -11,7 +11,7 @@ export const useAvatar = (user: User | null, updateProfile: (data: any) => Promi
   const uploadAvatar = async (file: File) => {
     if (!user) {
       console.error('Tentativa de upload de avatar sem usuário autenticado');
-      return { error: new Error('Usuário não autenticado'), avatarUrl: null };
+      return { url: '', error: new Error('Usuário não autenticado') };
     }
 
     try {
@@ -67,7 +67,7 @@ export const useAvatar = (user: User | null, updateProfile: (data: any) => Promi
       });
 
       setUploading(false);
-      return { error: null, avatarUrl };
+      return { url: avatarUrl, error: null };
     } catch (error) {
       console.error('Exceção durante upload de avatar:', error);
       toast({
@@ -76,7 +76,7 @@ export const useAvatar = (user: User | null, updateProfile: (data: any) => Promi
         variant: "destructive",
       });
       setUploading(false);
-      return { error: error as Error, avatarUrl: null };
+      return { url: '', error: error as Error };
     }
   };
 

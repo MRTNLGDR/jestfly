@@ -17,7 +17,7 @@ export const useAvatarUpload = (): UseAvatarUploadResult => {
     try {
       setUploading(true);
       const result = await uploadAvatarContext(file);
-      return result.url;
+      return result.url || null;
     } catch (error) {
       console.error('Erro ao fazer upload do avatar:', error);
       return null;
