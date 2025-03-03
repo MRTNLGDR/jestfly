@@ -2,17 +2,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
-import { useAuth } from '../contexts/auth';
 
 const Footer: React.FC = () => {
-  const { userData } = useAuth();
-  
-  React.useEffect(() => {
-    if (userData?.email === 'lucas@martynlegrand.com') {
-      console.log('Admin user detected');
-    }
-  }, [userData]);
-  
   return (
     <footer className="bg-black relative overflow-hidden">
       <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>

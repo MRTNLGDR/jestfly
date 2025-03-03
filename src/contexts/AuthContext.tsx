@@ -1,4 +1,6 @@
 
-import { AuthProvider, useAuth } from './auth';
+// This file is being kept as a placeholder to avoid breaking imports.
+// Authentication has been removed from the application.
 
-export { AuthProvider, useAuth };
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => children;
+export const useAuth = () => ({ userData: null });
