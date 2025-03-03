@@ -1,9 +1,47 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Diamond, Globe, Github, Twitter, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const Footer: React.FC = () => {
+  const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
+  const { signIn } = useAuth();
+  const [loginError, setLoginError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAdminLogin = async (demoType: 'admin' | 'artist' | 'collaborator' | 'fan') => {
+    setIsLoading(true);
+    setLoginError('');
+    
+    const demoAccounts = {
+      admin: { email: 'admin@jestfly.com', password: 'admin123' },
+      artist: { email: 'artist@jestfly.com', password: 'artist123' },
+      collaborator: { email: 'collaborator@jestfly.com', password: 'collab123' },
+      fan: { email: 'fan@jestfly.com', password: 'fan123' }
+    };
+    
+    try {
+      const { email, password } = demoAccounts[demoType];
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        setLoginError(error.message);
+      } else {
+        setIsAdminDialogOpen(false);
+      }
+    } catch (error) {
+      setLoginError('Falha ao realizar login. Tente novamente.');
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <footer className="bg-black relative overflow-hidden">
       {/* Decorative top border */}
@@ -83,9 +121,74 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Terms</a>
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
+            {/* Atalho discreto para login admin */}
+            <button 
+              onClick={() => setIsAdminDialogOpen(true)}
+              className="hover:text-white/60 transition-colors opacity-40 hover:opacity-100"
+              aria-label="Admin access"
+            >
+              ·
+            </button>
           </div>
         </div>
       </div>
+      
+      {/* Admin Login Dialog */}
+      <Dialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen}>
+        <DialogContent className="bg-black/90 border-purple-900/50 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-center mb-2">Acesso Demo</DialogTitle>
+            <DialogDescription className="text-center text-white/60">
+              Escolha um tipo de conta para demonstração
+            </DialogDescription>
+          </DialogHeader>
+          
+          {loginError && (
+            <div className="bg-red-900/30 border border-red-800/50 text-red-200 p-3 rounded-md text-sm mb-4">
+              {loginError}
+            </div>
+          )}
+          
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              variant="outline"
+              className="bg-purple-900/20 hover:bg-purple-900/40 border-purple-700/50 text-white"
+              onClick={() => handleAdminLogin('admin')}
+              disabled={isLoading}
+            >
+              Admin
+            </Button>
+            <Button
+              variant="outline"
+              className="bg-blue-900/20 hover:bg-blue-900/40 border-blue-700/50 text-white"
+              onClick={() => handleAdminLogin('artist')}
+              disabled={isLoading}
+            >
+              Artista
+            </Button>
+            <Button
+              variant="outline"
+              className="bg-indigo-900/20 hover:bg-indigo-900/40 border-indigo-700/50 text-white"
+              onClick={() => handleAdminLogin('collaborator')}
+              disabled={isLoading}
+            >
+              Colaborador
+            </Button>
+            <Button
+              variant="outline"
+              className="bg-teal-900/20 hover:bg-teal-900/40 border-teal-700/50 text-white"
+              onClick={() => handleAdminLogin('fan')}
+              disabled={isLoading}
+            >
+              Fã
+            </Button>
+          </div>
+          
+          <div className="mt-2 text-center text-xs text-white/40">
+            Estas são contas de demonstração pré-configuradas para testes
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* Decorative elements */}
       <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-900/10 rounded-full blur-[100px]"></div>
