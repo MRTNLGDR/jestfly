@@ -5,6 +5,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { User } from '../../models/User';
 import { AuthContextType } from './types';
 import { toast } from 'sonner';
+import { fetchUserProfile, updateUserProfile } from './supabase/profileService';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -25,28 +26,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(session?.user || null);
         
         if (session?.user) {
-          // Create mock user data until profiles table is created
-          const mockUserData: User = {
-            id: session.user.id,
-            email: session.user.email || '',
-            displayName: session.user.user_metadata.displayName || 'User',
-            username: session.user.user_metadata.username || 'user',
-            profileType: (session.user.user_metadata.profileType as User['profileType']) || 'fan',
-            socialLinks: {},
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            lastLogin: new Date(),
-            isVerified: false,
-            twoFactorEnabled: false,
-            preferences: {
-              theme: 'dark',
-              notifications: {},
-              language: 'en',
-              currency: 'USD'
-            }
-          };
-          
-          setUserData(mockUserData);
+          // Fetch user profile from profiles table
+          const userProfile = await fetchUserProfile(session.user.id);
+          setUserData(userProfile);
         }
       } catch (err: any) {
         console.error("Error checking session:", err);
@@ -65,28 +47,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(session?.user || null);
         
         if (session?.user) {
-          // Create mock user data until profiles table is created
-          const mockUserData: User = {
-            id: session.user.id,
-            email: session.user.email || '',
-            displayName: session.user.user_metadata.displayName || 'User',
-            username: session.user.user_metadata.username || 'user',
-            profileType: (session.user.user_metadata.profileType as User['profileType']) || 'fan',
-            socialLinks: {},
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            lastLogin: new Date(),
-            isVerified: false,
-            twoFactorEnabled: false,
-            preferences: {
-              theme: 'dark',
-              notifications: {},
-              language: 'en',
-              currency: 'USD'
-            }
-          };
+          // Fetch user profile from profiles table
+          const userProfile = await fetchUserProfile(session.user.id);
+          setUserData(userProfile);
           
-          setUserData(mockUserData);
+          // Update last login if user just signed in
+          if (event === 'SIGNED_IN' && userProfile) {
+            await updateUserProfile(userProfile.id, {
+              lastLogin: new Date()
+            });
+          }
         } else {
           setUserData(null);
         }
@@ -152,8 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) throw error;
       
-      // In a real implementation, we would create a profile here
-      // Currently, we're using user metadata instead
+      // Profile creation is handled by the database trigger
       
     } catch (err: any) {
       setError(err.message);

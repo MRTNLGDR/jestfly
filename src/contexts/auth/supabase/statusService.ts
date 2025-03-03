@@ -1,22 +1,38 @@
 
-// statusService module
+import { User } from '../../../models/User';
+import { supabase } from '../../../integrations/supabase/client';
+import { fetchUserProfile } from './profileService';
+import { type Session } from '@supabase/supabase-js';
 
-export const checkSessionStatus = async () => {
-  console.warn('statusService.checkSessionStatus is a stub');
-  return { isAuthenticated: false };
+export const checkSessionStatus = async (): Promise<{ user: User | null; session: Session | null }> => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      return { user: null, session: null };
+    }
+    
+    const user = await fetchUserProfile(session.user.id);
+    return { user, session };
+  } catch (error) {
+    console.error('Error checking session status:', error);
+    return { user: null, session: null };
+  }
 };
 
-export const subscribeToAuthChanges = () => {
-  console.warn('statusService.subscribeToAuthChanges is a stub');
-  return () => {}; // Return unsubscribe function
-};
-
-export const checkGoogleAuthEnabled = async (): Promise<boolean> => {
-  console.warn('checkGoogleAuthEnabled is a stub');
-  return false;
-};
-
-export const statusService = {
-  checkSessionStatus,
-  subscribeToAuthChanges
+export const subscribeToAuthChanges = (
+  callback: (user: User | null, session: Session | null) => void
+) => {
+  const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    async (event, session) => {
+      if (session?.user) {
+        const user = await fetchUserProfile(session.user.id);
+        callback(user, session);
+      } else {
+        callback(null, null);
+      }
+    }
+  );
+  
+  return subscription;
 };

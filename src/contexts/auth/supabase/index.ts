@@ -1,14 +1,18 @@
 
-// Supabase auth services index
-
+import { supabase } from '../../../integrations/supabase/client';
+import { loginWithCredentials, loginWithOAuth, logout, resetPassword, signUp } from './authService';
 import { fetchUserProfile, updateUserProfile } from './profileService';
-import { checkSessionStatus, subscribeToAuthChanges, checkGoogleAuthEnabled } from './statusService';
+import { checkSessionStatus, subscribeToAuthChanges } from './statusService';
 
-// Export placeholders to prevent import errors
-export const supabaseAuthService = {
+export {
+  supabase,
+  loginWithCredentials,
+  loginWithOAuth,
+  logout,
+  resetPassword,
+  signUp,
   fetchUserProfile,
   updateUserProfile,
   checkSessionStatus,
-  subscribeToAuthChanges,
-  isGoogleAuthEnabled: async () => await checkGoogleAuthEnabled()
+  subscribeToAuthChanges
 };
