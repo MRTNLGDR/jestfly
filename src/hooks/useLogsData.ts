@@ -65,21 +65,18 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
       if (filters.searchTerm) {
         const lowerSearchTerm = filters.searchTerm.toLowerCase();
         filteredData = filteredData.filter(log => {
-          // Safe check for profile properties
-          const profile = log.profile && typeof log.profile === 'object' ? log.profile : null;
-          
           // Safe type checks for profile properties
-          const usernameMatch = profile && 
-            typeof profile === 'object' && 
-            'username' in profile && 
-            typeof profile.username === 'string' && 
-            profile.username.toLowerCase().includes(lowerSearchTerm);
+          const profileObject = log.profile && typeof log.profile === 'object' ? log.profile : null;
           
-          const displayNameMatch = profile && 
-            typeof profile === 'object' && 
-            'display_name' in profile && 
-            typeof profile.display_name === 'string' && 
-            profile.display_name.toLowerCase().includes(lowerSearchTerm);
+          const usernameMatch = profileObject && 
+            'username' in profileObject && 
+            typeof profileObject.username === 'string' && 
+            profileObject.username.toLowerCase().includes(lowerSearchTerm);
+          
+          const displayNameMatch = profileObject && 
+            'display_name' in profileObject && 
+            typeof profileObject.display_name === 'string' && 
+            profileObject.display_name.toLowerCase().includes(lowerSearchTerm);
           
           return log.action.toLowerCase().includes(lowerSearchTerm) ||
             usernameMatch ||
@@ -92,9 +89,9 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
       // Safe type conversion with proper null checks
       const safeData = filteredData.map(log => {
         const profileData = log.profile && typeof log.profile === 'object' ? {
-          username: log.profile && 'username' in log.profile ? String(log.profile.username || '') : undefined,
-          display_name: log.profile && 'display_name' in log.profile ? String(log.profile.display_name || '') : undefined,
-          profile_type: log.profile && 'profile_type' in log.profile ? String(log.profile.profile_type || '') : undefined
+          username: 'username' in log.profile ? String(log.profile.username || '') : undefined,
+          display_name: 'display_name' in log.profile ? String(log.profile.display_name || '') : undefined,
+          profile_type: 'profile_type' in log.profile ? String(log.profile.profile_type || '') : undefined
         } : null;
         
         return {
