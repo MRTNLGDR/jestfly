@@ -1,8 +1,13 @@
-
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { auth } from '../../../firebase/config';
 import { supabase } from '../../../integrations/supabase/client';
-import { login, loginWithGoogle, register, logout, resetPassword } from '../authMethods';
+import { 
+  login, 
+  loginWithGoogle, 
+  register, 
+  logout, 
+  resetPassword 
+} from '../methods';
 import { toast } from 'sonner';
 import { User } from '../../../models/User';
 

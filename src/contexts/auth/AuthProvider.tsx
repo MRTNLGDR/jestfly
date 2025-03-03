@@ -2,7 +2,13 @@
 import React, { createContext } from 'react';
 import { AuthContextType } from './types';
 import { useAuthState } from './useAuthState';
-import { login, loginWithGoogle, register, logout, resetPassword } from './authMethods';
+import { 
+  login, 
+  loginWithGoogle, 
+  register, 
+  logout, 
+  resetPassword 
+} from './methods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
