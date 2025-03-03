@@ -65,20 +65,10 @@ export const useSignIn = (setProfile: (profile: any) => void) => {
           console.log('Perfil recuperado após login, tipo:', profileData.profile_type);
           setProfile(profileData);
         
-          // Verificar o tipo de perfil e redirecionar adequadamente
-          toast({
-            title: "Login realizado com sucesso!",
-            description: `Bem-vindo, ${profileData.display_name}!`,
-            variant: "default",
-          });
+          // Toast de sucesso será exibido pelo componente que chamou o signIn
           
-          if (profileData.profile_type === 'admin') {
-            console.log('Redirecionando para painel de admin');
-            navigate('/admin');
-          } else {
-            console.log('Redirecionando para página inicial');
-            navigate('/');
-          }
+          // Não redirecionamos aqui para evitar redirecionamento duplo
+          // O componente que chamou o signIn deve cuidar do redirecionamento
         } else {
           console.error('Perfil não encontrado após login bem-sucedido');
           toast({
@@ -86,9 +76,11 @@ export const useSignIn = (setProfile: (profile: any) => void) => {
             description: "Seu login foi bem-sucedido, mas não encontramos seu perfil.",
             variant: "destructive",
           });
-          // Ainda redireciona para página inicial mesmo sem perfil
-          navigate('/');
+          // Não redirecionamos se não há perfil
         }
+        
+        setLoading(false);
+        return { data: profileData ?? null, error: null };
       } else {
         console.error('Login bem-sucedido mas não retornou dados do usuário');
         toast({
@@ -96,10 +88,10 @@ export const useSignIn = (setProfile: (profile: any) => void) => {
           description: "Ocorreu um erro no sistema durante o login.",
           variant: "destructive",
         });
+        
+        setLoading(false);
+        return { data: null, error: new Error('Dados do usuário não retornados') };
       }
-      
-      setLoading(false);
-      return { data: data?.user ?? null, error: null };
     } catch (error) {
       console.error('Exceção durante login:', error);
       const err = error as Error;

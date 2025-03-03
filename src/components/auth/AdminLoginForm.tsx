@@ -12,13 +12,18 @@ const AdminLoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { signIn, signOut, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Combinamos o loading local com o do AuthContext
+  const loading = isLoading || authLoading;
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     try {
       const { error, data } = await signIn(email, password);
@@ -56,12 +61,16 @@ const AdminLoginForm = () => {
         description: (err as Error).message,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDemoAdminLogin = async () => {
     try {
       setError('');
+      setIsLoading(true);
+      
       // Atualização para usar o email correto do usuário admin demo
       const demoEmail = 'admin@jestfly.com';
       const demoPassword = 'adminpassword';
@@ -93,6 +102,8 @@ const AdminLoginForm = () => {
         description: (err as Error).message || "Ocorreu um erro inesperado",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -114,6 +125,7 @@ const AdminLoginForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
             className="bg-black/30 border-white/10 text-white"
+            disabled={loading}
           />
         </div>
         
@@ -127,6 +139,7 @@ const AdminLoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             className="bg-black/30 border-white/10 text-white"
+            disabled={loading}
           />
         </div>
         
@@ -164,7 +177,14 @@ const AdminLoginForm = () => {
         disabled={loading}
       >
         <ShieldIcon className="mr-2 h-4 w-4" />
-        Acessar como Admin Demo
+        {loading && email === 'admin@jestfly.com' ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Entrando como demo...
+          </>
+        ) : (
+          'Acessar como Admin Demo'
+        )}
       </Button>
     </div>
   );

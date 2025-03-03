@@ -8,13 +8,18 @@ export const useLoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { signIn, loading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Combinando o estado de loading local com o do AuthContext
+  const loading = isLoading || authLoading;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
     
     try {
       console.log(`Tentando login com email: ${email}`);
@@ -50,12 +55,15 @@ export const useLoginForm = () => {
         description: (err as Error).message || "Ocorreu um erro inesperado",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDemoLogin = async (type: 'fan' | 'artist' | 'collaborator' | 'admin') => {
     try {
       setError('');
+      setIsLoading(true);
       let demoEmail, demoPassword;
       
       // Usar os emails e senhas dos usuários demo atualizados de acordo com o migration
@@ -114,6 +122,8 @@ export const useLoginForm = () => {
         variant: "destructive",
       });
       setError((err as Error).message || 'Ocorreu um erro durante o login demo');
+    } finally {
+      setIsLoading(false);
     }
   };
 
