@@ -19,10 +19,10 @@ export const SocialLoginOptions: React.FC<SocialLoginOptionsProps> = ({
   const handleGoogleClick = async () => {
     if (!isGoogleEnabled) {
       toast.error('Login com Google não está configurado. Entre em contato com o administrador.');
-      return;
+      return Promise.reject(new Error('Google auth not enabled'));
     }
     
-    await onGoogleLogin();
+    return onGoogleLogin();
   };
 
   if (!isGoogleEnabled) {

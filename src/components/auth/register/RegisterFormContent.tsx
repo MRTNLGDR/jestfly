@@ -14,7 +14,7 @@ interface RegisterFormContentProps {
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleProfileTypeChange: (value: 'fan' | 'artist' | 'collaborator' | 'admin') => void;
   handleSubmit: (e: React.FormEvent) => void;
-  handleGoogleRegister: () => void;
+  handleGoogleRegister: () => Promise<void>;
   isSubmitting: boolean;
   showAdminField: boolean;
 }
