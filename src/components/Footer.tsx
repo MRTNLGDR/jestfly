@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
-import { Diamond, Globe, Github, Twitter, Instagram } from 'lucide-react';
+import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 const Footer: React.FC = () => {
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
@@ -117,18 +118,21 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center text-white/40 text-xs">
           <div>© 2023 JESTFLY. All rights reserved.</div>
           
-          <div className="flex space-x-6 mt-4 md:mt-0">
+          <div className="flex space-x-6 mt-4 md:mt-0 items-center">
             <a href="#" className="hover:text-white/60 transition-colors">Terms</a>
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
-            {/* Atalho discreto para login admin */}
-            <button 
+            
+            {/* Botão de acesso admin menos discreto */}
+            <Button 
+              variant="outline" 
+              size="sm"
               onClick={() => setIsAdminDialogOpen(true)}
-              className="hover:text-white/60 transition-colors opacity-40 hover:opacity-100"
-              aria-label="Admin access"
+              className="ml-2 text-xs bg-purple-900/30 hover:bg-purple-900/50 border-purple-700/50 text-white flex items-center gap-1 h-7 px-2"
             >
-              ·
-            </button>
+              <Lock className="h-3.5 w-3.5" />
+              <span>Demo</span>
+            </Button>
           </div>
         </div>
       </div>
