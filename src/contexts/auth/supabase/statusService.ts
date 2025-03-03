@@ -1,10 +1,14 @@
 
-/**
- * Service to check application features status
- */
+// Stub file for statusService
 
-export const checkGoogleAuthEnabled = (): boolean => {
-  // In a real application, this could check environment variables or configuration
-  // For now, we'll return true to enable Google login
-  return true;
+export const statusService = {
+  checkSessionStatus: async () => {
+    console.warn('statusService.checkSessionStatus is a stub');
+    return { isAuthenticated: false };
+  },
+};
+
+export const checkGoogleAuthEnabled = async (): Promise<boolean> => {
+  console.warn('checkGoogleAuthEnabled is a stub');
+  return false;
 };

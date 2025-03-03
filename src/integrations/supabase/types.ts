@@ -231,51 +231,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          created_at: string
-          display_name: string
-          email: string
-          id: string
-          is_verified: boolean | null
-          last_login: string | null
-          preferences: Json | null
-          profile_type: Database["public"]["Enums"]["profile_type"]
-          social_links: Json | null
-          two_factor_enabled: boolean | null
-          updated_at: string
-          username: string
-        }
-        Insert: {
-          created_at?: string
-          display_name: string
-          email: string
-          id: string
-          is_verified?: boolean | null
-          last_login?: string | null
-          preferences?: Json | null
-          profile_type?: Database["public"]["Enums"]["profile_type"]
-          social_links?: Json | null
-          two_factor_enabled?: boolean | null
-          updated_at?: string
-          username: string
-        }
-        Update: {
-          created_at?: string
-          display_name?: string
-          email?: string
-          id?: string
-          is_verified?: boolean | null
-          last_login?: string | null
-          preferences?: Json | null
-          profile_type?: Database["public"]["Enums"]["profile_type"]
-          social_links?: Json | null
-          two_factor_enabled?: boolean | null
-          updated_at?: string
-          username?: string
-        }
-        Relationships: []
-      }
       system_config: {
         Row: {
           created_at: string
@@ -399,7 +354,6 @@ export type Database = {
       model_type: "diamond" | "sphere" | "torus" | "crystal" | "sketchfab"
       press_role: "journalist" | "blogger" | "editor" | "podcaster" | "other"
       product_type: "nft" | "music" | "merch" | "collectible"
-      profile_type: "fan" | "artist" | "admin" | "collaborator"
     }
     CompositeTypes: {
       [_ in never]: never

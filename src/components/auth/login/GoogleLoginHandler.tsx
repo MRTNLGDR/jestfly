@@ -1,50 +1,80 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
+import { toast } from 'sonner';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { supabaseAuthService } from '../../../contexts/auth/supabase';
 
-// Custom hook for Google authentication
 export const useGoogleAuth = () => {
-  const { loginWithGoogle, error } = useAuth();
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // We'll assume Google authentication is always enabled for now
-  // In a real application, this might be determined by configuration or API calls
-  const isGoogleEnabled = true;
-  
+  const { loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkGoogleAuth = async () => {
+      try {
+        const enabled = await supabaseAuthService.isGoogleAuthEnabled();
+        setIsGoogleEnabled(enabled);
+      } catch (error) {
+        console.error("Erro ao verificar status do Google Auth:", error);
+        setIsGoogleEnabled(false);
+      }
+    };
+    
+    checkGoogleAuth();
+  }, []);
+
   const handleGoogleLogin = async () => {
+    if (!isGoogleEnabled) {
+      toast.error('Login com Google não está configurado. Entre em contato com o administrador.');
+      return Promise.reject(new Error('Google auth not enabled'));
+    }
+    
+    setIsSubmitting(true);
+    
+    const loadingToast = toast.loading('Conectando com Google...', {
+      icon: <Loader2 className="h-5 w-5 animate-spin" />
+    });
+    
     try {
-      setIsSubmitting(true);
       await loginWithGoogle();
-    } catch (err) {
-      console.error('Google login error:', err);
+      
+      toast.dismiss(loadingToast);
+      
+      toast.success('Login bem-sucedido!', {
+        duration: 5000,
+        icon: <CheckCircle className="h-5 w-5 text-green-500" />
+      });
+      
+      navigate('/profile');
+      return Promise.resolve();
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      
+      toast.dismiss(loadingToast);
+      
+      let errorMessage = 'Falha ao fazer login com Google';
+      
+      if (error.message?.includes('provider is not enabled')) {
+        errorMessage = 'Login com Google não está habilitado. Entre em contato com o administrador.';
+      } else if (error.message?.includes('api-key-not-valid')) {
+        errorMessage = 'Erro de configuração. Entre em contato com o suporte.';
+      }
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+        icon: <XCircle className="h-5 w-5 text-red-500" />
+      });
+      return Promise.reject(error);
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   return {
-    handleGoogleLogin,
-    error,
     isGoogleEnabled,
-    isSubmitting
+    isSubmitting,
+    handleGoogleLogin
   };
 };
-
-const GoogleLoginHandler: React.FC = () => {
-  const { handleGoogleLogin } = useGoogleAuth();
-  
-  return (
-    <button 
-      onClick={handleGoogleLogin}
-      className="w-full flex items-center justify-center gap-3 py-2.5 border border-gray-300 rounded-lg shadow-sm bg-white text-gray-800 hover:bg-gray-50 transition-colors"
-    >
-      <img 
-        src="/assets/google-calendar.svg" 
-        alt="Google" 
-        className="w-5 h-5" 
-      />
-      <span>Continue with Google</span>
-    </button>
-  );
-};
-
-export default GoogleLoginHandler;
