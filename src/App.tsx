@@ -12,29 +12,37 @@ import NotesPage from './pages/NotesPage';
 import AdminPage from './pages/AdminPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
+import { defaultModelParams } from './types/modelParameters';
 
-// Temporary mock data for HomePage
-const mockCrystalParams = {
-  color: '#4a00e0',
-  size: 1.5,
-  rotation: 0.01,
-  roughness: 0.2,
-  metalness: 0.8,
-  environment: 'studio',
-};
-
+// Create properly formatted gallery images
 const mockGalleryImages = [
-  '/textures/presets/crystal.jpg',
-  '/textures/presets/glass.jpg',
-  '/textures/presets/gold.jpg',
-  '/textures/presets/holographic.jpg',
+  {
+    src: '/textures/presets/crystal.jpg',
+    alt: 'Crystal texture',
+    crystalPosition: 'default' as const
+  },
+  {
+    src: '/textures/presets/glass.jpg',
+    alt: 'Glass texture',
+    crystalPosition: 'top-right' as const
+  },
+  {
+    src: '/textures/presets/gold.jpg',
+    alt: 'Gold texture',
+    crystalPosition: 'bottom-left' as const
+  },
+  {
+    src: '/textures/presets/holographic.jpg',
+    alt: 'Holographic texture',
+    crystalPosition: 'center' as const
+  }
 ];
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage crystalParams={mockCrystalParams} galleryImages={mockGalleryImages} />} />
+        <Route path="/" element={<HomePage crystalParams={defaultModelParams} galleryImages={mockGalleryImages} />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
