@@ -3,6 +3,7 @@ import React from 'react';
 import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { footerMenuItems } from '@/constants/menuItems';
 
 const Footer: React.FC = () => {
   const navigate = useNavigate();
@@ -43,22 +44,18 @@ const Footer: React.FC = () => {
           <div>
             <h3 className="text-lg font-semibold mb-6">Navigation</h3>
             <ul className="space-y-3">
-              <FooterLink href="/">Home</FooterLink>
-              <FooterLink href="/shop">Shop</FooterLink>
-              <FooterLink href="/events">Events</FooterLink>
-              <FooterLink href="/about">About</FooterLink>
-              <FooterLink href="/contact">Contact</FooterLink>
+              {footerMenuItems.navigation.map((item, index) => (
+                <FooterLink key={`nav-${index}`} href={item.href}>{item.label}</FooterLink>
+              ))}
             </ul>
           </div>
           
           <div>
             <h3 className="text-lg font-semibold mb-6">Resources</h3>
             <ul className="space-y-3">
-              <FooterLink href="/faq">FAQ</FooterLink>
-              <FooterLink href="/support">Support</FooterLink>
-              <FooterLink href="/terms">Terms of Service</FooterLink>
-              <FooterLink href="/privacy">Privacy Policy</FooterLink>
-              <FooterLink href="/community">Community</FooterLink>
+              {footerMenuItems.resources.map((item, index) => (
+                <FooterLink key={`resource-${index}`} href={item.href}>{item.label}</FooterLink>
+              ))}
             </ul>
           </div>
           
@@ -83,9 +80,9 @@ const Footer: React.FC = () => {
           <div>© 2023 JESTFLY. All rights reserved.</div>
           
           <div className="flex space-x-6 mt-4 md:mt-0 items-center">
-            <a href="#" className="hover:text-white/60 transition-colors">Terms</a>
-            <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
-            <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
+            <Link to="/terms" className="hover:text-white/60 transition-colors">Terms</Link>
+            <Link to="/privacy" className="hover:text-white/60 transition-colors">Privacy</Link>
+            <Link to="/cookies" className="hover:text-white/60 transition-colors">Cookies</Link>
             
             {/* Botão de acesso admin com aparência mais profissional */}
             <Button 

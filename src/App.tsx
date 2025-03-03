@@ -106,6 +106,14 @@ function App() {
             <Route path="/airdrop" element={<AirdropPage />} />
             <Route path="/submit-demo" element={<DemoSubmissionPage />} />
             
+            {/* Rotas adicionais para páginas do footer */}
+            <Route path="/about" element={<NotFound />} />
+            <Route path="/contact" element={<NotFound />} />
+            <Route path="/faq" element={<NotFound />} />
+            <Route path="/support" element={<NotFound />} />
+            <Route path="/terms" element={<NotFound />} />
+            <Route path="/privacy" element={<NotFound />} />
+            
             {/* Rota 404 */}
             <Route path="*" element={<NotFound />} />
           </Route>
