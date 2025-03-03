@@ -65,19 +65,18 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
       if (filters.searchTerm) {
         const lowerSearchTerm = filters.searchTerm.toLowerCase();
         filteredData = filteredData.filter(log => {
-          // Use type assertion for profile object to avoid TypeScript errors
-          const profileObj: any = log.profile && typeof log.profile === 'object' ? log.profile : null;
+          // Tratamento seguro do objeto profile
+          const profile = log.profile as Record<string, any> | null;
           
-          // Check if properties exist before accessing
-          const usernameMatch = profileObj && 
-            typeof profileObj === 'object' &&
-            profileObj.username && 
-            String(profileObj.username).toLowerCase().includes(lowerSearchTerm);
+          // Verificar se o username contém o termo de busca
+          const usernameMatch = profile && typeof profile === 'object' && 
+                               typeof profile.username === 'string' && 
+                               profile.username.toLowerCase().includes(lowerSearchTerm);
           
-          const displayNameMatch = profileObj && 
-            typeof profileObj === 'object' &&
-            profileObj.display_name && 
-            String(profileObj.display_name).toLowerCase().includes(lowerSearchTerm);
+          // Verificar se o display_name contém o termo de busca
+          const displayNameMatch = profile && typeof profile === 'object' && 
+                                  typeof profile.display_name === 'string' && 
+                                  profile.display_name.toLowerCase().includes(lowerSearchTerm);
           
           return log.action.toLowerCase().includes(lowerSearchTerm) ||
             usernameMatch ||
@@ -87,15 +86,15 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
         });
       }
       
-      // Safe type conversion with proper null checks
+      // Conversão segura dos dados com verificações adequadas
       const safeData = filteredData.map(log => {
-        // Cast to any first to safely access properties
-        const profileObj: any = log.profile && typeof log.profile === 'object' ? log.profile : null;
+        // Tratamento seguro do objeto profile
+        const profile = log.profile as Record<string, any> | null;
         
-        const profileData = profileObj ? {
-          username: profileObj.username ? String(profileObj.username) : undefined,
-          display_name: profileObj.display_name ? String(profileObj.display_name) : undefined,
-          profile_type: profileObj.profile_type ? String(profileObj.profile_type) : undefined
+        const profileData = profile ? {
+          username: typeof profile.username === 'string' ? profile.username : undefined,
+          display_name: typeof profile.display_name === 'string' ? profile.display_name : undefined,
+          profile_type: typeof profile.profile_type === 'string' ? profile.profile_type : undefined
         } : null;
         
         return {
