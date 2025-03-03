@@ -1,244 +1,30 @@
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, Loader2 } from 'lucide-react';
+import React from 'react';
+import { useParams } from 'react-router-dom';
 import PostDetail from './PostDetail';
-import CommentsList from './CommentsList';
-import CommentForm from './CommentForm';
 import CommunityNav from './CommunityNav';
 import GlassHeader from '@/components/GlassHeader';
 import { mainMenuItems } from '@/constants/menuItems';
-import { supabase } from '@/integrations/supabase/client';
-import { Comment, CommunityPost } from '@/types/community';
-import { useToast } from '@/components/ui/use-toast';
+import { usePostDetail } from '@/hooks/community/usePostDetail';
+import BackToCommunity from './BackToCommunity';
+import PostLoading from './PostLoading';
+import PostNotFound from './PostNotFound';
+import PostComments from './PostComments';
 
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
-  const navigate = useNavigate();
-  const [post, setPost] = useState<CommunityPost | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCommentLoading, setIsCommentLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
-  const { toast } = useToast();
-  
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setCurrentUserId(data.user?.id);
-    };
-    
-    fetchCurrentUser();
-  }, []);
-
-  useEffect(() => {
-    const fetchPost = async () => {
-      if (!postId) return;
-      
-      try {
-        setIsLoading(true);
-        const { data, error } = await supabase
-          .from('community_posts')
-          .select('*, profiles(username, avatar, display_name)')
-          .eq('id', postId)
-          .single();
-          
-        if (error) throw error;
-        
-        // Transform the data to match CommunityPost type
-        const communityPost: CommunityPost = {
-          ...data,
-          user: {
-            username: data.profiles?.username || '',
-            display_name: data.profiles?.display_name || '',
-            avatar: data.profiles?.avatar || null
-          }
-        };
-        
-        setPost(communityPost);
-      } catch (error) {
-        console.error('Erro ao buscar post:', error);
-        toast({
-          variant: "destructive",
-          title: "Erro ao carregar publicação",
-          description: "Não foi possível carregar a publicação solicitada."
-        });
-        navigate('/community');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    const fetchComments = async () => {
-      if (!postId) return;
-      
-      try {
-        setIsCommentLoading(true);
-        const { data, error } = await supabase
-          .from('post_comments')
-          .select('*, profiles(username, avatar, display_name)')
-          .eq('post_id', postId)
-          .order('created_at', { ascending: true });
-          
-        if (error) throw error;
-        
-        // Transform comments to include user property
-        const formattedComments = data.map(comment => ({
-          ...comment,
-          user: {
-            display_name: comment.profiles?.display_name || '',
-            avatar: comment.profiles?.avatar || null
-          }
-        }));
-        
-        setComments(formattedComments);
-      } catch (error) {
-        console.error('Erro ao buscar comentários:', error);
-        toast({
-          variant: "destructive",
-          title: "Erro ao carregar comentários",
-          description: "Não foi possível carregar os comentários desta publicação."
-        });
-      } finally {
-        setIsCommentLoading(false);
-      }
-    };
-
-    fetchPost();
-    fetchComments();
-  }, [postId, navigate, toast]);
-
-  const handleLikePost = async () => {
-    if (!post) return;
-    
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        navigate('/auth');
-        return;
-      }
-
-      // Toggle like logic
-      toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: "A função de curtir posts estará disponível em breve."
-      });
-    } catch (error) {
-      console.error('Erro ao curtir post:', error);
-    }
-  };
-
-  const handleDeletePost = async () => {
-    if (!post) return;
-    
-    try {
-      const { error } = await supabase
-        .from('community_posts')
-        .delete()
-        .eq('id', post.id);
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Publicação excluída",
-        description: "Sua publicação foi excluída com sucesso."
-      });
-      
-      navigate('/community');
-    } catch (error) {
-      console.error('Erro ao deletar post:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao excluir publicação",
-        description: "Não foi possível excluir a publicação. Tente novamente."
-      });
-    }
-  };
-
-  const handleLikeComment = async (commentId: string) => {
-    try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        navigate('/auth');
-        return;
-      }
-      
-      toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: "A função de curtir comentários estará disponível em breve."
-      });
-    } catch (error) {
-      console.error('Erro ao curtir comentário:', error);
-    }
-  };
-
-  const handleDeleteComment = async (commentId: string) => {
-    try {
-      const { error } = await supabase
-        .from('post_comments')
-        .delete()
-        .eq('id', commentId);
-        
-      if (error) throw error;
-      
-      // Refresh comments
-      setComments(comments.filter(comment => comment.id !== commentId));
-      
-      toast({
-        title: "Comentário excluído",
-        description: "Seu comentário foi excluído com sucesso."
-      });
-    } catch (error) {
-      console.error('Erro ao deletar comentário:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao excluir comentário",
-        description: "Não foi possível excluir o comentário. Tente novamente."
-      });
-    }
-  };
-
-  const handleSubmitComment = async (content: string) => {
-    if (!postId || !currentUserId || !content.trim()) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('post_comments')
-        .insert([{
-          content,
-          post_id: postId,
-          user_id: currentUserId
-        }])
-        .select('*, profiles(username, avatar, display_name)')
-        .single();
-        
-      if (error) throw error;
-      
-      // Add new comment to list
-      const newComment: Comment = {
-        ...data,
-        user: {
-          display_name: data.profiles?.display_name || '',
-          avatar: data.profiles?.avatar || null
-        }
-      };
-      
-      setComments([...comments, newComment]);
-      
-      toast({
-        title: "Comentário adicionado",
-        description: "Seu comentário foi publicado com sucesso."
-      });
-    } catch (error) {
-      console.error('Erro ao criar comentário:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao publicar comentário",
-        description: "Não foi possível publicar seu comentário. Tente novamente."
-      });
-    }
-  };
+  const {
+    post,
+    comments,
+    isLoading,
+    isCommentLoading,
+    currentUserId,
+    handleLikePost,
+    handleDeletePost,
+    handleLikeComment,
+    handleDeleteComment,
+    handleSubmitComment
+  } = usePostDetail(postId);
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-950">
@@ -248,19 +34,10 @@ const PostDetailPage: React.FC = () => {
         <CommunityNav />
         
         <div className="container mx-auto px-4 py-8">
-          <Button 
-            variant="ghost" 
-            className="mb-6 text-white/80 hover:text-white"
-            onClick={() => navigate('/community')}
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Voltar para Comunidade
-          </Button>
+          <BackToCommunity />
           
           {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-            </div>
+            <PostLoading />
           ) : post ? (
             <div className="space-y-8">
               <PostDetail 
@@ -270,28 +47,17 @@ const PostDetailPage: React.FC = () => {
                 onDelete={handleDeletePost}
               />
               
-              <div className="bg-black/30 backdrop-blur-md rounded-lg p-6 border border-purple-500/20">
-                <h3 className="text-xl font-bold text-white mb-4">Comentários</h3>
-                <CommentsList 
-                  comments={comments}
-                  isLoading={isCommentLoading}
-                  currentUserId={currentUserId}
-                  onLikeComment={handleLikeComment}
-                  onDeleteComment={handleDeleteComment}
-                />
-                <div className="mt-6">
-                  <CommentForm 
-                    isLoggedIn={!!currentUserId}
-                    onSubmit={handleSubmitComment}
-                    isPending={false}
-                  />
-                </div>
-              </div>
+              <PostComments
+                comments={comments}
+                isLoading={isCommentLoading}
+                currentUserId={currentUserId}
+                onLikeComment={handleLikeComment}
+                onDeleteComment={handleDeleteComment}
+                onSubmitComment={handleSubmitComment}
+              />
             </div>
           ) : (
-            <div className="text-center p-8 bg-black/20 rounded-lg">
-              <p className="text-white/60">Post não encontrado</p>
-            </div>
+            <PostNotFound />
           )}
         </div>
       </div>
