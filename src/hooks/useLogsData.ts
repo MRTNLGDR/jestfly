@@ -91,13 +91,15 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
       
       // Safe type conversion with proper null checks
       const safeData = filteredData.map(log => {
+        const profileData = log.profile && typeof log.profile === 'object' ? {
+          username: 'username' in log.profile ? String(log.profile.username || '') : undefined,
+          display_name: 'display_name' in log.profile ? String(log.profile.display_name || '') : undefined,
+          profile_type: 'profile_type' in log.profile ? String(log.profile.profile_type || '') : undefined
+        } : null;
+        
         return {
           ...log,
-          profile: log.profile && typeof log.profile === 'object' ? {
-            username: 'username' in log.profile ? log.profile.username : undefined,
-            display_name: 'display_name' in log.profile ? log.profile.display_name : undefined,
-            profile_type: 'profile_type' in log.profile ? log.profile.profile_type : undefined
-          } : null,
+          profile: profileData,
           details: log.details as Record<string, any> | null
         };
       }) as ActivityLog[];

@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 
-// Create a new calendar component
+// Create a calendar component that wraps DayPicker
 const Calendar = ({
   className,
   classNames,
