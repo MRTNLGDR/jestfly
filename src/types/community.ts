@@ -1,11 +1,14 @@
 
 import { Database } from "@/integrations/supabase/types";
 
+// Definindo categoria como união de strings literal em vez de enum
+export type PostCategory = 'announcement' | 'event' | 'discussion' | 'collaboration' | 'question';
+
 export type CommunityPost = {
   id: string;
   title: string;
   content: string;
-  category: 'announcement' | 'event' | 'discussion' | 'collaboration' | 'question';
+  category: PostCategory;
   likes_count: number;
   comments_count: number;
   is_pinned: boolean;
@@ -48,3 +51,12 @@ export type CommentLike = {
   user_id: string;
   created_at: string;
 };
+
+// Tipos mocados para contornar as limitações do Supabase TypeScript
+export type MockedCommunityTypes = {
+  community_posts: CommunityPost;
+  post_comments: PostComment;
+  post_likes: PostLike;
+  comment_likes: CommentLike;
+};
+

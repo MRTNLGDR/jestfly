@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -32,11 +31,7 @@ const PostDetailPage: React.FC = () => {
       .from('community_posts')
       .select(`
         *,
-        user:user_id (
-          username,
-          display_name,
-          avatar
-        )
+        user:profiles(username, display_name, avatar)
       `)
       .eq('id', postId)
       .single();

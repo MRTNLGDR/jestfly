@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { CommunityPost, PostComment } from '@/types/community';
+import { CommunityPost, PostComment, PostCategory } from '@/types/community';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useCommunityPosts = (category?: string) => {
@@ -11,22 +11,19 @@ export const useCommunityPosts = (category?: string) => {
   const { user } = useAuth();
 
   const fetchPosts = async (): Promise<CommunityPost[]> => {
-    let query = supabase
-      .from('community_posts')
-      .select(`
-        *,
-        user:user_id (
-          username,
-          display_name,
-          avatar
-        )
-      `)
-      .order('is_pinned', { ascending: false })
-      .order('created_at', { ascending: false });
+    // Usar uma abordagem mais direta para evitar problemas de tipagem
+    let query = supabase.from('community_posts').select(`
+      *,
+      user:profiles(username, display_name, avatar)
+    `);
 
+    // Usar a API baseada em strings para evitar problemas com o TypeScript
     if (category && category !== 'all') {
       query = query.eq('category', category);
     }
+
+    query = query.order('is_pinned', { ascending: false })
+                .order('created_at', { ascending: false });
 
     const { data, error } = await query;
 
@@ -35,7 +32,8 @@ export const useCommunityPosts = (category?: string) => {
       throw new Error(error.message);
     }
 
-    return data as unknown as CommunityPost[];
+    // Converter explicitamente para nosso tipo já que não podemos confiar na tipagem automática
+    return (data || []) as unknown as CommunityPost[];
   };
 
   const {
@@ -49,17 +47,27 @@ export const useCommunityPosts = (category?: string) => {
   });
 
   const createPost = useMutation({
-    mutationFn: async (newPost: Omit<CommunityPost, 'id' | 'likes_count' | 'comments_count' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (newPost: {
+      title: string;
+      content: string;
+      category: PostCategory;
+      is_pinned?: boolean;
+      is_featured?: boolean;
+    }) => {
       if (!user) {
         throw new Error('Você precisa estar logado para criar um post');
       }
 
+      const postData = {
+        ...newPost,
+        user_id: user.id,
+        likes_count: 0,
+        comments_count: 0
+      };
+
       const { data, error } = await supabase
         .from('community_posts')
-        .insert({
-          ...newPost,
-          user_id: user.id
-        })
+        .insert(postData)
         .select();
 
       if (error) {
@@ -67,7 +75,7 @@ export const useCommunityPosts = (category?: string) => {
         throw new Error(error.message);
       }
 
-      return data[0] as CommunityPost;
+      return (data?.[0] || null) as unknown as CommunityPost;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['communityPosts'] });
@@ -84,29 +92,38 @@ export const useCommunityPosts = (category?: string) => {
         throw new Error('Você precisa estar logado para curtir um post');
       }
 
-      const { data, error } = await supabase
+      // Verificar se já existe um like
+      const { data: existingLike } = await supabase
+        .from('post_likes')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingLike) {
+        // Se já curtiu, remove a curtida
+        const { error } = await supabase
+          .from('post_likes')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        return { action: 'unliked', postId };
+      }
+
+      // Se não curtiu, adiciona a curtida
+      const { error } = await supabase
         .from('post_likes')
         .insert({
           post_id: postId,
           user_id: user.id
-        })
-        .select();
+        });
 
       if (error) {
-        if (error.code === '23505') { // unique_violation
-          // Se já curtiu, remove a curtida
-          const { error: unlikeError } = await supabase
-            .from('post_likes')
-            .delete()
-            .eq('post_id', postId)
-            .eq('user_id', user.id);
-
-          if (unlikeError) {
-            throw new Error(unlikeError.message);
-          }
-          
-          return { action: 'unliked', postId };
-        }
         throw new Error(error.message);
       }
 
@@ -166,15 +183,13 @@ export const usePostComments = (postId: string) => {
   const { user } = useAuth();
 
   const fetchComments = async (): Promise<PostComment[]> => {
+    if (!postId) return [];
+
     const { data, error } = await supabase
       .from('post_comments')
       .select(`
         *,
-        user:user_id (
-          username,
-          display_name,
-          avatar
-        )
+        user:profiles(username, display_name, avatar)
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true });
@@ -184,7 +199,7 @@ export const usePostComments = (postId: string) => {
       throw new Error(error.message);
     }
 
-    return data as unknown as PostComment[];
+    return (data || []) as unknown as PostComment[];
   };
 
   const {
@@ -204,13 +219,16 @@ export const usePostComments = (postId: string) => {
         throw new Error('Você precisa estar logado para comentar');
       }
 
+      const commentData = {
+        post_id: postId,
+        user_id: user.id,
+        content,
+        likes_count: 0
+      };
+
       const { data, error } = await supabase
         .from('post_comments')
-        .insert({
-          post_id: postId,
-          user_id: user.id,
-          content
-        })
+        .insert(commentData)
         .select();
 
       if (error) {
@@ -218,7 +236,7 @@ export const usePostComments = (postId: string) => {
         throw new Error(error.message);
       }
 
-      return data[0] as PostComment;
+      return (data?.[0] || null) as unknown as PostComment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['postComments', postId] });
@@ -262,29 +280,38 @@ export const usePostComments = (postId: string) => {
         throw new Error('Você precisa estar logado para curtir um comentário');
       }
 
-      const { data, error } = await supabase
+      // Verificar se já existe um like
+      const { data: existingLike } = await supabase
+        .from('comment_likes')
+        .select('id')
+        .eq('comment_id', commentId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingLike) {
+        // Se já curtiu, remove a curtida
+        const { error } = await supabase
+          .from('comment_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user.id);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        return { action: 'unliked', commentId };
+      }
+
+      // Se não curtiu, adiciona a curtida
+      const { error } = await supabase
         .from('comment_likes')
         .insert({
           comment_id: commentId,
           user_id: user.id
-        })
-        .select();
+        });
 
       if (error) {
-        if (error.code === '23505') { // unique_violation
-          // Se já curtiu, remove a curtida
-          const { error: unlikeError } = await supabase
-            .from('comment_likes')
-            .delete()
-            .eq('comment_id', commentId)
-            .eq('user_id', user.id);
-
-          if (unlikeError) {
-            throw new Error(unlikeError.message);
-          }
-          
-          return { action: 'unliked', commentId };
-        }
         throw new Error(error.message);
       }
 
