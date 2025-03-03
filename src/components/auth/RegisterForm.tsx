@@ -56,13 +56,13 @@ export const RegisterForm: React.FC = () => {
       console.error('Erro ao cadastrar:', error);
       
       // Exibir mensagens de erro mais específicas
-      if (error.code === 'auth/email-already-in-use' || error.message.includes('already been registered')) {
+      if (error.message.includes('already been registered')) {
         toast.error('Este email já está sendo usado por outra conta');
-      } else if (error.code === 'auth/invalid-email' || error.message.includes('Invalid email')) {
+      } else if (error.message.includes('Invalid email')) {
         toast.error('Formato de email inválido');
-      } else if (error.code === 'auth/weak-password' || error.message.includes('weak password')) {
+      } else if (error.message.includes('weak password')) {
         toast.error('Senha muito fraca. Use uma senha mais forte');
-      } else if (error.code === 'auth/network-request-failed' || error.message.includes('network')) {
+      } else if (error.message.includes('network')) {
         toast.error('Erro de conexão. Verifique sua internet e tente novamente');
       } else {
         toast.error(error.message || 'Falha ao criar conta');

@@ -15,7 +15,7 @@ export const loginUser = async (email: string, password: string) => {
     // Update last login timestamp
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ last_login: new Date() })
+      .update({ last_login: new Date().toISOString() })
       .eq('id', data.user.id);
     
     if (updateError) console.error('Erro ao atualizar último login:', updateError);
@@ -93,7 +93,7 @@ export const updateUserProfile = async (userId: string, data: Partial<User>) => 
       .from('profiles')
       .update({
         ...data,
-        updated_at: new Date()
+        updated_at: new Date().toISOString()
       })
       .eq('id', userId);
     
@@ -119,7 +119,33 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
       return null;
     }
     
-    return data as User;
+    // Converter o formato do Supabase para o formato User do nosso app
+    const userData: User = {
+      id: data.id,
+      email: data.email,
+      displayName: data.display_name,
+      username: data.username,
+      profileType: data.profile_type,
+      avatar: data.avatar,
+      bio: data.bio,
+      socialLinks: data.social_links || {},
+      walletAddress: data.wallet_address,
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at),
+      lastLogin: data.last_login ? new Date(data.last_login) : new Date(),
+      isVerified: data.is_verified || false,
+      twoFactorEnabled: data.two_factor_enabled || false,
+      permissions: data.permissions || [],
+      roles: data.roles || [],
+      preferences: data.preferences || {
+        theme: 'dark',
+        notifications: {},
+        language: 'pt',
+        currency: 'BRL'
+      }
+    };
+    
+    return userData;
   } catch (error) {
     console.error("Erro ao buscar dados do usuário:", error);
     return null;
