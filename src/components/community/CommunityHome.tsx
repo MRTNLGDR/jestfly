@@ -4,9 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PenLine, Loader2 } from 'lucide-react';
 import PostsList from './PostsList';
-import CommunityNav from './CommunityNav';
-import GlassHeader from '@/components/GlassHeader';
-import { mainMenuItems } from '@/constants/menuItems';
 import { Post } from '@/types/community';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -64,42 +61,34 @@ const CommunityHome: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-purple-950">
-      <GlassHeader menuItems={mainMenuItems} />
-      
-      <div className="pt-16"> {/* Adicionado padding-top para compensar o header fixo */}
-        <CommunityNav />
+    <>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
+          Comunidade JESTFLY
+        </h1>
         
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
-              Comunidade JESTFLY
-            </h1>
-            
-            <Button 
-              onClick={() => navigate('/community/new-post')}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              <PenLine className="mr-2 h-4 w-4" />
-              Nova Publicação
-            </Button>
-          </div>
-          
-          {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-            </div>
-          ) : (
-            <PostsList
-              title="Publicações Recentes"
-              posts={posts}
-              onLike={handleLikePost}
-              emptyMessage="Nenhuma publicação encontrada. Seja o primeiro a publicar!"
-            />
-          )}
-        </div>
+        <Button 
+          onClick={() => navigate('/community/new-post')}
+          className="bg-purple-600 hover:bg-purple-700"
+        >
+          <PenLine className="mr-2 h-4 w-4" />
+          Nova Publicação
+        </Button>
       </div>
-    </div>
+      
+      {isLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+        </div>
+      ) : (
+        <PostsList
+          title="Publicações Recentes"
+          posts={posts}
+          onLike={handleLikePost}
+          emptyMessage="Nenhuma publicação encontrada. Seja o primeiro a publicar!"
+        />
+      )}
+    </>
   );
 };
 

@@ -19,7 +19,7 @@ import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import ResetPasswordConfirmPage from '@/pages/ResetPasswordConfirmPage';
-import { Toaster } from '@/components/ui/toaster';
+import MainLayout from '@/components/layout/MainLayout';
 import './App.css';
 
 // Dados de amostra para homepage
@@ -46,64 +46,70 @@ function App() {
     <AuthProvider>
       <LanguageProvider>
         <Routes>
-          <Route path="/" element={<HomePage crystalParams={{
-            color: "#ffffff",
-            metalness: 0.1,
-            roughness: 0.0,
-            transmission: 0.98,
-            thickness: 0.5,
-            envMapIntensity: 2.5,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.0,
-            ior: 2.75,
-            reflectivity: 1.0,
-            iridescence: 0.3,
-            iridescenceIOR: 1.3,
-            lightIntensity: 2.0,
-            opacity: 0.9,
-            transparent: true,
-            emissiveIntensity: 0.2,
-            emissiveColor: "#8B5CF6",
-            aoMapIntensity: 1.0,
-            displacementScale: 0.1,
-            wireframe: false,
-            side: 'front',
-            textureMap: "",
-            normalMap: "",
-            roughnessMap: "",
-            metalnessMap: "",
-          }} galleryImages={sampleGalleryImages} />} />
+          {/* Rotas de autenticação (fora do layout principal) */}
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/admin/login" element={<AdminAuthPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
           
-          {/* Rotas protegidas (requerem autenticação) */}
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          } />
+          {/* Rotas com layout principal */}
+          <Route element={<MainLayout />}>
+            {/* Página inicial */}
+            <Route path="/" element={<HomePage crystalParams={{
+              color: "#ffffff",
+              metalness: 0.1,
+              roughness: 0.0,
+              transmission: 0.98,
+              thickness: 0.5,
+              envMapIntensity: 2.5,
+              clearcoat: 1.0,
+              clearcoatRoughness: 0.0,
+              ior: 2.75,
+              reflectivity: 1.0,
+              iridescence: 0.3,
+              iridescenceIOR: 1.3,
+              lightIntensity: 2.0,
+              opacity: 0.9,
+              transparent: true,
+              emissiveIntensity: 0.2,
+              emissiveColor: "#8B5CF6",
+              aoMapIntensity: 1.0,
+              displacementScale: 0.1,
+              wireframe: false,
+              side: 'front',
+              textureMap: "",
+              normalMap: "",
+              roughnessMap: "",
+              metalnessMap: "",
+            }} galleryImages={sampleGalleryImages} />} />
+            
+            {/* Rotas protegidas (requerem autenticação) */}
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            } />
+            
+            {/* Outras rotas do aplicativo */}
+            <Route path="/community/*" element={<CommunityPage />} />
+            <Route path="/store" element={<StorePage />} />
+            <Route path="/bookings" element={<BookingsPage />} />
+            <Route path="/press-kit" element={<PressKitPage />} />
+            <Route path="/live" element={<LiveStreamPage />} />
+            <Route path="/airdrop" element={<AirdropPage />} />
+            <Route path="/submit-demo" element={<DemoSubmissionPage />} />
+            
+            {/* Rota 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
           
+          {/* Rota para o painel de administração (fora do layout principal) */}
           <Route path="/admin/*" element={
             <ProtectedRoute requiredRole="admin">
               <AdminPanel />
             </ProtectedRoute>
           } />
-          
-          {/* Outras rotas do aplicativo */}
-          <Route path="/community/*" element={<CommunityPage />} />
-          <Route path="/store" element={<StorePage />} />
-          <Route path="/bookings" element={<BookingsPage />} />
-          <Route path="/press-kit" element={<PressKitPage />} />
-          <Route path="/live" element={<LiveStreamPage />} />
-          <Route path="/airdrop" element={<AirdropPage />} />
-          <Route path="/submit-demo" element={<DemoSubmissionPage />} />
-          
-          {/* Rota 404 */}
-          <Route path="*" element={<NotFound />} />
         </Routes>
-        <Toaster />
       </LanguageProvider>
     </AuthProvider>
   );

@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -139,6 +140,41 @@
   
   .futuristic-border {
     @apply relative after:absolute after:inset-0 after:p-[1px] after:rounded-md after:bg-gradient-to-r after:from-white/20 after:via-white/40 after:to-white/20 after:-z-10 after:pointer-events-none;
+  }
+  
+  /* Transições padrão */
+  .transition-standard {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  /* Utilitários de z-index para evitar problemas de sobreposição */
+  .z-header {
+    z-index: 100;
+  }
+  
+  .z-dropdown {
+    z-index: 90;
+  }
+  
+  .z-modal {
+    z-index: 80;
+  }
+  
+  .z-overlay {
+    z-index: 70;
+  }
+  
+  /* Feedback visual para interações */
+  .hover-feedback {
+    @apply transition-all duration-200;
+  }
+  
+  .hover-feedback:hover {
+    @apply transform scale-105;
+  }
+  
+  .active-feedback {
+    @apply transform scale-95;
   }
   
   .animate-float {
