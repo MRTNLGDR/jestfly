@@ -2,11 +2,12 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
+import { PermissionType } from '../contexts/auth/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  requiredRoles?: ('artist' | 'fan' | 'admin' | 'collaborator')[];
+  requiredRoles?: PermissionType[];
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 

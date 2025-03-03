@@ -1,4 +1,6 @@
 
+import { PermissionType } from '../../../contexts/auth/types';
+
 export interface RegisterFormData {
   email: string;
   password: string;
@@ -8,4 +10,4 @@ export interface RegisterFormData {
   profileType: ProfileType;
 }
 
-export type ProfileType = 'fan' | 'artist' | 'collaborator' | 'admin';
+export type ProfileType = PermissionType;

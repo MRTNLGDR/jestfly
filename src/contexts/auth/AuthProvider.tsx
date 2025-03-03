@@ -1,11 +1,10 @@
-
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '../../firebase/config';
 import { User } from '../../models/User';
 import { onAuthStateChanged } from 'firebase/auth';
-import { AuthContextType } from './types';
+import { AuthContextType, PermissionType } from './types';
 import { 
   loginUser, 
   registerUser, 
@@ -23,7 +22,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Computed properties for user roles
   const isAdmin = useMemo(() => {
     return userData?.profileType === 'admin';
   }, [userData]);
@@ -32,20 +30,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return userData?.profileType === 'artist';
   }, [userData]);
 
-  // Function to check if user has specific permission
-  const hasPermission = (requiredPermission: 'admin' | 'artist' | 'fan' | 'collaborator' | string[]) => {
+  const hasPermission = (requiredPermission: PermissionType | PermissionType[]) => {
     if (!userData) return false;
     
-    // If requiredPermission is an array, check if user has any of the permissions
     if (Array.isArray(requiredPermission)) {
-      return requiredPermission.includes(userData.profileType);
+      return requiredPermission.includes(userData.profileType as PermissionType);
     }
     
-    // If single permission, direct check
     return userData.profileType === requiredPermission;
   };
 
-  // Function to refresh user data from Firestore
   const refreshUserData = async () => {
     if (!currentUser) return;
     
@@ -64,7 +58,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCurrentUser(user);
       
       if (user) {
-        // Fetch user data from Firestore
         try {
           const userDoc = await getDoc(doc(firestore, 'users', user.uid));
           if (userDoc.exists()) {
@@ -129,7 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       await updateUserProfile(currentUser.uid, data);
-      // Update local user data
       setUserData(prev => prev ? { ...prev, ...data } : null);
     } catch (err: any) {
       setError(err.message);

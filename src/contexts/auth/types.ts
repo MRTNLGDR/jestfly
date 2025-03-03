@@ -2,6 +2,8 @@
 import { User as FirebaseUser } from 'firebase/auth';
 import { User } from '../../models/User';
 
+export type PermissionType = 'admin' | 'artist' | 'fan' | 'collaborator';
+
 export interface AuthContextType {
   currentUser: FirebaseUser | null;
   userData: User | null;
@@ -15,5 +17,5 @@ export interface AuthContextType {
   refreshUserData: () => Promise<void>;
   isAdmin: boolean;
   isArtist: boolean;
-  hasPermission: (requiredPermission: 'admin' | 'artist' | 'fan' | 'collaborator' | string[]) => boolean;
+  hasPermission: (requiredPermission: PermissionType | PermissionType[]) => boolean;
 }
