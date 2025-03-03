@@ -6,6 +6,7 @@ import { User } from '../../models/User';
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { supabase } from '../../integrations/supabase/client';
+import { createSupabaseUserData } from './userDataTransformer';
 
 /**
  * Custom hook to manage authentication state
@@ -41,56 +42,20 @@ export const useAuthState = () => {
         console.error('Error fetching roles:', rolesError);
       }
       
-      // Type assertion for profile_type
-      const profileType = profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator';
-      
-      // Parse socialLinks from JSON safely
-      const socialLinks: User['socialLinks'] = typeof profile.social_links === 'object' 
-        ? (profile.social_links as Record<string, string>) 
-        : {};
-      
-      // Parse preferences from JSON safely
-      const preferences: User['preferences'] = typeof profile.preferences === 'object'
-        ? {
-            theme: ((profile.preferences as any)?.theme || 'dark') as 'light' | 'dark' | 'system',
-            notifications: {
-              email: Boolean((profile.preferences as any)?.notifications?.email || true),
-              push: Boolean((profile.preferences as any)?.notifications?.push || true),
-              sms: Boolean((profile.preferences as any)?.notifications?.sms || false)
-            },
-            language: (profile.preferences as any)?.language || 'pt',
-            currency: (profile.preferences as any)?.currency || 'BRL'
-          }
-        : {
-            theme: 'dark' as const,
-            notifications: { email: true, push: true, sms: false },
-            language: 'pt',
-            currency: 'BRL'
-          };
-
       // Get email from auth session
       const { data: { session } } = await supabase.auth.getSession();
-      const email = session?.user?.email || '';
-
-      // Map Supabase profile to user data format
-      const user: User = {
-        id: profile.id,
-        email,
-        displayName: profile.full_name,
-        username: profile.username,
-        profileType,
-        avatar: profile.avatar_url,
-        bio: profile.bio,
-        socialLinks,
-        walletAddress: profile.wallet_address,
-        createdAt: new Date(profile.created_at),
-        updatedAt: new Date(profile.updated_at),
-        lastLogin: new Date(),
-        isVerified: true, // Assuming verified if we have the profile
-        twoFactorEnabled: false,
-        preferences,
+      
+      // Create combined profile with roles
+      const profileWithRoles = {
+        ...profile,
         roles: roles?.map(r => r.role) || []
       };
+      
+      // Transform data to User model
+      const user = createSupabaseUserData(
+        session?.user || { email: '', email_confirmed_at: null },
+        profileWithRoles
+      );
 
       setUserData(user);
     } catch (err) {
