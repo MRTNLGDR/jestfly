@@ -1,6 +1,7 @@
 
 import { User } from '../../../models/User';
 import { supabase } from '../../../integrations/supabase/client';
+import { Json } from '../../../integrations/supabase/types';
 
 export const fetchUserProfile = async (userId: string): Promise<User | null> => {
   try {
