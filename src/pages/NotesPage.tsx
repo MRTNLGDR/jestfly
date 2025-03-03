@@ -19,15 +19,19 @@ const NotesPage: React.FC = () => {
   const [view, setView] = useState<'list' | 'graph'>('list');
   
   useEffect(() => {
-    if (!userData) return;
-    
     const loadNotes = async () => {
       setIsLoading(true);
       try {
-        const fetchedNotes = await fetchUserNotes(userData.id);
-        setNotes(fetchedNotes);
+        if (userData?.id) {
+          console.log('Fetching notes for user:', userData.id);
+          const fetchedNotes = await fetchUserNotes(userData.id);
+          console.log('Fetched notes:', fetchedNotes);
+          setNotes(fetchedNotes);
+        } else {
+          console.log('No user data available, skipping note fetch');
+        }
       } catch (error) {
-        console.error('Erro ao buscar notas:', error);
+        console.error('Error fetching notes:', error);
         toast.error('Falha ao carregar notas');
       } finally {
         setIsLoading(false);
@@ -38,6 +42,7 @@ const NotesPage: React.FC = () => {
   }, [userData]);
   
   const handleNoteSelect = async (noteId: string) => {
+    console.log('Selecting note:', noteId);
     const foundNote = notes.find(note => note.id === noteId);
     
     if (foundNote) {
@@ -66,6 +71,7 @@ const NotesPage: React.FC = () => {
   };
   
   const handleCreateNote = () => {
+    console.log('Creating new note');
     const newNote = {
       id: generateUniqueId(),
       userId: userData?.id || '',
@@ -86,10 +92,16 @@ const NotesPage: React.FC = () => {
   };
   
   const handleSaveNote = async (noteData: Partial<Note>): Promise<Note | void> => {
-    if (!userData) return;
+    if (!userData) {
+      console.error('Cannot save note: No user data available');
+      toast.error('Você precisa estar logado para salvar notas');
+      return;
+    }
     
     try {
+      console.log('Saving note:', noteData);
       const savedNote = await saveNote(noteData, userData.id, notes);
+      console.log('Note saved successfully:', savedNote);
       
       // Update local state
       const isNewNote = !notes.some(note => note.id === savedNote.id);
