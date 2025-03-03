@@ -19,7 +19,7 @@ export const RegisterForm: React.FC = () => {
     adminCode: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showAdminField, setShowAdminField] = useState(false);
+  // Removendo a variável de estado showAdminField, pois não será mais necessária
   const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ export const RegisterForm: React.FC = () => {
 
   const handleProfileTypeChange = (value: 'fan' | 'artist' | 'collaborator' | 'admin') => {
     setFormData(prev => ({ ...prev, profileType: value }));
-    setShowAdminField(value === 'admin');
+    // Removendo a lógica que definia showAdminField
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,10 +46,7 @@ export const RegisterForm: React.FC = () => {
       return;
     }
 
-    if (formData.profileType === 'admin' && formData.adminCode !== 'JESTFLY2024') {
-      toast.error('Código de administrador inválido');
-      return;
-    }
+    // Removendo a verificação de código de administrador
     
     setIsSubmitting(true);
     
@@ -116,7 +113,7 @@ export const RegisterForm: React.FC = () => {
           handleSubmit={handleSubmit}
           handleGoogleRegister={handleGoogleRegister}
           isSubmitting={isSubmitting}
-          showAdminField={showAdminField}
+          showAdminField={false} // Definindo sempre como false
         />
       </CardContent>
       <CardFooter className="flex justify-center border-t border-zinc-800/30 pt-6">

@@ -14,11 +14,11 @@ export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({
   selectedType, 
   onChange 
 }) => {
+  // Removendo a opção 'admin' da lista de tipos de perfil disponíveis
   const profileTypes: ProfileTypeOption[] = [
     { value: 'fan', label: 'Fã' },
     { value: 'artist', label: 'Artista' },
-    { value: 'collaborator', label: 'Profissional' },
-    { value: 'admin', label: 'Admin' }
+    { value: 'collaborator', label: 'Profissional' }
   ];
 
   return (
