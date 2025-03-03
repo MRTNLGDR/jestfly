@@ -30,10 +30,10 @@ type MockSupabaseUser = {
   id: string;
   email?: string | null;
   email_confirmed_at?: string | null;
-  app_metadata?: Record<string, any>;
-  user_metadata?: Record<string, any>;
-  aud?: string;
-  created_at?: string;
+  app_metadata: Record<string, any>;
+  user_metadata: Record<string, any>;
+  aud: string;
+  created_at: string;
 };
 
 // Mock Supabase client
@@ -51,7 +51,7 @@ describe('useAuthState', () => {
   // Global mocks and setup
   beforeEach(() => {
     // Firebase Auth mocks
-    vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
       // Immediately invoke callback with null user
       callback(null);
       return vi.fn(); // Return unsubscribe function
@@ -246,7 +246,7 @@ describe('useAuthState', () => {
       email: 'firebase@example.com',
     };
     
-    vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
       callback(mockFirebaseUser as any);
       return vi.fn(); // Return unsubscribe function
     });
@@ -306,7 +306,7 @@ describe('useAuthState', () => {
       email: 'firebase-error@example.com',
     };
     
-    vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
+    vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
       callback(mockFirebaseUser as any);
       return vi.fn(); // Return unsubscribe function
     });

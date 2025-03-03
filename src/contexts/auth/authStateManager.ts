@@ -45,36 +45,44 @@ export const useAuthState = () => {
       // Get email from auth session
       const { data: { session } } = await supabase.auth.getSession();
       
+      if (!profile || !session?.user) {
+        return;
+      }
+      
+      // Parse preferences and social_links if they are strings
+      const parsedPreferences = typeof profile.preferences === 'string' 
+        ? JSON.parse(profile.preferences) 
+        : (profile.preferences || {});
+        
+      const parsedSocialLinks = typeof profile.social_links === 'string'
+        ? JSON.parse(profile.social_links)
+        : (profile.social_links || {});
+      
       // Create combined profile with roles
       const profileWithRoles = {
         ...profile,
         // Make sure profile_type is properly typed as expected by SupabaseProfileData
-        profile_type: (profile?.profile_type || 'fan') as 'artist' | 'fan' | 'admin' | 'collaborator',
-        // Parse preferences if it's a string or ensure it's an object
-        preferences: typeof profile?.preferences === 'string' 
-          ? JSON.parse(profile.preferences) 
-          : (profile?.preferences || {}),
-        // Ensure social_links is properly typed as Record<string, string>
-        social_links: typeof profile?.social_links === 'string'
-          ? JSON.parse(profile.social_links)
-          : (profile?.social_links || {}),
+        profile_type: (profile.profile_type || 'fan') as 'artist' | 'fan' | 'admin' | 'collaborator',
+        // Use parsed preferences
+        preferences: parsedPreferences,
+        // Use parsed social_links
+        social_links: parsedSocialLinks,
+        // Add roles
         roles: roles?.map(r => r.role) || []
       };
       
       // Transform data to User model
-      if (session?.user) {
-        const supabaseAuthUser: SupabaseAuthUser = {
-          email: session.user.email || '',
-          email_confirmed_at: session.user.email_confirmed_at
-        };
-        
-        const user = createSupabaseUserData(
-          supabaseAuthUser,
-          profileWithRoles
-        );
+      const supabaseAuthUser: SupabaseAuthUser = {
+        email: session.user.email || '',
+        email_confirmed_at: session.user.email_confirmed_at
+      };
+      
+      const user = createSupabaseUserData(
+        supabaseAuthUser,
+        profileWithRoles
+      );
 
-        setUserData(user);
-      }
+      setUserData(user);
     } catch (err) {
       console.error("Error fetching user data from Supabase:", err);
     }
