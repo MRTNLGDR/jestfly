@@ -68,12 +68,15 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
           // Safe type checks for profile properties
           const profileObject = log.profile && typeof log.profile === 'object' ? log.profile : null;
           
+          // Check if properties exist before accessing
           const usernameMatch = profileObject && 
+            typeof profileObject === 'object' &&
             'username' in profileObject && 
             typeof profileObject.username === 'string' && 
             profileObject.username.toLowerCase().includes(lowerSearchTerm);
           
           const displayNameMatch = profileObject && 
+            typeof profileObject === 'object' &&
             'display_name' in profileObject && 
             typeof profileObject.display_name === 'string' && 
             profileObject.display_name.toLowerCase().includes(lowerSearchTerm);
