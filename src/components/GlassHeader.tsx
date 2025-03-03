@@ -1,8 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Diamond, ChevronRight, Plus, Minus, Menu, X } from 'lucide-react';
-import { useIsMobile } from '../hooks/use-mobile';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { LogOut, User, Settings, Menu, X } from 'lucide-react';
 
 interface MenuItem {
   label: string;
@@ -10,154 +20,137 @@ interface MenuItem {
 }
 
 interface GlassHeaderProps {
-  menuItems?: MenuItem[];
+  menuItems: MenuItem[];
 }
 
-const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const isMobile = useIsMobile();
-  const location = useLocation();
-  
-  // Track page changes and scrolling
-  useEffect(() => {
-    // Add initial glassmorphism effect when navigating to a new page
-    setScrolled(true);
-    
-    // Reset the effect after a delay (for animation purposes)
-    const timer = setTimeout(() => {
-      setScrolled(false);
-    }, 1000);
-    
-    // Track scrolling
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      setScrolled(isScrolled);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timer);
-    };
-  }, [location.pathname]); // Re-run when the path changes
-  
-  // Define glass effect classes based on scrolled state
-  const glassEffect = scrolled 
-    ? "bg-black/40 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
-    : "bg-black/20 backdrop-blur-sm transition-all duration-500";
-  
+const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
+  const { translate } = useTranslation();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleNavigate = (href: string) => {
+    navigate(href);
+    setIsMenuOpen(false);
+  };
+
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 ${glassEffect}`}>
-      <div className="max-w-full mx-auto px-6 sm:px-8 py-3 sm:py-4">
-        <div className="flex items-center justify-between">
-          {/* Left side - Logo and welcome text */}
-          <div className="flex items-center space-x-6 sm:space-x-12">
-            <Link to="/" className="flex items-center">
-              <Diamond className="h-6 w-6 sm:h-8 sm:w-8 text-white glow-purple" />
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-black/30 border-b border-white/10">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex-shrink-0">
+            <Link to="/" className="text-white font-bold text-xl">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
+                JESTFLY
+              </span>
             </Link>
-            
-            <div className="hidden md:flex items-center space-x-4">
-              <span className="text-xs tracking-widest opacity-70">N1:WELCOME TO THE FUTURE</span>
-            </div>
           </div>
-          
-          {/* Center - Navigation (desktop only) */}
-          <nav className="hidden lg:flex items-center">
-            <div className="flex items-center space-x-6">
+
+          {/* Desktop Menu */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-center space-x-4">
               {menuItems.map((item) => (
-                <Link 
-                  key={item.href} 
+                <Link
+                  key={item.href}
                   to={item.href}
-                  className={`text-white/80 text-sm hover:text-white transition-colors uppercase ${
-                    location.pathname.includes(item.href) && item.href !== '/' ? 'text-white font-medium' : ''
-                  }`}
+                  className="text-white/80 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  {item.label}
+                  {translate(item.label)}
                 </Link>
               ))}
             </div>
-            
-            <div className="h-8 mx-6 border-l border-white/20"></div>
-            
-            <div className="flex items-center space-x-6">
-              <Link 
-                to="/info"
-                className="text-white/80 text-sm hover:text-white transition-colors"
+          </div>
+
+          {/* Auth Menu */}
+          <div className="flex items-center">
+            {user && profile ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={profile.avatar || undefined} alt={profile.display_name} />
+                      <AvatarFallback className="bg-purple-900 text-white">
+                        {profile.display_name?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-black/90 backdrop-blur-md border-white/10 text-white">
+                  <div className="flex flex-col space-y-1 p-2">
+                    <p className="font-medium">{profile.display_name}</p>
+                    <p className="text-xs text-white/60 truncate">{profile.email}</p>
+                    <p className="text-xs text-purple-400 capitalize">{profile.profile_type}</p>
+                  </div>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Meu Perfil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-white/10 focus:bg-white/10"
+                    onClick={() => navigate('/profile?tab=settings')}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-400 hover:bg-red-900/20 focus:bg-red-900/20"
+                    onClick={signOut}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sair</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-white/10"
+                onClick={() => navigate('/auth')}
               >
-                .info
-              </Link>
-              
-              <div className="flex items-center space-x-2">
-                <span className="text-white/80 text-sm">[PRG]</span>
-                <span className="px-3 py-1 rounded border border-white/20 text-white/90 text-sm">11:03</span>
-              </div>
+                Login
+              </Button>
+            )}
+
+            {/* Mobile menu button */}
+            <div className="ml-4 md:hidden">
+              <button
+                className="text-white hover:text-white focus:outline-none"
+                onClick={toggleMenu}
+              >
+                {isMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </button>
             </div>
-          </nav>
-          
-          {/* Mobile menu button */}
-          <button 
-            className="lg:hidden text-white p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          
-          {/* Right side - Controls (hide on small mobile) */}
-          <div className="hidden sm:flex md:flex items-center space-x-4">
-            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom in">
-              <Plus className="h-5 w-5" />
-            </button>
-            
-            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom out">
-              <Minus className="h-5 w-5" />
-            </button>
-            
-            <Link 
-              to="/order" 
-              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
-            >
-              <span className="text-sm font-medium uppercase">Pre-order</span>
-              <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                <ChevronRight className="h-3 w-3 text-black" />
-              </div>
-            </Link>
           </div>
         </div>
       </div>
-      
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-black/90 backdrop-blur-md">
-          <div className="px-6 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
+
+      {/* Mobile Menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-black/95 backdrop-blur-md border-b border-white/10">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {menuItems.map((item) => (
-              <Link 
-                key={item.href} 
-                to={item.href}
-                className={`block text-white py-2 hover:text-purple-400 transition-colors uppercase ${
-                  location.pathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
+              <button
+                key={item.href}
+                className="text-white block px-3 py-2 rounded-md text-base font-medium w-full text-left hover:bg-white/10"
+                onClick={() => handleNavigate(item.href)}
               >
-                {item.label}
-              </Link>
+                {translate(item.label)}
+              </button>
             ))}
-            
-            {/* Mobile-only controls */}
-            <div className="sm:hidden pt-4 border-t border-white/10 flex justify-center space-x-8">
-              <Link 
-                to="/order" 
-                className="flex items-center space-x-1 px-3 py-1.5 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
-              >
-                <span className="text-xs font-medium uppercase">Pre-order</span>
-                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
-                  <ChevronRight className="h-2 w-2 text-black" />
-                </div>
-              </Link>
-            </div>
           </div>
         </div>
       )}

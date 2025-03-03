@@ -23,6 +23,10 @@ import LiveStreamPage from './pages/LiveStreamPage';
 import PressKitPage from './pages/PressKitPage';
 import AirdropPage from './pages/AirdropPage';
 import LanguageProvider from './contexts/LanguageContext';
+import { AuthProvider } from './contexts/AuthContext';
+import AuthPage from './pages/AuthPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -71,21 +75,53 @@ function App() {
   return (
     <LanguageProvider>
       <Router>
-        <div className="app">
-          <GlassHeader menuItems={menuItems} />
-          <Routes>
-            <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-            <Route path="/store/*" element={<StorePage />} />
-            <Route path="/community/*" element={<CommunityPage />} />
-            <Route path="/bookings" element={<BookingsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/demo-submission" element={<DemoSubmissionPage />} />
-            <Route path="/live-stream" element={<LiveStreamPage />} />
-            <Route path="/press-kit" element={<PressKitPage />} />
-            <Route path="/airdrop" element={<AirdropPage />} />
-            <Route path="/admin" element={<AdminPanel />} />
-          </Routes>
-        </div>
+        <AuthProvider>
+          <div className="app">
+            <GlassHeader menuItems={menuItems} />
+            <Routes>
+              <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/store/*" element={<StorePage />} />
+              <Route path="/community/*" element={<CommunityPage />} />
+              <Route path="/bookings" element={<BookingsPage />} />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/demo-submission" 
+                element={
+                  <ProtectedRoute allowedProfiles={['artist', 'collaborator']}>
+                    <DemoSubmissionPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="/live-stream" element={<LiveStreamPage />} />
+              <Route path="/press-kit" element={<PressKitPage />} />
+              <Route 
+                path="/airdrop" 
+                element={
+                  <ProtectedRoute>
+                    <AirdropPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin" 
+                element={
+                  <ProtectedRoute allowedProfiles={['admin']}>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } 
+              />
+            </Routes>
+            <Toaster />
+          </div>
+        </AuthProvider>
       </Router>
     </LanguageProvider>
   );
