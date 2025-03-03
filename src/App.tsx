@@ -1,27 +1,9 @@
+
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import CrystalHero from './components/CrystalHero';
-import CrystalGallery from './components/CrystalGallery';
-import AdminPanel from './pages/AdminPanel';
 import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
-import NFTSection from './components/NFTSection';
-import EventsSection from './components/EventsSection';
-import ConnectionSection from './components/ConnectionSection';
-import ShopPreview from './components/ShopPreview';
 import Footer from './components/Footer';
-import RoadmapSection from './components/RoadmapSection';
-import NewStorePage from './pages/NewStorePage';
-import CommunityPage from './pages/CommunityPage';
-import BookingsPage from './pages/BookingsPage';
-import ProfilePage from './pages/ProfilePage';
-import HomePage from './pages/HomePage';
-import DemoSubmissionPage from './pages/DemoSubmissionPage';
-import LiveStreamPage from './pages/LiveStreamPage';
-import PressKitPage from './pages/PressKitPage';
-import AirdropPage from './pages/AirdropPage';
-import EcommercePage from './pages/EcommercePage';
-import LanguageProvider from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/auth';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import LoginPage from './pages/LoginPage';
@@ -29,6 +11,19 @@ import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import NotesPage from './pages/NotesPage';
+import HomePage from './pages/HomePage';
+import NewStorePage from './pages/NewStorePage';
+import CommunityPage from './pages/CommunityPage';
+import BookingsPage from './pages/BookingsPage';
+import ProfilePage from './pages/ProfilePage';
+import DemoSubmissionPage from './pages/DemoSubmissionPage';
+import LiveStreamPage from './pages/LiveStreamPage';
+import PressKitPage from './pages/PressKitPage';
+import AirdropPage from './pages/AirdropPage';
+import EcommercePage from './pages/EcommercePage';
+import AdminPanel from './pages/AdminPanel';
+import LanguageProvider from './contexts/LanguageContext';
+import { Toaster } from 'sonner';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -81,6 +76,7 @@ function App() {
         <Router>
           <div className="app">
             <GlassHeader menuItems={menuItems} />
+            <Toaster position="top-right" />
             <Routes>
               <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
               <Route path="/store/*" element={<NewStorePage />} />
