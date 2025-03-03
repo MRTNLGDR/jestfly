@@ -1,164 +1,101 @@
+import React, { useState } from 'react';
+import { Menu } from 'lucide-react';
+import Logo from './Logo';
+import UserProfileMenu from './UserProfileMenu';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Diamond, ChevronRight, Plus, Minus, Menu, X } from 'lucide-react';
-import { useIsMobile } from '../hooks/use-mobile';
+const GlassHeader = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-interface MenuItem {
-  label: string;
-  href: string;
-}
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
-interface GlassHeaderProps {
-  menuItems?: MenuItem[];
-}
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
 
-const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const isMobile = useIsMobile();
-  const location = useLocation();
-  
-  // Track page changes and scrolling
-  useEffect(() => {
-    // Add initial glassmorphism effect when navigating to a new page
-    setScrolled(true);
-    
-    // Reset the effect after a delay (for animation purposes)
-    const timer = setTimeout(() => {
-      setScrolled(false);
-    }, 1000);
-    
-    // Track scrolling
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      setScrolled(isScrolled);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timer);
-    };
-  }, [location.pathname]); // Re-run when the path changes
-  
-  // Define glass effect classes based on scrolled state
-  const glassEffect = scrolled 
-    ? "bg-black/40 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
-    : "bg-black/20 backdrop-blur-sm transition-all duration-500";
-  
+  const { user } = useAuth();
+
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 ${glassEffect}`}>
-      <div className="max-w-full mx-auto px-6 sm:px-8 py-3 sm:py-4">
+    <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-md bg-black/20">
+      <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Left side - Logo and welcome text */}
-          <div className="flex items-center space-x-6 sm:space-x-12">
-            <Link to="/" className="flex items-center">
-              <Diamond className="h-6 w-6 sm:h-8 sm:w-8 text-white glow-purple" />
-            </Link>
-            
-            <div className="hidden md:flex items-center space-x-4">
-              <span className="text-xs tracking-widest opacity-70">N1:WELCOME TO THE FUTURE</span>
-            </div>
-          </div>
-          
-          {/* Center - Navigation (desktop only) */}
-          <nav className="hidden lg:flex items-center">
-            <div className="flex items-center space-x-6">
-              {menuItems.map((item) => (
-                <Link 
-                  key={item.href} 
-                  to={item.href}
-                  className={`text-white/80 text-sm hover:text-white transition-colors uppercase ${
-                    location.pathname.includes(item.href) && item.href !== '/' ? 'text-white font-medium' : ''
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            
-            <div className="h-8 mx-6 border-l border-white/20"></div>
-            
-            <div className="flex items-center space-x-6">
-              <Link 
-                to="/info"
-                className="text-white/80 text-sm hover:text-white transition-colors"
-              >
-                .info
+          <div className="flex items-center">
+            <Logo />
+            <nav className="hidden md:flex items-center ml-10">
+              <Link to="/" className="text-white mr-6 hover:text-purple-400 transition-colors">
+                Home
               </Link>
-              
-              <div className="flex items-center space-x-2">
-                <span className="text-white/80 text-sm">[PRG]</span>
-                <span className="px-3 py-1 rounded border border-white/20 text-white/90 text-sm">11:03</span>
-              </div>
-            </div>
-          </nav>
-          
-          {/* Mobile menu button */}
-          <button 
-            className="lg:hidden text-white p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          
-          {/* Right side - Controls (hide on small mobile) */}
-          <div className="hidden sm:flex md:flex items-center space-x-4">
-            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom in">
-              <Plus className="h-5 w-5" />
-            </button>
-            
-            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom out">
-              <Minus className="h-5 w-5" />
-            </button>
-            
-            <Link 
-              to="/order" 
-              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
+              <Link to="/community" className="text-white mr-6 hover:text-purple-400 transition-colors">
+                Community
+              </Link>
+              <Link to="/store" className="text-white mr-6 hover:text-purple-400 transition-colors">
+                Store
+              </Link>
+              <Link to="/bookings" className="text-white mr-6 hover:text-purple-400 transition-colors">
+                Bookings
+              </Link>
+              <Link to="/demo-submission" className="text-white mr-6 hover:text-purple-400 transition-colors">
+                Demo Submission
+              </Link>
+              <Link to="/live-stream" className="text-white mr-6 hover:text-purple-400 transition-colors">
+                Live Stream
+              </Link>
+              <Link to="/press-kit" className="text-white hover:text-purple-400 transition-colors">
+                Press Kit
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <UserProfileMenu />
+            ) : (
+              <Button 
+                asChild 
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                <Link to="/auth/login">Entrar</Link>
+              </Button>
+            )}
+            <button 
+              className="p-2 text-white md:hidden focus:outline-none"
+              onClick={toggleMobileMenu}
             >
-              <span className="text-sm font-medium uppercase">Pre-order</span>
-              <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                <ChevronRight className="h-3 w-3 text-black" />
-              </div>
-            </Link>
+              <Menu className="w-6 h-6" />
+            </button>
           </div>
         </div>
       </div>
-      
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-black/90 backdrop-blur-md">
-          <div className="px-6 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
-            {menuItems.map((item) => (
-              <Link 
-                key={item.href} 
-                to={item.href}
-                className={`block text-white py-2 hover:text-purple-400 transition-colors uppercase ${
-                  location.pathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
-            
-            {/* Mobile-only controls */}
-            <div className="sm:hidden pt-4 border-t border-white/10 flex justify-center space-x-8">
-              <Link 
-                to="/order" 
-                className="flex items-center space-x-1 px-3 py-1.5 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
-              >
-                <span className="text-xs font-medium uppercase">Pre-order</span>
-                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
-                  <ChevronRight className="h-2 w-2 text-black" />
-                </div>
-              </Link>
-            </div>
-          </div>
+
+      {isMobileMenuOpen && (
+        <div className="bg-black/80 backdrop-blur-md md:hidden absolute top-full left-0 w-full py-4">
+          <nav className="flex flex-col items-center">
+            <Link to="/" className="text-white py-2 hover:text-purple-400 transition-colors" onClick={closeMobileMenu}>
+              Home
+            </Link>
+            <Link to="/community" className="text-white py-2 hover:text-purple-400 transition-colors" onClick={closeMobileMenu}>
+              Community
+            </Link>
+            <Link to="/store" className="text-white py-2 hover:text-purple-400 transition-colors" onClick={closeMobileMenu}>
+              Store
+            </Link>
+            <Link to="/bookings" className="text-white py-2 hover:text-purple-400 transition-colors" onClick={closeMobileMenu}>
+              Bookings
+            </Link>
+             <Link to="/demo-submission" className="text-white py-2 hover:text-purple-400 transition-colors" onClick={closeMobileMenu}>
+              Demo Submission
+            </Link>
+            <Link to="/live-stream" className="text-white py-2 hover:text-purple-400 transition-colors" onClick={closeMobileMenu}>
+              Live Stream
+            </Link>
+            <Link to="/press-kit" className="text-white py-2 hover:text-purple-400 transition-colors" onClick={closeMobileMenu}>
+              Press Kit
+            </Link>
+          </nav>
         </div>
       )}
     </header>

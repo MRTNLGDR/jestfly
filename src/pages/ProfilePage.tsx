@@ -1,8 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
-// Mock data for demonstration
 const mockUserData = {
   username: 'JESTFLYfan123',
   email: 'fan@example.com',
@@ -23,19 +24,64 @@ const mockUserData = {
 };
 
 const ProfilePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'settings'>('overview');
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const tabParam = queryParams.get('tab');
+  
+  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'settings'>(
+    tabParam === 'settings' ? 'settings' : 
+    tabParam === 'nfts' ? 'nfts' : 'overview'
+  );
+  
+  const { profile, user, signOut, refreshProfile } = useAuth();
+  const navigate = useNavigate();
+  
   const [profileData, setProfileData] = useState({
-    displayName: mockUserData.username,
-    bio: "Electronic music enthusiast and proud member of the JESTFLY community!",
+    displayName: profile?.display_name || '',
+    bio: profile?.bio || "Electronic music enthusiast and proud member of the JESTFLY community!",
     location: "New York, NY",
     website: "music.example.com",
-    avatarUrl: "/assets/imagem1.jpg"
+    avatarUrl: profile?.avatar || "/assets/imagem1.jpg"
   });
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (profile) {
+      setProfileData(prev => ({
+        ...prev,
+        displayName: profile.display_name,
+        bio: profile.bio || prev.bio,
+        avatarUrl: profile.avatar || prev.avatarUrl
+      }));
+    }
+  }, [profile]);
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Profile updated:', profileData);
-    alert('Profile updated successfully!');
+    
+    if (!user) {
+      toast.error('Você precisa estar logado para atualizar seu perfil');
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: profileData.displayName,
+          bio: profileData.bio
+        })
+        .eq('id', user.id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      await refreshProfile();
+      toast.success('Perfil atualizado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      toast.error(`Erro ao atualizar perfil: ${(error as Error).message}`);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -43,11 +89,14 @@ const ProfilePage: React.FC = () => {
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <div className="min-h-screen bg-black text-white pt-24">
       <div className="container mx-auto px-6 pb-20">
         <div className="flex flex-col md:flex-row items-start gap-8">
-          {/* Profile Sidebar */}
           <div className="w-full md:w-1/4 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6 sticky top-24">
             <div className="flex flex-col items-center mb-6">
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 mb-4 overflow-hidden">
@@ -109,13 +158,14 @@ const ProfilePage: React.FC = () => {
               <button className="w-full text-left px-4 py-3 rounded-lg text-white/70 hover:bg-white/5 transition-colors">
                 Saved Events
               </button>
-              <button className="w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors mt-4">
+              <button 
+                onClick={handleSignOut}
+                className="w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors mt-4">
                 Sign Out
               </button>
             </div>
           </div>
           
-          {/* Main Content */}
           <div className="flex-1">
             {activeTab === 'overview' && (
               <div className="space-y-8">
@@ -284,7 +334,6 @@ const ProfilePage: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    {/* Add more placeholder NFTs */}
                     {[1, 2, 3, 4, 5, 6].map(item => (
                       <div key={`placeholder-${item}`} className="bg-white/5 rounded-lg overflow-hidden opacity-30 hover:opacity-40 transition-opacity">
                         <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
