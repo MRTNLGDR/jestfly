@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Comment, CommunityPost } from '@/types/community';
+import { Comment, CommunityPost, User } from '@/types/community';
 import { useToast } from '@/components/ui/use-toast';
 
 export const usePostDetail = (postId: string | undefined) => {
@@ -74,10 +74,11 @@ export const usePostDetail = (postId: string | undefined) => {
           
         if (error) throw error;
         
-        // Transform comments to include user property
-        const formattedComments = data.map(comment => ({
+        // Transform comments to include user property with correct type
+        const formattedComments: Comment[] = data.map(comment => ({
           ...comment,
           user: {
+            username: comment.profiles?.username || '',
             display_name: comment.profiles?.display_name || '',
             avatar: comment.profiles?.avatar || null
           }
@@ -206,10 +207,11 @@ export const usePostDetail = (postId: string | undefined) => {
         
       if (error) throw error;
       
-      // Add new comment to list
+      // Add new comment to list with properly formatted user property
       const newComment: Comment = {
         ...data,
         user: {
+          username: data.profiles?.username || '',
           display_name: data.profiles?.display_name || '',
           avatar: data.profiles?.avatar || null
         }

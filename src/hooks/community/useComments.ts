@@ -1,131 +1,159 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Comment } from '@/types/community';
+import { useToast } from '@/components/ui/use-toast';
 
-// Hook para comentários
-export const usePostComments = (postId: string) => {
-  const queryClient = useQueryClient();
-  
-  const fetchComments = async (): Promise<Comment[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('post_comments')
-        .select('*, profiles(username, avatar)')
-        .eq('post_id', postId)
-        .order('created_at', { ascending: true });
+export const useComments = (postId: string) => {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setCurrentUserId(data.user?.id);
+    };
+    
+    fetchCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (!postId) return;
+      
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('post_comments')
+          .select('*, profiles(username, avatar, display_name)')
+          .eq('post_id', postId)
+          .order('created_at', { ascending: true });
+          
+        if (error) throw error;
         
-      if (error) throw error;
-      return data as unknown as Comment[];
+        // Transform raw data to Comment type with user property
+        const formattedComments: Comment[] = data.map(comment => ({
+          ...comment,
+          user: {
+            username: comment.profiles?.username || '',
+            display_name: comment.profiles?.display_name || '',
+            avatar: comment.profiles?.avatar || null
+          }
+        }));
+        
+        setComments(formattedComments);
+      } catch (error) {
+        console.error('Erro ao buscar comentários:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar comentários",
+          description: "Não foi possível carregar os comentários desta publicação."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [postId, toast]);
+
+  const handleLikeComment = async (commentId: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        navigate('/auth');
+        return;
+      }
+      
+      toast({
+        title: "Funcionalidade em desenvolvimento",
+        description: "A função de curtir comentários estará disponível em breve."
+      });
     } catch (error) {
-      console.error('Erro ao buscar comentários:', error);
-      return [];
+      console.error('Erro ao curtir comentário:', error);
     }
   };
 
-  // Hook para criar comentário
-  const createCommentMutation = useMutation({
-    mutationFn: async (content: string) => {
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) throw new Error('Usuário não autenticado');
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('post_comments')
+        .delete()
+        .eq('id', commentId);
         
-        const { data, error } = await supabase
-          .from('post_comments')
-          .insert([{
-            content,
-            post_id: postId,
-            user_id: userData.user.id
-          }])
-          .select()
-          .single();
-          
-        if (error) throw error;
-        return data as Comment;
-      } catch (error) {
-        console.error('Erro ao criar comentário:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['postComments', postId] });
+      if (error) throw error;
+      
+      setComments(comments.filter(comment => comment.id !== commentId));
+      
+      toast({
+        title: "Comentário excluído",
+        description: "Seu comentário foi excluído com sucesso."
+      });
+    } catch (error) {
+      console.error('Erro ao deletar comentário:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir comentário",
+        description: "Não foi possível excluir o comentário. Tente novamente."
+      });
     }
-  });
+  };
 
-  // Hook para deletar comentário
-  const deleteCommentMutation = useMutation({
-    mutationFn: async (commentId: string) => {
-      try {
-        const { error } = await supabase
-          .from('post_comments')
-          .delete()
-          .eq('id', commentId);
-          
-        if (error) throw error;
-      } catch (error) {
-        console.error('Erro ao deletar comentário:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['postComments', postId] });
-    }
-  });
-
-  // Hook para curtir comentário
-  const likeCommentMutation = useMutation({
-    mutationFn: async (commentId: string) => {
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) throw new Error('Usuário não autenticado');
-
-        // Verificar se já curtiu
-        const { data: existingLike } = await supabase
-          .from('comment_likes')
-          .select()
-          .eq('comment_id', commentId)
-          .eq('user_id', userData.user.id)
-          .single();
-
-        if (existingLike) {
-          // Se já curtiu, remover curtida
-          const { error } = await supabase
-            .from('comment_likes')
-            .delete()
-            .eq('id', existingLike.id);
-            
-          if (error) throw error;
-        } else {
-          // Se não curtiu, adicionar curtida
-          const { error } = await supabase
-            .from('comment_likes')
-            .insert([{ comment_id: commentId, user_id: userData.user.id }]);
-            
-          if (error) throw error;
+  const handleSubmitComment = async (content: string) => {
+    if (!postId || !currentUserId || !content.trim()) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('post_comments')
+        .insert([{
+          content,
+          post_id: postId,
+          user_id: currentUserId
+        }])
+        .select('*, profiles(username, avatar, display_name)')
+        .single();
+        
+      if (error) throw error;
+      
+      // Add new comment with properly formatted user data
+      const newComment: Comment = {
+        ...data,
+        user: {
+          username: data.profiles?.username || '',
+          display_name: data.profiles?.display_name || '',
+          avatar: data.profiles?.avatar || null
         }
-      } catch (error) {
-        console.error('Erro ao curtir/descurtir comentário:', error);
-        throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['postComments', postId] });
+      };
+      
+      setComments([...comments, newComment]);
+      
+      toast({
+        title: "Comentário adicionado",
+        description: "Seu comentário foi publicado com sucesso."
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Erro ao criar comentário:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao publicar comentário",
+        description: "Não foi possível publicar seu comentário. Tente novamente."
+      });
+      return false;
     }
-  });
-
-  const query = useQuery({
-    queryKey: ['postComments', postId],
-    queryFn: fetchComments,
-    enabled: !!postId,
-    refetchOnWindowFocus: false,
-    throwOnError: false,
-  });
+  };
 
   return {
-    ...query,
-    comments: query.data || [],
-    createComment: createCommentMutation,
-    deleteComment: deleteCommentMutation,
-    likeComment: likeCommentMutation
+    comments,
+    isLoading,
+    currentUserId,
+    handleLikeComment,
+    handleDeleteComment,
+    handleSubmitComment
   };
 };

@@ -33,3 +33,5 @@ export interface Comment {
 export interface CommunityPost extends Post {
   user: User;
 }
+
+export type PostCategory = 'announcement' | 'event' | 'discussion' | 'collaboration' | 'question';
