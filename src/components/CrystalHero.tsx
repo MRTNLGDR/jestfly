@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import CrystalComponent from '../CrystalComponent';
-import { ModelParameters } from '../types/model';
-import { Calendar, ArrowDown } from 'lucide-react';
+import { ModelParameters, defaultModelParams } from '../types/model';
+import { Calendar } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
 import GlassAudioPlayer from './GlassAudioPlayer';
 import JestCoinTicker from './JestCoinTicker';
@@ -16,30 +16,8 @@ interface CrystalHeroProps {
 
 const CrystalHero: React.FC<CrystalHeroProps> = ({
   title = "JESTFLY",
-  subtitle = "FUTURE.TECH",
-  crystalParams = {
-    color: "#ffffff",
-    metalness: 0.1,
-    roughness: 0.0,
-    transmission: 0.98,
-    thickness: 0.5,
-    envMapIntensity: 2.5,
-    clearcoat: 1.0,
-    clearcoatRoughness: 0.0,
-    ior: 2.75,
-    reflectivity: 1.0,
-    iridescence: 0.3,
-    iridescenceIOR: 1.3,
-    lightIntensity: 2.0,
-    opacity: 0.9,
-    transparent: true,
-    emissiveIntensity: 0.2,
-    emissiveColor: "#8B5CF6",
-    aoMapIntensity: 1.0,
-    displacementScale: 0.1,
-    wireframe: false,
-    side: 'front',
-  },
+  subtitle = "Descubra efeitos de vidro hiper-realista",
+  crystalParams = defaultModelParams,
   className = "",
 }) => {
   const isMobile = useIsMobile();
@@ -65,20 +43,10 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] rounded-full bg-[#8B5CF6]/10 blur-[100px] animate-float z-10"></div>
       <div className="absolute bottom-[5%] left-[10%] w-[40vw] h-[40vw] rounded-full bg-[#4ade80]/10 blur-[100px] animate-float z-10" style={{ animationDelay: '-5s' }}></div>
       
-      {/* Main Title - Centered and above the crystal */}
-      <div className="relative z-30 text-center pt-10 sm:pt-16">
-        <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-br from-white via-purple-100 to-purple-300 glow-text">
-          {title}
-        </h1>
-        <p className="mt-2 text-lg sm:text-xl md:text-2xl text-white/80 font-light tracking-widest">
-          {subtitle}
-        </p>
-      </div>
-      
       {/* Side captions - hidden on mobile */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
-        <div className="glass-morphism-subtle p-3 rounded-lg mb-3">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1 text-white">BANGERS ONLY</h2>
+        <div className="p-3 rounded-lg mb-3">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">bangers only</h2>
           <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
             <p>IT'S ALWAYS TIME</p>
             <p>TO ENJOY</p>
@@ -87,7 +55,7 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       </div>
       
       <div className="absolute top-1/3 right-4 sm:right-8 z-30 text-right hidden md:block">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1 text-white">INSPIRED</h2>
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">inspired</h2>
         <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
           <p>FROM 10:00</p>
           <p>TO 19:00</p>
@@ -106,14 +74,6 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
       </div>
       
-      {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-30 text-center">
-        <div className="flex flex-col items-center animate-bounce opacity-70">
-          <span className="text-xs uppercase tracking-widest text-white/60 mb-2">Scroll para explorar</span>
-          <ArrowDown className="h-5 w-5 text-white/60" />
-        </div>
-      </div>
-      
       {/* Glassmorphism audio player - fixed in the corner */}
       <GlassAudioPlayer 
         isMinimized={isPlayerMinimized}
@@ -125,6 +85,11 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         <JestCoinTicker compact={true} />
       </div>
       
+      {/* Fuller JestCoin ticker at the bottom for all screen sizes */}
+      <div className="absolute bottom-16 left-0 right-0 flex justify-center z-30">
+        <JestCoinTicker />
+      </div>
+      
       {/* Footer information - simplified on mobile */}
       <div className="absolute bottom-6 left-0 right-0 px-4 sm:px-6 z-30 flex justify-between items-center text-xs text-white/70">
         <div className="flex items-center space-x-2">
@@ -132,7 +97,7 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
           <span className="text-xs">5/15/2023</span>
         </div>
         
-        <div className="hidden md:block uppercase">JESTFLY® ©2023</div>
+        <div className="hidden md:block uppercase">BUS® ©2023</div>
         
         <div className="hidden md:block">50°05'36.2"N 14°26'51.3"E</div>
       </div>

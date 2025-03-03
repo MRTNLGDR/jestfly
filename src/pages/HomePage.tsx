@@ -9,39 +9,15 @@ import ConnectionSection from '../components/ConnectionSection';
 import Footer from '../components/Footer';
 import { ModelParameters } from '../types/model';
 import ArtistShowcase from '../components/ArtistShowcase';
-import GlassHeader from '../components/GlassHeader';
 
 interface HomePageProps {
-  crystalParams?: Partial<ModelParameters>;
-  galleryImages?: Array<{
+  crystalParams: ModelParameters;
+  galleryImages: Array<{
     src: string;
     alt: string;
     crystalPosition: 'default' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
   }>;
 }
-
-const defaultGalleryImages = [
-  {
-    src: "/public/textures/environments/night.jpg",
-    alt: "Night cityscape with neon lights",
-    crystalPosition: 'top-right' as const
-  },
-  {
-    src: "/public/textures/environments/city.jpg",
-    alt: "Modern city architecture",
-    crystalPosition: 'bottom-left' as const
-  },
-  {
-    src: "/public/textures/environments/studio.jpg",
-    alt: "Music studio equipment",
-    crystalPosition: 'center' as const
-  },
-  {
-    src: "/public/textures/environments/sunset.jpg",
-    alt: "DJ performance at sunset",
-    crystalPosition: 'top-left' as const
-  }
-];
 
 const HomePage: React.FC<HomePageProps> = ({ 
   crystalParams = {
@@ -71,25 +47,11 @@ const HomePage: React.FC<HomePageProps> = ({
     roughnessMap: "",
     metalnessMap: "",
   }, 
-  galleryImages = defaultGalleryImages 
+  galleryImages 
 }) => {
-  // Menu items for the header
-  const menuItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Store', href: '/store' },
-    { label: 'Community', href: '/community' },
-    { label: 'Bookings', href: '/bookings' },
-    { label: 'Live', href: '/live-stream' },
-    { label: 'Demo', href: '/demo-submission' },
-    { label: 'Press', href: '/press-kit' },
-  ];
-
   return (
     <>
-      {/* Header */}
-      <GlassHeader menuItems={menuItems} />
-      
-      {/* Hero section with futuristic crystal */}
+      {/* Hero section with futuristic crystal and Nike-inspired layout */}
       <CrystalHero 
         title="JESTFLY" 
         subtitle="FUTURE.TECH"
@@ -100,12 +62,12 @@ const HomePage: React.FC<HomePageProps> = ({
       <div className="w-full bg-black py-4 border-t border-b border-white/10 overflow-hidden">
         <div className="marquee-container">
           <div className="marquee-content">
-            JESTFLY · MÚSICA · TECNOLOGIA · FUTURO · JESTFLY · MÚSICA · TECNOLOGIA · FUTURO · JESTFLY · MÚSICA · TECNOLOGIA · FUTURO
+            QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS . QUICK FACTS
           </div>
         </div>
       </div>
       
-      {/* Artist Showcase Section */}
+      {/* Artist Showcase Section - NEW */}
       <ArtistShowcase />
       
       {/* NFT Section */}
