@@ -8,23 +8,23 @@ import LogsTable from '@/components/logs/LogsTable';
 import LogsTabs from '@/components/logs/LogsTabs';
 import { useLogsData } from '@/hooks/useLogsData';
 
-const LogsPage: React.FC = () => {
+const LogsPage = () => {
   const { profile } = useAuth();
   
   // Check if user is admin or collaborator
   const isAdminOrCollaborator = profile?.profile_type === 'admin' || profile?.profile_type === 'collaborator';
   
   // Use our custom hook to fetch and manage logs data
-  const {
-    logs,
-    loading,
-    filters,
-    updateFilter,
-    handleSearch,
-    handleReset,
-    handleExport
+  const { 
+    logs, 
+    loading, 
+    filters, 
+    updateFilter, 
+    handleSearch, 
+    handleReset, 
+    handleExport 
   } = useLogsData(isAdminOrCollaborator);
-
+  
   // Render access denied message if not admin or collaborator
   if (!isAdminOrCollaborator) {
     return (
@@ -36,22 +36,22 @@ const LogsPage: React.FC = () => {
       </div>
     );
   }
-
+  
   return (
     <div className="container mx-auto py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white">Logs do Sistema</h1>
+        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white">
+          Logs do Sistema
+        </h1>
         
-        {/* Filters section */}
         <LogsFilter 
-          filters={filters}
+          filters={filters} 
           onUpdateFilter={updateFilter}
           onSearch={handleSearch}
           onReset={handleReset}
           onExport={handleExport}
         />
         
-        {/* Tabs and content */}
         <LogsTabs 
           activeTab={filters.activeTab} 
           onTabChange={(value) => updateFilter('activeTab', value)}

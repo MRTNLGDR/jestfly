@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LogsPage from '@/pages/LogsPage';
@@ -31,6 +30,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage {...homePageProps} />} />
         <Route path="/system/logs" element={<LogsPage />} />
+        <Route path="/admin/logs" element={<LogsPage />} />
         <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         {/* Adicionar outras rotas aqui conforme necessário */}
       </Routes>
