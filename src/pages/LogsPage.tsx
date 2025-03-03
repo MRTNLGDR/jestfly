@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { supabase } from '@/integrations/supabase/client';
@@ -97,17 +96,42 @@ const LogsPage: React.FC = () => {
       let filteredData = data || [];
       if (searchTerm) {
         const lowerSearchTerm = searchTerm.toLowerCase();
-        filteredData = filteredData.filter(log => 
-          log.action.toLowerCase().includes(lowerSearchTerm) ||
-          (log.profile && log.profile.username && log.profile.username.toLowerCase().includes(lowerSearchTerm)) ||
-          (log.profile && log.profile.display_name && log.profile.display_name.toLowerCase().includes(lowerSearchTerm)) ||
-          (log.entity_type && log.entity_type.toLowerCase().includes(lowerSearchTerm)) ||
-          (log.ip_address && log.ip_address.includes(searchTerm))
-        );
+        filteredData = filteredData.filter(log => {
+          // Verificação segura de propriedades aninhadas
+          const usernameMatch = log.profile && 
+            typeof log.profile === 'object' && 
+            'username' in log.profile && 
+            typeof log.profile.username === 'string' && 
+            log.profile.username.toLowerCase().includes(lowerSearchTerm);
+          
+          const displayNameMatch = log.profile && 
+            typeof log.profile === 'object' && 
+            'display_name' in log.profile && 
+            typeof log.profile.display_name === 'string' && 
+            log.profile.display_name.toLowerCase().includes(lowerSearchTerm);
+          
+          return log.action.toLowerCase().includes(lowerSearchTerm) ||
+            usernameMatch ||
+            displayNameMatch ||
+            (log.entity_type && log.entity_type.toLowerCase().includes(lowerSearchTerm)) ||
+            (log.ip_address && log.ip_address.includes(searchTerm));
+        });
       }
       
-      // TypeScript não sabe o formato exato, então fazemos um cast seguro
-      setLogs(filteredData as unknown as ActivityLog[]);
+      // Cast seguro - garantimos que o que está vindo tem a estrutura que esperamos
+      const safeData = filteredData.map(log => {
+        return {
+          ...log,
+          profile: log.profile && typeof log.profile === 'object' ? {
+            username: 'username' in log.profile ? log.profile.username : undefined,
+            display_name: 'display_name' in log.profile ? log.profile.display_name : undefined,
+            profile_type: 'profile_type' in log.profile ? log.profile.profile_type : undefined
+          } : undefined,
+          details: log.details as Record<string, any> | null
+        };
+      }) as ActivityLog[];
+      
+      setLogs(safeData);
     } catch (error) {
       console.error('Erro ao buscar logs:', error);
     } finally {

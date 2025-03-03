@@ -157,7 +157,6 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
           bio: data.bio,
           created_at: data.created_at,
           updated_at: data.updated_at,
-          last_login: data.last_login,
           wallet_address: data.wallet_address,
           roles: data.roles,
           permissions: data.permissions,
