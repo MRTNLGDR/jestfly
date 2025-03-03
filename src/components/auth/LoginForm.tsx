@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -96,6 +95,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     }
   };
 
+  const handleResetPassword = () => {
+    navigate('/reset-password');
+  };
+
   return (
     <Card className="bg-black/40 backdrop-blur-md border-white/10">
       <CardHeader>
@@ -122,7 +125,17 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="login-password" className="text-white">Senha</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="login-password" className="text-white">Senha</Label>
+              <Button 
+                type="button" 
+                variant="link" 
+                className="text-purple-400 hover:text-purple-300 p-0 h-auto"
+                onClick={handleResetPassword}
+              >
+                Esqueceu a senha?
+              </Button>
+            </div>
             <Input
               id="login-password"
               name="password"
