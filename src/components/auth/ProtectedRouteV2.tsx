@@ -84,12 +84,14 @@ const ProtectedRouteV2: React.FC<ProtectedRouteProps> = ({
   // Se requer autenticação mas o usuário não está autenticado,
   // redirecionar para a página de login
   if (!user || !profile) {
+    console.log('[ProtectedRouteV2] Usuário não autenticado, redirecionando para', redirectPath);
     return <Navigate to={redirectPath} state={{ from: location }} replace />;
   }
 
   // Se há um tipo de perfil específico requerido e o perfil do usuário não é esse tipo,
   // redirecionar para a página inicial
   if (requiredRole && profile.profile_type !== requiredRole) {
+    console.log(`[ProtectedRouteV2] Usuário não tem perfil requerido ${requiredRole}, redirecionando para /`);
     return <Navigate to="/" replace />;
   }
 
@@ -99,10 +101,12 @@ const ProtectedRouteV2: React.FC<ProtectedRouteProps> = ({
     allowedProfiles.length > 0 &&
     !allowedProfiles.includes(profile.profile_type as AllowedProfileTypes)
   ) {
+    console.log(`[ProtectedRouteV2] Perfil do usuário ${profile.profile_type} não está entre os permitidos ${allowedProfiles.join(', ')}, redirecionando para /`);
     return <Navigate to="/" replace />;
   }
 
   // Se tudo estiver ok, renderizar o conteúdo protegido
+  console.log(`[ProtectedRouteV2] Acesso permitido para perfil ${profile.profile_type}`);
   return <>{children}</>;
 };
 

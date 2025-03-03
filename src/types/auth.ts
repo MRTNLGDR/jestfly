@@ -1,4 +1,3 @@
-
 import { User, Session } from '@supabase/supabase-js';
 
 export interface ProfileData {
@@ -23,27 +22,15 @@ export interface SignUpUserData {
   profile_type: 'fan' | 'artist' | 'collaborator' | 'admin';
 }
 
-export interface AuthContextType {
+export type AuthContextType = {
   user: User | null;
-  session: Session | null;
   profile: ProfileData | null;
+  session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{
-    error: Error | null;
-    data: User | null;
-  }>;
-  signUp: (email: string, password: string, userData: SignUpUserData) => Promise<{
-    error: Error | null;
-    data: User | null;
-  }>;
+  signIn: (email: string, password: string) => Promise<{ data: any; error: Error | null }>;
+  signUp: (email: string, password: string, userData: SignUpUserData) => Promise<{ data: any; error: Error | null }>;
   signOut: () => Promise<void>;
-  updateProfile: (profileData: Partial<ProfileData>) => Promise<{
-    error: Error | null;
-    data: ProfileData | null;
-  }>;
-  uploadAvatar: (file: File) => Promise<{
-    error: Error | null;
-    avatarUrl: string | null;
-  }>;
-  refreshProfile: () => Promise<void>;
-}
+  updateProfile: (profileData: Partial<ProfileData>) => Promise<{ data: ProfileData | null; error: Error | null }>;
+  uploadAvatar: (file: File) => Promise<{ url: string | null; error: Error | null }>;
+  refreshProfile: () => Promise<boolean>;
+};

@@ -125,6 +125,36 @@ export class AuthService {
         };
       }
       
+      // Verificar se o email já está em uso
+      const { data: emailCheck } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
+        
+      if (emailCheck) {
+        return { 
+          data: null, 
+          error: new Error('Este email já está em uso'),
+          errorCode: 'EMAIL_IN_USE'
+        };
+      }
+      
+      // Verificar se o username já está em uso
+      const { data: usernameCheck } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', userData.username)
+        .single();
+        
+      if (usernameCheck) {
+        return { 
+          data: null, 
+          error: new Error('Este nome de usuário já está em uso'),
+          errorCode: 'USERNAME_IN_USE'
+        };
+      }
+      
       // Registrar usuário
       const { data, error } = await supabase.auth.signUp({ 
         email, 
@@ -205,10 +235,23 @@ export class AuthService {
    */
   static async getCurrentUser() {
     try {
+      console.log('[AuthService] Buscando usuário atual');
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return { user: null, profile: null };
       
+      if (!user) {
+        console.log('[AuthService] Nenhum usuário autenticado encontrado');
+        return { user: null, profile: null };
+      }
+      
+      console.log('[AuthService] Usuário encontrado, ID:', user.id);
       const profile = await this.fetchProfile(user.id);
+      
+      if (!profile) {
+        console.warn('[AuthService] Nenhum perfil encontrado para o usuário:', user.id);
+      } else {
+        console.log('[AuthService] Perfil encontrado, tipo:', profile.profile_type);
+      }
+      
       return { user, profile };
     } catch (error) {
       console.error('[AuthService] Erro ao obter usuário atual:', error);

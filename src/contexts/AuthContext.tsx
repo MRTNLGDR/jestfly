@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isLoading = loading || actionLoading || updating || uploading;
 
   // Combinar todos os valores para o context
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     profile,

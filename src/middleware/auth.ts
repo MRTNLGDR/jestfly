@@ -11,12 +11,23 @@ export const AuthMiddleware = {
    * Verifica se o usuário está autenticado
    */
   requireAuth: async (navigate: NavigateFunction): Promise<boolean> => {
-    const { user } = await AuthService.getCurrentUser();
-    if (!user) {
+    try {
+      console.log('[AuthMiddleware] Verificando autenticação do usuário');
+      const { user } = await AuthService.getCurrentUser();
+      
+      if (!user) {
+        console.log('[AuthMiddleware] Usuário não autenticado, redirecionando para /auth');
+        navigate('/auth');
+        return false;
+      }
+      
+      console.log('[AuthMiddleware] Usuário autenticado com sucesso');
+      return true;
+    } catch (error) {
+      console.error('[AuthMiddleware] Erro ao verificar autenticação:', error);
       navigate('/auth');
       return false;
     }
-    return true;
   },
 
   /**
@@ -26,19 +37,29 @@ export const AuthMiddleware = {
     profileType: string,
     navigate: NavigateFunction
   ): Promise<boolean> => {
-    const { user, profile } = await AuthService.getCurrentUser();
-    
-    if (!user || !profile) {
-      navigate('/auth');
-      return false;
-    }
-    
-    if (profile.profile_type !== profileType) {
+    try {
+      console.log(`[AuthMiddleware] Verificando perfil ${profileType}`);
+      const { user, profile } = await AuthService.getCurrentUser();
+      
+      if (!user || !profile) {
+        console.log('[AuthMiddleware] Usuário não autenticado ou sem perfil, redirecionando para /auth');
+        navigate('/auth');
+        return false;
+      }
+      
+      if (profile.profile_type !== profileType) {
+        console.log(`[AuthMiddleware] Usuário não tem perfil ${profileType}, redirecionando para /`);
+        navigate('/');
+        return false;
+      }
+      
+      console.log(`[AuthMiddleware] Usuário com perfil ${profileType} verificado com sucesso`);
+      return true;
+    } catch (error) {
+      console.error('[AuthMiddleware] Erro ao verificar tipo de perfil:', error);
       navigate('/');
       return false;
     }
-    
-    return true;
   },
 
   /**
@@ -48,40 +69,57 @@ export const AuthMiddleware = {
     allowedTypes: string[],
     navigate: NavigateFunction
   ): Promise<boolean> => {
-    const { user, profile } = await AuthService.getCurrentUser();
-    
-    if (!user || !profile) {
-      navigate('/auth');
-      return false;
-    }
-    
-    if (!allowedTypes.includes(profile.profile_type)) {
+    try {
+      console.log(`[AuthMiddleware] Verificando se usuário tem um dos perfis: ${allowedTypes.join(', ')}`);
+      const { user, profile } = await AuthService.getCurrentUser();
+      
+      if (!user || !profile) {
+        console.log('[AuthMiddleware] Usuário não autenticado ou sem perfil, redirecionando para /auth');
+        navigate('/auth');
+        return false;
+      }
+      
+      if (!allowedTypes.includes(profile.profile_type)) {
+        console.log(`[AuthMiddleware] Usuário com perfil ${profile.profile_type} não está entre os permitidos: ${allowedTypes.join(', ')}`);
+        navigate('/');
+        return false;
+      }
+      
+      console.log(`[AuthMiddleware] Usuário com perfil ${profile.profile_type} tem acesso permitido`);
+      return true;
+    } catch (error) {
+      console.error('[AuthMiddleware] Erro ao verificar tipos de perfil permitidos:', error);
       navigate('/');
       return false;
     }
-    
-    return true;
   },
 
   /**
    * Verifica se o usuário é proprietário do recurso
    */
   isResourceOwner: (userId: string, resourceUserId: string): boolean => {
-    return userId === resourceUserId;
+    const isOwner = userId === resourceUserId;
+    console.log(`[AuthMiddleware] Verificação de proprietário: ${isOwner ? 'É proprietário' : 'Não é proprietário'}`);
+    return isOwner;
   },
 
   /**
    * Verifica se o usuário é admin
    */
   isAdmin: (profile: ProfileData | null): boolean => {
-    return profile?.profile_type === 'admin';
+    const isAdmin = profile?.profile_type === 'admin';
+    console.log(`[AuthMiddleware] Verificação de admin: ${isAdmin ? 'É admin' : 'Não é admin'}`);
+    return isAdmin;
   },
 
   /**
    * Obtém os tipos de acesso do usuário com base no perfil
    */
   getUserAccessTypes: (profile: ProfileData | null): string[] => {
-    if (!profile) return [];
+    if (!profile) {
+      console.log('[AuthMiddleware] Sem perfil de usuário, retornando lista vazia de acessos');
+      return [];
+    }
     
     const access = ['user'];
     
@@ -100,6 +138,7 @@ export const AuthMiddleware = {
         break;
     }
     
+    console.log(`[AuthMiddleware] Tipos de acesso para perfil ${profile.profile_type}: ${access.join(', ')}`);
     return access;
   },
   
@@ -108,7 +147,9 @@ export const AuthMiddleware = {
    */
   hasAccess: (profile: ProfileData | null, requiredAccess: string): boolean => {
     const accessTypes = AuthMiddleware.getUserAccessTypes(profile);
-    return accessTypes.includes(requiredAccess);
+    const hasAccess = accessTypes.includes(requiredAccess);
+    console.log(`[AuthMiddleware] Verificação de acesso '${requiredAccess}': ${hasAccess ? 'Tem acesso' : 'Não tem acesso'}`);
+    return hasAccess;
   }
 };
 
