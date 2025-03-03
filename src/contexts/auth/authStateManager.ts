@@ -49,7 +49,7 @@ export const useAuthState = () => {
         // Cast profile_type to the expected union type
         const profileType = profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator';
         
-        // Parse preferences if it's a string (JSON)
+        // Prepare preferences - handle different possible types
         let preferences = profile.preferences;
         if (typeof preferences === 'string') {
           try {
@@ -60,17 +60,21 @@ export const useAuthState = () => {
           }
         }
         
-        // Transform preferences to match expected structure if it's not an object
-        if (preferences === null || typeof preferences !== 'object' || Array.isArray(preferences)) {
+        // Ensure preferences is an object
+        if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) {
           preferences = {};
         }
         
-        // Ensure social_links is properly typed as Record<string, string>
-        const socialLinks = profile.social_links 
-          ? (typeof profile.social_links === 'string' 
-             ? JSON.parse(profile.social_links) 
-             : profile.social_links) 
-          : {};
+        // Handle social_links - ensure it's an object
+        let socialLinks = profile.social_links || {};
+        if (typeof socialLinks === 'string') {
+          try {
+            socialLinks = JSON.parse(socialLinks);
+          } catch (e) {
+            console.error('Error parsing social_links JSON:', socialLinks);
+            socialLinks = {};
+          }
+        }
         
         // Create combined profile with roles
         const profileWithRoles = {

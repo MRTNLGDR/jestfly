@@ -24,7 +24,7 @@ export interface SupabaseProfileData {
   profile_type?: 'artist' | 'fan' | 'admin' | 'collaborator';
   avatar_url?: string;
   bio?: string;
-  social_links?: Record<string, string>;
+  social_links?: Record<string, string> | string;
   wallet_address?: string;
   created_at?: string;
   updated_at?: string;
@@ -34,7 +34,7 @@ export interface SupabaseProfileData {
     language?: string;
     currency?: string;
     [key: string]: any;
-  };
+  } | string | any;
   roles?: string[];
   [key: string]: any;
 }
@@ -59,13 +59,27 @@ export const createSupabaseUserData = (
     sms: false
   };
 
+  // Parse preferences if it's a string
+  let parsedPreferences: any = {};
+  if (profileData.preferences) {
+    if (typeof profileData.preferences === 'string') {
+      try {
+        parsedPreferences = JSON.parse(profileData.preferences);
+      } catch (e) {
+        console.error('Error parsing preferences:', e);
+      }
+    } else if (typeof profileData.preferences === 'object' && !Array.isArray(profileData.preferences)) {
+      parsedPreferences = profileData.preferences;
+    }
+  }
+
   // Get existing notifications or empty object
-  const existingNotifications = 
-    profileData.preferences?.notifications && 
-    typeof profileData.preferences.notifications === 'object' && 
-    !Array.isArray(profileData.preferences.notifications)
-      ? profileData.preferences.notifications 
-      : {};
+  let existingNotifications: Record<string, boolean> = {};
+  if (parsedPreferences.notifications && 
+      typeof parsedPreferences.notifications === 'object' && 
+      !Array.isArray(parsedPreferences.notifications)) {
+    existingNotifications = parsedPreferences.notifications;
+  }
 
   // Merge profile notifications with defaults to ensure required properties
   const notificationsWithDefaults = {
@@ -84,10 +98,24 @@ export const createSupabaseUserData = (
   // Use profile preferences or default if not available
   const preferences = {
     ...defaultPreferences,
-    ...(profileData.preferences || {}),
+    ...(parsedPreferences || {}),
     // Always ensure notifications are properly structured
     notifications: notificationsWithDefaults
   };
+  
+  // Parse social links if needed
+  let socialLinks: Record<string, string> = {};
+  if (profileData.social_links) {
+    if (typeof profileData.social_links === 'string') {
+      try {
+        socialLinks = JSON.parse(profileData.social_links);
+      } catch (e) {
+        console.error('Error parsing social links:', e);
+      }
+    } else if (typeof profileData.social_links === 'object') {
+      socialLinks = profileData.social_links;
+    }
+  }
   
   // Create a new User object with data from Supabase
   const user: User = {
@@ -98,7 +126,7 @@ export const createSupabaseUserData = (
     profileType: profileData.profile_type || 'fan',
     avatar: profileData.avatar_url,
     bio: profileData.bio,
-    socialLinks: profileData.social_links || {},
+    socialLinks: socialLinks,
     walletAddress: profileData.wallet_address,
     createdAt: profileData.created_at ? new Date(profileData.created_at) : new Date(),
     updatedAt: profileData.updated_at ? new Date(profileData.updated_at) : new Date(),
@@ -133,15 +161,18 @@ export const prepareUserDataForSupabase = (userData: Partial<User>): Record<stri
     result.profile_type = userData.profileType;
   }
   
-  // Copy fields with the same name
-  const directMappedFields = [
-    'username', 'bio', 'social_links', 'wallet_address', 'preferences'
-  ];
+  if (userData.walletAddress !== undefined) {
+    result.wallet_address = userData.walletAddress;
+  }
   
-  directMappedFields.forEach(field => {
-    const appField = field === 'social_links' ? 'socialLinks' : field;
-    if (userData[appField as keyof Partial<User>] !== undefined) {
-      result[field] = userData[appField as keyof Partial<User>];
+  if (userData.socialLinks !== undefined) {
+    result.social_links = userData.socialLinks;
+  }
+  
+  // Copy fields with the same name
+  ['username', 'bio', 'preferences'].forEach(field => {
+    if (userData[field as keyof Partial<User>] !== undefined) {
+      result[field] = userData[field as keyof Partial<User>];
     }
   });
   
