@@ -1,49 +1,91 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, firestore } from '../../firebase/config';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { supabase } from '../../integrations/supabase/client';
 import { User } from '../../models/User';
-import { onAuthStateChanged } from 'firebase/auth';
 import { AuthContextType } from './types';
-import { loginUser, loginWithGoogleProvider, registerUser, logoutUser, resetUserPassword } from './authMethods';
+import { toast } from 'sonner';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
   const [userData, setUserData] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      
-      if (user) {
-        // Fetch user data from Firestore
-        try {
-          const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserData(userDoc.data() as User);
-          }
-        } catch (err) {
-          console.error("Error fetching user data:", err);
+    // Get initial session
+    const getInitialSession = async () => {
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setCurrentUser(session?.user || null);
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
         }
-      } else {
-        setUserData(null);
+      } catch (err: any) {
+        console.error("Error checking session:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-    });
+    };
 
-    return unsubscribe;
+    getInitialSession();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setCurrentUser(session?.user || null);
+        
+        if (session?.user) {
+          await fetchUserProfile(session.user.id);
+        } else {
+          setUserData(null);
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setUserData(data as User);
+      }
+    } catch (err: any) {
+      console.error("Error fetching user profile:", err);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
       setError(null);
-      await loginUser(email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email, password
+      });
+      
+      if (error) throw error;
+      
+      // User data is handled in the auth state change listener
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -53,7 +95,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async () => {
     try {
       setError(null);
-      await loginWithGoogleProvider();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) throw error;
+      
+      // User data is handled in the auth state change listener
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -63,7 +114,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, userData: Partial<User>) => {
     try {
       setError(null);
-      await registerUser(email, password, userData);
+      
+      // Create the user in Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            displayName: userData.displayName,
+            username: userData.username,
+            profileType: userData.profileType
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      // User profile will be created by the database trigger when a new user is added
+      // But if we want to add additional data, we can do so here
+      if (data.user) {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          email,
+          displayName: userData.displayName,
+          username: userData.username,
+          profileType: userData.profileType || 'fan',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastLogin: new Date(),
+          isVerified: false,
+          twoFactorEnabled: false,
+          preferences: {
+            theme: 'dark',
+            notifications: {},
+            language: 'en',
+            currency: 'USD'
+          }
+        });
+      }
+      
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -72,7 +161,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      await logoutUser();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUserData(null);
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -82,7 +173,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string) => {
     try {
       setError(null);
-      await resetUserPassword(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Instruções de recuperação de senha enviadas para seu email');
     } catch (err: any) {
       setError(err.message);
       throw err;
@@ -98,7 +195,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     resetPassword,
     loading,
-    error
+    error,
+    session
   };
 
   return (

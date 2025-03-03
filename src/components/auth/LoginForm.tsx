@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/auth'; // Updated path
+import { useAuth } from '../../contexts/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -26,11 +26,11 @@ export const LoginForm: React.FC = () => {
       toast.success('Login realizado com sucesso!');
       navigate('/profile');
     } catch (error: any) {
-      if (error.code === 'auth/invalid-credential') {
+      if (error.message.includes('Invalid login credentials')) {
         toast.error('Email ou senha inválidos. Tente novamente.');
-      } else if (error.code === 'auth/invalid-email') {
+      } else if (error.message.includes('Invalid email')) {
         toast.error('Formato de email inválido. Verifique o e-mail e tente novamente.');
-      } else if (error.code === 'auth/too-many-requests') {
+      } else if (error.message.includes('too many requests')) {
         toast.error('Muitas tentativas de login. Tente novamente mais tarde ou recupere sua senha.');
       } else {
         toast.error(error.message || 'Falha ao realizar login');
@@ -45,12 +45,10 @@ export const LoginForm: React.FC = () => {
     setGoogleSubmitting(true);
     try {
       await loginWithGoogle();
-      toast.success('Login realizado com sucesso!');
-      navigate('/profile');
+      // Redirect happens automatically via auth state change
     } catch (error: any) {
       console.error('Erro no login com Google:', error);
       toast.error(error.message || 'Falha ao realizar login com Google');
-    } finally {
       setGoogleSubmitting(false);
     }
   };

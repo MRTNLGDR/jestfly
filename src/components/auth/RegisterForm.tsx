@@ -64,10 +64,9 @@ export const RegisterForm: React.FC = () => {
     setIsSubmitting(true);
     try {
       await loginWithGoogle();
-      navigate('/profile');
+      // Redirect happens automatically via auth state change
     } catch (error: any) {
       toast.error(error.message || 'Failed to register with Google');
-    } finally {
       setIsSubmitting(false);
     }
   };
