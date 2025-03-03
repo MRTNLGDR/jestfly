@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from "../../ui/button";
-import { Mail, User, Lock, AtSign } from 'lucide-react';
-import { FormField } from './FormField';
+import { CredentialsSection } from './CredentialsSection';
 import { ProfileTypeSelector } from './ProfileTypeSelector';
 import { AdminCodeField } from './AdminCodeField';
 import { SocialLoginOptions } from './SocialLoginOptions';
+import { SubmitButton } from './SubmitButton';
 import { RegisterFormData } from './types';
 import { supabaseAuthService } from '../../../contexts/auth/supabaseAuthService';
 
@@ -47,54 +46,9 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <FormField
-        name="email"
-        type="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="seu@email.com"
-        label="Email"
-        icon={Mail}
-      />
-      
-      <FormField
-        name="displayName"
-        type="text"
-        value={formData.displayName}
-        onChange={handleChange}
-        placeholder="Seu Nome"
-        label="Nome de Exibição"
-        icon={User}
-      />
-      
-      <FormField
-        name="username"
-        type="text"
-        value={formData.username}
-        onChange={handleChange}
-        placeholder="usuario"
-        label="Nome de Usuário"
-        icon={AtSign}
-      />
-      
-      <FormField
-        name="password"
-        type="password"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder="••••••••"
-        label="Senha"
-        icon={Lock}
-      />
-      
-      <FormField
-        name="confirmPassword"
-        type="password"
-        value={formData.confirmPassword}
-        onChange={handleChange}
-        placeholder="••••••••"
-        label="Confirmar Senha"
-        icon={Lock}
+      <CredentialsSection 
+        formData={formData}
+        handleChange={handleChange}
       />
       
       <ProfileTypeSelector
@@ -108,13 +62,7 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
         show={showAdminField}
       />
       
-      <Button 
-        type="submit" 
-        disabled={isSubmitting} 
-        className="w-full bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 group"
-      >
-        {isSubmitting ? 'Criando Conta...' : 'Cadastrar'}
-      </Button>
+      <SubmitButton isSubmitting={isSubmitting} />
       
       <SocialLoginOptions
         onGoogleLogin={handleGoogleRegister}

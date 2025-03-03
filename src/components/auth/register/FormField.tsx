@@ -12,6 +12,7 @@ interface FormFieldProps {
   label: string;
   required?: boolean;
   icon: LucideIcon;
+  headerComponent?: React.ReactNode;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -22,14 +23,19 @@ export const FormField: React.FC<FormFieldProps> = ({
   placeholder,
   label,
   required = true,
-  icon: Icon
+  icon: Icon,
+  headerComponent
 }) => {
   return (
     <div className="space-y-2">
-      <div className="flex items-center">
-        <Icon className="w-4 h-4 mr-2 text-purple-500" />
-        <label className="text-sm font-medium text-zinc-300">{label}</label>
-      </div>
+      {headerComponent ? (
+        headerComponent
+      ) : (
+        <div className="flex items-center">
+          <Icon className="w-4 h-4 mr-2 text-purple-500" />
+          <label className="text-sm font-medium text-zinc-300">{label}</label>
+        </div>
+      )}
       <div className="relative">
         <Input
           type={type}
