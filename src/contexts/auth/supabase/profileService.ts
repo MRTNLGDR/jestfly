@@ -19,13 +19,18 @@ export const fetchUserProfile = async (userId: string): Promise<User | null> => 
       displayName: data.display_name,
       username: data.username,
       profileType: data.profile_type,
-      socialLinks: data.social_links || {},
+      socialLinks: data.social_links ? data.social_links as User['socialLinks'] : {},
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       lastLogin: new Date(data.last_login),
       isVerified: data.is_verified,
       twoFactorEnabled: data.two_factor_enabled,
-      preferences: data.preferences
+      preferences: data.preferences ? data.preferences as User['preferences'] : {
+        theme: 'dark',
+        notifications: {},
+        language: 'en',
+        currency: 'USD'
+      }
     };
   } catch (error: any) {
     console.error('Error fetching user profile:', error);
@@ -62,13 +67,18 @@ export const updateUserProfile = async (userId: string, updates: Partial<User>):
       displayName: data.display_name,
       username: data.username,
       profileType: data.profile_type,
-      socialLinks: data.social_links || {},
+      socialLinks: data.social_links ? data.social_links as User['socialLinks'] : {},
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       lastLogin: new Date(data.last_login),
       isVerified: data.is_verified,
       twoFactorEnabled: data.two_factor_enabled,
-      preferences: data.preferences
+      preferences: data.preferences ? data.preferences as User['preferences'] : {
+        theme: 'dark',
+        notifications: {},
+        language: 'en',
+        currency: 'USD'
+      }
     };
   } catch (error: any) {
     console.error('Error updating user profile:', error);

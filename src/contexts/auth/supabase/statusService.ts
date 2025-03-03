@@ -36,3 +36,9 @@ export const subscribeToAuthChanges = (
   
   return subscription;
 };
+
+export const checkGoogleAuthEnabled = async (): Promise<boolean> => {
+  // Em um cenário real, poderíamos verificar isso nas configurações do sistema
+  // Por enquanto, vamos assumir que o login com Google está sempre ativado
+  return true;
+};

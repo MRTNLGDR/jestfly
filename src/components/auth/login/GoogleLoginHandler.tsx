@@ -1,8 +1,53 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
+import { isGoogleAuthEnabled } from '../../../contexts/auth/supabase';
+
+export const useGoogleAuth = () => {
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { loginWithGoogle } = useAuth();
+
+  useEffect(() => {
+    // Verifique se o login do Google está habilitado
+    const checkGoogleAuth = async () => {
+      try {
+        const enabled = await isGoogleAuthEnabled();
+        setIsGoogleEnabled(enabled);
+      } catch (error) {
+        console.error("Erro ao verificar o status do Google Auth:", error);
+        setIsGoogleEnabled(false);
+      }
+    };
+
+    checkGoogleAuth();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    if (!isGoogleEnabled) {
+      toast.error("Autenticação do Google não está configurada");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await loginWithGoogle();
+      // O redirecionamento acontecerá automaticamente via mudança de estado de autenticação
+    } catch (error: any) {
+      toast.error(error.message || "Falha ao fazer login com o Google");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return {
+    isGoogleEnabled,
+    isSubmitting,
+    handleGoogleLogin
+  };
+};
 
 const GoogleLoginHandler: React.FC = () => {
   const navigate = useNavigate();
