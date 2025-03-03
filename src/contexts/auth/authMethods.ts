@@ -127,28 +127,35 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
       username: data.username,
       profileType: data.profile_type,
       // Usar valores opcionais apenas se existirem no banco de dados
-      // ou definir valores padrão apropriados
       avatar: data.avatar || undefined,
       bio: data.bio || undefined,
       // Garantir que social_links seja tratado como um objeto
-      socialLinks: typeof data.social_links === 'object' ? data.social_links : {},
+      socialLinks: typeof data.social_links === 'object' ? 
+        (data.social_links as Record<string, unknown>) as User['socialLinks'] : 
+        {},
       walletAddress: data.wallet_address || undefined,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       lastLogin: data.last_login ? new Date(data.last_login) : new Date(),
       isVerified: data.is_verified || false,
       twoFactorEnabled: data.two_factor_enabled || false,
-      // Definir valores padrão para campos que não existem na tabela profiles
-      permissions: [],
-      roles: [],
-      preferences: typeof data.preferences === 'object' 
-        ? data.preferences 
-        : {
-            theme: 'dark' as const,
-            notifications: {},
-            language: 'pt' as const,
-            currency: 'BRL' as const
-          }
+      // Definir valores para campos que podem não existir na tabela profiles
+      permissions: Array.isArray(data.permissions) ? data.permissions : [],
+      roles: Array.isArray(data.roles) ? data.roles : [],
+      // Garantir que preferences tenha o formato correto
+      preferences: typeof data.preferences === 'object' ? 
+        {
+          theme: ((data.preferences as any)?.theme || 'dark') as 'light' | 'dark' | 'system',
+          notifications: (data.preferences as any)?.notifications || {},
+          language: ((data.preferences as any)?.language || 'pt') as 'en' | 'pt' | 'es' | 'fr',
+          currency: ((data.preferences as any)?.currency || 'BRL') as 'USD' | 'EUR' | 'BRL' | 'JEST'
+        } : 
+        {
+          theme: 'dark' as const,
+          notifications: {},
+          language: 'pt' as const,
+          currency: 'BRL' as const
+        }
     };
     
     return userData;

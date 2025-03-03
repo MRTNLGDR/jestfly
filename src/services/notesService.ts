@@ -18,9 +18,12 @@ export const notesService = {
         title: note.title,
         content: note.content,
         tags: note.tags || [],
+        links: note.links || [],
         createdAt: new Date(note.created_at),
         updatedAt: new Date(note.updated_at),
-        userId: note.user_id
+        userId: note.user_id,
+        isPinned: note.is_pinned || false,
+        isArchived: note.is_archived || false
       }));
     } catch (error) {
       console.error('Error fetching notes:', error);
@@ -38,6 +41,9 @@ export const notesService = {
             title: note.title,
             content: note.content,
             tags: note.tags,
+            links: note.links,
+            is_pinned: note.isPinned,
+            is_archived: note.isArchived,
             updated_at: new Date().toISOString()
           })
           .eq('id', note.id)
@@ -45,7 +51,19 @@ export const notesService = {
           .single();
           
         if (error) throw error;
-        return data;
+        
+        return {
+          id: data.id,
+          title: data.title,
+          content: data.content,
+          tags: data.tags || [],
+          links: data.links || [],
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at),
+          userId: data.user_id,
+          isPinned: data.is_pinned || false,
+          isArchived: data.is_archived || false
+        };
       } else {
         // Create new note
         const { data, error } = await supabase
@@ -54,6 +72,9 @@ export const notesService = {
             title: note.title,
             content: note.content,
             tags: note.tags,
+            links: note.links,
+            is_pinned: note.isPinned,
+            is_archived: note.isArchived,
             user_id: note.userId,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -62,7 +83,19 @@ export const notesService = {
           .single();
           
         if (error) throw error;
-        return data;
+        
+        return {
+          id: data.id,
+          title: data.title,
+          content: data.content,
+          tags: data.tags || [],
+          links: data.links || [],
+          createdAt: new Date(data.created_at),
+          updatedAt: new Date(data.updated_at),
+          userId: data.user_id,
+          isPinned: data.is_pinned || false,
+          isArchived: data.is_archived || false
+        };
       }
     } catch (error) {
       console.error('Error saving note:', error);

@@ -1,6 +1,7 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
+import { useAuth } from '../contexts/auth';
+import { toast } from 'sonner';
 
 // Mock data for demonstration
 const mockUserData = {
@@ -31,6 +32,15 @@ const ProfilePage: React.FC = () => {
     website: "music.example.com",
     avatarUrl: "/assets/imagem1.jpg"
   });
+
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      toast.error('You are not logged in.');
+      logout();
+    }
+  }, [user, logout]);
 
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -284,7 +294,6 @@ const ProfilePage: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    {/* Add more placeholder NFTs */}
                     {[1, 2, 3, 4, 5, 6].map(item => (
                       <div key={`placeholder-${item}`} className="bg-white/5 rounded-lg overflow-hidden opacity-30 hover:opacity-40 transition-opacity">
                         <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
