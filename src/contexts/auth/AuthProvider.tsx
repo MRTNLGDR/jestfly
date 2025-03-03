@@ -1,12 +1,19 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, firestore } from '../../firebase/config';
 import { User } from '../../models/User';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthContextType } from './types';
-import { loginUser, registerUser, logoutUser, resetUserPassword } from './authMethods';
+import { 
+  loginUser, 
+  registerUser, 
+  logoutUser, 
+  resetUserPassword,
+  updateUserProfile,
+  fetchUserData
+} from './authMethods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -15,6 +22,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Computed properties for user roles
+  const isAdmin = useMemo(() => {
+    return userData?.profileType === 'admin';
+  }, [userData]);
+
+  const isArtist = useMemo(() => {
+    return userData?.profileType === 'artist';
+  }, [userData]);
+
+  // Function to check if user has specific permission
+  const hasPermission = (requiredPermission: 'admin' | 'artist' | 'fan' | 'collaborator' | string[]) => {
+    if (!userData) return false;
+    
+    // If requiredPermission is an array, check if user has any of the permissions
+    if (Array.isArray(requiredPermission)) {
+      return requiredPermission.includes(userData.profileType);
+    }
+    
+    // If single permission, direct check
+    return userData.profileType === requiredPermission;
+  };
+
+  // Function to refresh user data from Firestore
+  const refreshUserData = async () => {
+    if (!currentUser) return;
+    
+    try {
+      const refreshedData = await fetchUserData(currentUser.uid);
+      if (refreshedData) {
+        setUserData(refreshedData);
+      }
+    } catch (err) {
+      console.error("Error refreshing user data:", err);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -79,6 +122,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (data: Partial<User>) => {
+    if (!currentUser || !userData) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    try {
+      await updateUserProfile(currentUser.uid, data);
+      // Update local user data
+      setUserData(prev => prev ? { ...prev, ...data } : null);
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    }
+  };
+
   const value = {
     currentUser,
     userData,
@@ -87,7 +145,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     resetPassword,
     loading,
-    error
+    error,
+    updateProfile,
+    refreshUserData,
+    isAdmin,
+    isArtist,
+    hasPermission
   };
 
   return (

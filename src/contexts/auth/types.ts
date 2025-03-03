@@ -11,4 +11,9 @@ export interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  updateProfile: (data: Partial<User>) => Promise<void>;
+  refreshUserData: () => Promise<void>;
+  isAdmin: boolean;
+  isArtist: boolean;
+  hasPermission: (requiredPermission: 'admin' | 'artist' | 'fan' | 'collaborator' | string[]) => boolean;
 }

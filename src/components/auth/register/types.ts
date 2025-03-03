@@ -5,7 +5,7 @@ export interface RegisterFormData {
   confirmPassword: string;
   displayName: string;
   username: string;
-  profileType: 'fan' | 'artist' | 'collaborator';
+  profileType: ProfileType;
 }
 
-export type ProfileType = 'fan' | 'artist' | 'collaborator';
+export type ProfileType = 'fan' | 'artist' | 'collaborator' | 'admin';

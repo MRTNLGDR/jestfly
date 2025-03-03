@@ -20,6 +20,8 @@ export interface User {
   lastLogin: Date;
   isVerified: boolean;
   twoFactorEnabled: boolean;
+  permissions?: string[];
+  roles?: string[];
   preferences: {
     theme: 'light' | 'dark' | 'system';
     notifications: any;
@@ -27,3 +29,14 @@ export interface User {
     currency: 'USD' | 'EUR' | 'BRL' | 'JEST';
   };
 }
+
+export const DEFAULT_USER_PREFERENCES = {
+  theme: 'dark' as const,
+  language: 'pt' as const,
+  currency: 'BRL' as const,
+  notifications: {
+    email: true,
+    push: true,
+    sms: false
+  }
+};

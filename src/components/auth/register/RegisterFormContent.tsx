@@ -19,39 +19,39 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
   isSubmitting
 }) => {
   return (
-    <form className="space-y-4">
+    <div className="space-y-4">
       <FormField
         label="Email"
         name="email"
         type="email"
-        placeholder="your@email.com"
+        placeholder="seu@email.com"
         value={formData.email}
         onChange={handleChange}
         disabled={isSubmitting}
       />
       
       <FormField
-        label="Display Name"
+        label="Nome de Exibição"
         name="displayName"
         type="text"
-        placeholder="Your Name"
+        placeholder="Seu Nome"
         value={formData.displayName}
         onChange={handleChange}
         disabled={isSubmitting}
       />
       
       <FormField
-        label="Username"
+        label="Nome de Usuário"
         name="username"
         type="text"
-        placeholder="username"
+        placeholder="nome_de_usuario"
         value={formData.username}
         onChange={handleChange}
         disabled={isSubmitting}
       />
       
       <FormField
-        label="Password"
+        label="Senha"
         name="password"
         type="password"
         placeholder="••••••••"
@@ -61,7 +61,7 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
       />
       
       <FormField
-        label="Confirm Password"
+        label="Confirmar Senha"
         name="confirmPassword"
         type="password"
         placeholder="••••••••"
@@ -77,6 +77,6 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
       />
       
       <SubmitButton isSubmitting={isSubmitting} />
-    </form>
+    </div>
   );
 };

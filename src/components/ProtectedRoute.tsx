@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
@@ -13,7 +14,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requiredRoles = []
 }) => {
-  const { currentUser, userData, loading } = useAuth();
+  const { currentUser, userData, loading, hasPermission } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -28,8 +29,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // If specific roles are required and user doesn't have the required role
-  if (requireAuth && requiredRoles.length > 0 && userData && 
-      !requiredRoles.includes(userData.profileType)) {
+  if (requireAuth && requiredRoles.length > 0 && !hasPermission(requiredRoles)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
