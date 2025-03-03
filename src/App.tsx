@@ -21,6 +21,11 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
 import ResetPasswordConfirmPage from '@/pages/ResetPasswordConfirmPage';
 import MainLayout from '@/components/layout/MainLayout';
+import DashboardPage from '@/pages/DashboardPage';
+import SettingsPage from '@/pages/SettingsPage';
+import NotificationsPage from '@/pages/NotificationsPage';
+import AnalyticsPage from '@/pages/AnalyticsPage';
+import ModerationPage from '@/pages/ModerationPage';
 import './App.css';
 
 // Dados de amostra para homepage
@@ -83,6 +88,43 @@ function App() {
             <Route path="/admin/login" element={<AdminAuthPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
+            
+            {/* Novas páginas do sistema */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute requireAuth={true}>
+                <DashboardPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/settings" element={
+              <ProtectedRoute requireAuth={true}>
+                <SettingsPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/notifications" element={
+              <ProtectedRoute requireAuth={true}>
+                <NotificationsPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/analytics" element={
+              <ProtectedRoute 
+                requireAuth={true}
+                allowedProfiles={['artist', 'admin']}
+              >
+                <AnalyticsPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/moderation" element={
+              <ProtectedRoute 
+                requireAuth={true}
+                allowedProfiles={['admin', 'collaborator']}
+              >
+                <ModerationPage />
+              </ProtectedRoute>
+            } />
             
             {/* Rotas protegidas por autenticação (qualquer usuário logado) */}
             <Route path="/profile" element={
