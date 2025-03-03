@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -11,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 import Loading from '@/components/ui/loading';
 import { Navigate } from 'react-router-dom';
-import { User, Shield, Bell, Lock, Palette, Globe } from 'lucide-react';
+import { User, Shield, Bell, Lock, Palette, Globe, Users, Activity } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {
   const { profile, loading, updateProfile } = useAuth();
@@ -20,7 +19,6 @@ const SettingsPage: React.FC = () => {
   
   const [updating, setUpdating] = useState(false);
   
-  // Estados para os diferentes formulários
   const [profileData, setProfileData] = useState({
     display_name: '',
     username: '',
@@ -38,7 +36,6 @@ const SettingsPage: React.FC = () => {
     }
   });
   
-  // Carregar dados do perfil quando disponíveis
   React.useEffect(() => {
     if (profile) {
       setProfileData({
@@ -136,7 +133,6 @@ const SettingsPage: React.FC = () => {
     );
   }
   
-  // Redirecionar se não estiver autenticado
   if (!profile) {
     return <Navigate to="/auth" replace />;
   }
