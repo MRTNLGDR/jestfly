@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Shield } from 'lucide-react';
-import { FormField } from './FormField';
+import { Input } from "../../ui/input";
 
 interface AdminCodeFieldProps {
   value: string;
@@ -13,14 +12,20 @@ export const AdminCodeField: React.FC<AdminCodeFieldProps> = ({ value, onChange,
   if (!show) return null;
   
   return (
-    <FormField
-      name="adminCode"
-      type="password"
-      value={value}
-      onChange={onChange}
-      placeholder="Insira o código de administrador"
-      label="Código de Administrador"
-      icon={Shield}
-    />
+    <div className="space-y-2">
+      <label className="text-sm font-medium text-zinc-300">Código de Admin</label>
+      <Input
+        type="text"
+        name="adminCode"
+        placeholder="Código de administrador"
+        value={value}
+        onChange={onChange}
+        required
+        className="bg-zinc-900/60 border-zinc-800 text-white"
+      />
+      <p className="text-xs text-zinc-500 italic">
+        Para contas de administrador, é necessário um código de autorização.
+      </p>
+    </div>
   );
 };

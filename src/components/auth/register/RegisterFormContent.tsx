@@ -1,20 +1,20 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
 import { CredentialsSection } from './CredentialsSection';
 import { ProfileTypeSelector } from './ProfileTypeSelector';
 import { AdminCodeField } from './AdminCodeField';
-import { SocialLoginOptions } from './SocialLoginOptions';
 import { SubmitButton } from './SubmitButton';
+import { SocialLoginOptions } from './SocialLoginOptions';
 import { RegisterFormData } from './types';
-import { supabaseAuthService } from '../../../contexts/auth/supabaseAuthService';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
-import { Link } from "react-router-dom";
+import { ProfileType } from './constants';
 
-export interface RegisterFormContentProps {
+interface RegisterFormContentProps {
   formData: RegisterFormData;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleProfileTypeChange: (value: 'fan' | 'artist' | 'collaborator' | 'admin') => void;
-  handleSubmit: (e: React.FormEvent) => void;
+  handleProfileTypeChange: (value: ProfileType) => void;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
   handleGoogleRegister: () => Promise<void>;
   isSubmitting: boolean;
   showAdminField: boolean;
@@ -29,25 +29,8 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
   isSubmitting,
   showAdminField
 }) => {
-  const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
-
-  // Verificar se o Google Auth está habilitado
-  useEffect(() => {
-    const checkGoogleAuth = async () => {
-      try {
-        const enabled = await supabaseAuthService.isGoogleAuthEnabled();
-        setIsGoogleEnabled(enabled);
-      } catch (error) {
-        console.error("Erro ao verificar status do Google Auth:", error);
-        setIsGoogleEnabled(false);
-      }
-    };
-    
-    checkGoogleAuth();
-  }, []);
-
   return (
-    <Card className="w-full max-w-md mx-auto bg-black/30 backdrop-blur-md border border-zinc-800">
+    <Card className="w-full max-w-md mx-auto glass-morphism">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center text-white">Criar Conta</CardTitle>
         <CardDescription className="text-center text-zinc-400">
@@ -58,11 +41,11 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <CredentialsSection 
             formData={formData}
-            handleChange={handleChange}
+            onChange={handleChange}
           />
           
           <ProfileTypeSelector
-            selectedType={formData.profileType}
+            value={formData.profileType}
             onChange={handleProfileTypeChange}
           />
           
@@ -73,13 +56,12 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
           />
           
           <SubmitButton isSubmitting={isSubmitting} />
-          
-          <SocialLoginOptions
-            onGoogleLogin={handleGoogleRegister}
-            isSubmitting={isSubmitting}
-            isGoogleEnabled={isGoogleEnabled}
-          />
         </form>
+        
+        <SocialLoginOptions
+          onGoogleLogin={handleGoogleRegister}
+          isSubmitting={isSubmitting}
+        />
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-zinc-400">

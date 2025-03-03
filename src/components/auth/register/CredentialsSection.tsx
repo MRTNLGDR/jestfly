@@ -1,80 +1,59 @@
 
 import React from 'react';
 import { FormField } from './FormField';
-import { Mail, User, AtSign, Lock } from 'lucide-react';
-import { 
-  EmailHeader, 
-  DisplayNameHeader, 
-  UsernameHeader, 
-  PasswordHeader, 
-  ConfirmPasswordHeader 
-} from './FormHeader';
 import { RegisterFormData } from './types';
 
 interface CredentialsSectionProps {
   formData: RegisterFormData;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const CredentialsSection: React.FC<CredentialsSectionProps> = ({
-  formData,
-  handleChange
-}) => {
+export const CredentialsSection: React.FC<CredentialsSectionProps> = ({ formData, onChange }) => {
   return (
     <>
       <FormField
+        label="Email"
         name="email"
         type="email"
-        value={formData.email}
-        onChange={handleChange}
         placeholder="seu@email.com"
-        label="Email"
-        icon={Mail}
-        headerComponent={<EmailHeader />}
+        value={formData.email}
+        onChange={onChange}
       />
       
       <FormField
+        label="Nome de Exibição"
         name="displayName"
         type="text"
-        value={formData.displayName}
-        onChange={handleChange}
         placeholder="Seu Nome"
-        label="Nome de Exibição"
-        icon={User}
-        headerComponent={<DisplayNameHeader />}
+        value={formData.displayName}
+        onChange={onChange}
       />
       
       <FormField
-        name="username"
-        type="text"
-        value={formData.username}
-        onChange={handleChange}
-        placeholder="usuario"
         label="Nome de Usuário"
-        icon={AtSign}
-        headerComponent={<UsernameHeader />}
+        name="username" 
+        type="text"
+        placeholder="usuario"
+        value={formData.username}
+        onChange={onChange}
       />
       
       <FormField
+        label="Senha"
         name="password"
         type="password"
-        value={formData.password}
-        onChange={handleChange}
         placeholder="••••••••"
-        label="Senha"
-        icon={Lock}
-        headerComponent={<PasswordHeader />}
+        value={formData.password}
+        onChange={onChange}
       />
       
       <FormField
+        label="Confirmar Senha"
         name="confirmPassword"
         type="password"
-        value={formData.confirmPassword}
-        onChange={handleChange}
         placeholder="••••••••"
-        label="Confirmar Senha"
-        icon={Lock}
-        headerComponent={<ConfirmPasswordHeader />}
+        value={formData.confirmPassword}
+        onChange={onChange}
       />
     </>
   );

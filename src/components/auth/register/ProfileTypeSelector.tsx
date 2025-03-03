@@ -2,38 +2,24 @@
 import React from 'react';
 import { RadioGroup, RadioGroupItem } from "../../ui/radio-group";
 import { Label } from "../../ui/label";
-import { Shield } from 'lucide-react';
-import { ProfileTypeOption } from './types';
+import { PROFILE_TYPES, ProfileType } from './constants';
 
 interface ProfileTypeSelectorProps {
-  selectedType: 'fan' | 'artist' | 'collaborator' | 'admin';
-  onChange: (value: 'fan' | 'artist' | 'collaborator' | 'admin') => void;
+  value: ProfileType;
+  onChange: (value: ProfileType) => void;
 }
 
-export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({ 
-  selectedType, 
-  onChange 
-}) => {
-  // Removendo a opção 'admin' da lista de tipos de perfil disponíveis
-  const profileTypes: ProfileTypeOption[] = [
-    { value: 'fan', label: 'Fã' },
-    { value: 'artist', label: 'Artista' },
-    { value: 'collaborator', label: 'Profissional' }
-  ];
-
+export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({ value, onChange }) => {
   return (
     <div className="space-y-2">
-      <div className="flex items-center mb-2">
-        <Shield className="w-4 h-4 mr-2 text-purple-500" />
-        <label className="text-sm font-medium text-zinc-300">Tipo de Conta</label>
-      </div>
+      <label className="text-sm font-medium text-zinc-300">Tipo de Conta</label>
       <RadioGroup 
-        value={selectedType} 
-        onValueChange={(value: any) => onChange(value)}
-        className="grid grid-cols-2 gap-2"
+        value={value} 
+        onValueChange={(value: ProfileType) => onChange(value)}
+        className="flex space-x-4"
       >
-        {profileTypes.map((type) => (
-          <div key={type.value} className="flex items-center space-x-2 bg-zinc-900/40 border border-zinc-800 p-2 rounded-md">
+        {PROFILE_TYPES.map((type) => (
+          <div key={type.value} className="flex items-center space-x-2">
             <RadioGroupItem value={type.value} id={type.value} className="border-zinc-600" />
             <Label htmlFor={type.value} className="text-zinc-300">{type.label}</Label>
           </div>

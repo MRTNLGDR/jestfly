@@ -92,29 +92,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (rolesError) {
         console.error('Error fetching roles:', rolesError);
       }
+      
+      // Type assertion for profile_type
+      const profileType = profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator';
+      
+      // Type assertion for social_links
+      const socialLinks: User['socialLinks'] = profile.social_links || {};
+      
+      // Type assertion for preferences
+      const preferences: User['preferences'] = profile.preferences || {
+        theme: 'dark' as const,
+        notifications: { email: true, push: true, sms: false },
+        language: 'pt',
+        currency: 'BRL',
+      };
 
       // Map Supabase profile to user data format
       const user: User = {
         id: profile.id,
-        email: '', // Supabase doesn't expose email in profiles
+        email: profile.email || '',
         displayName: profile.full_name,
         username: profile.username,
-        profileType: profile.profile_type,
+        profileType,
         avatar: profile.avatar_url,
         bio: profile.bio,
-        socialLinks: profile.social_links || {},
+        socialLinks,
         walletAddress: profile.wallet_address,
         createdAt: new Date(profile.created_at),
         updatedAt: new Date(profile.updated_at),
         lastLogin: new Date(),
         isVerified: true, // Assuming verified if we have the profile
         twoFactorEnabled: false,
-        preferences: profile.preferences || {
-          theme: 'dark',
-          notifications: { email: true, push: true, sms: false },
-          language: 'pt',
-          currency: 'BRL',
-        },
+        preferences,
         roles: roles?.map(r => r.role) || []
       };
 
@@ -201,11 +210,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Verificar se é cadastro de admin e validar código
       if (userData.profileType === 'admin' && userData.adminCode) {
         // Verificar o código admin antes do registro
-        const { data: codeValid } = await supabase.rpc('check_admin_code', {
+        const { data: codeValid, error } = await supabase.rpc('verify_admin_code', {
           admin_code: userData.adminCode
         });
         
-        if (!codeValid) {
+        if (error || !codeValid) {
           throw new Error('Código de administrador inválido ou já utilizado');
         }
       }
