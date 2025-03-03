@@ -126,23 +126,29 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
       displayName: data.display_name,
       username: data.username,
       profileType: data.profile_type,
-      avatar: data.avatar,
-      bio: data.bio,
-      socialLinks: data.social_links || {},
-      walletAddress: data.wallet_address,
+      // Usar valores opcionais apenas se existirem no banco de dados
+      // ou definir valores padrão apropriados
+      avatar: data.avatar || undefined,
+      bio: data.bio || undefined,
+      // Garantir que social_links seja tratado como um objeto
+      socialLinks: typeof data.social_links === 'object' ? data.social_links : {},
+      walletAddress: data.wallet_address || undefined,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
       lastLogin: data.last_login ? new Date(data.last_login) : new Date(),
       isVerified: data.is_verified || false,
       twoFactorEnabled: data.two_factor_enabled || false,
-      permissions: data.permissions || [],
-      roles: data.roles || [],
-      preferences: data.preferences || {
-        theme: 'dark',
-        notifications: {},
-        language: 'pt',
-        currency: 'BRL'
-      }
+      // Definir valores padrão para campos que não existem na tabela profiles
+      permissions: [],
+      roles: [],
+      preferences: typeof data.preferences === 'object' 
+        ? data.preferences 
+        : {
+            theme: 'dark' as const,
+            notifications: {},
+            language: 'pt' as const,
+            currency: 'BRL' as const
+          }
     };
     
     return userData;
