@@ -48,7 +48,7 @@ const EventsPage = () => {
           onClick={handleNextStep}
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg font-medium flex items-center transition-colors"
         >
-          Próximo Passo <ArrowRight className="ml-2 h-5 w-5" />
+          Next Step <ArrowRight className="ml-2 h-5 w-5" />
         </button>
       </div>
     </div>
