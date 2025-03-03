@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -12,7 +13,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { login, register } = useAuth();
+  const { signIn, signUp } = useAuth();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,13 +22,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     
     try {
       if (isLogin) {
-        await login(email, password);
+        const { error } = await signIn(email, password);
+        if (error) throw error;
       } else {
-        await register(email, password, {
-          displayName: email.split('@')[0],
-          username: email.split('@')[0],
-          profileType: 'fan'
-        });
+        const { error } = await signUp(email, password);
+        if (error) throw error;
       }
       
       if (onSuccess) onSuccess();

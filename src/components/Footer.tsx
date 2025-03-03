@@ -1,11 +1,12 @@
 
 import React from 'react';
+import { Diamond, Globe, Github, Twitter, Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
     <footer className="bg-black relative overflow-hidden">
+      {/* Decorative top border */}
       <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
       
       <div className="container mx-auto py-16 px-4">
@@ -82,15 +83,11 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Terms</a>
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
-            
-            <Link to="/admin" className="text-zinc-400/50 hover:text-white/60 transition-colors flex items-center">
-              <Lock className="h-3 w-3 mr-1 opacity-50" />
-              <span className="text-[10px]">Admin</span>
-            </Link>
           </div>
         </div>
       </div>
       
+      {/* Decorative elements */}
       <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-900/10 rounded-full blur-[100px]"></div>
       <div className="absolute top-20 right-0 w-60 h-60 bg-blue-900/10 rounded-full blur-[100px]"></div>
     </footer>

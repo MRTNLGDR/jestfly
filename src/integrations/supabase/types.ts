@@ -90,45 +90,6 @@ export type Database = {
         }
         Relationships: []
       }
-      notes: {
-        Row: {
-          content: string | null
-          created_at: string
-          id: string
-          is_archived: boolean | null
-          is_pinned: boolean | null
-          links: string[] | null
-          tags: string[] | null
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          content?: string | null
-          created_at?: string
-          id?: string
-          is_archived?: boolean | null
-          is_pinned?: boolean | null
-          links?: string[] | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          content?: string | null
-          created_at?: string
-          id?: string
-          is_archived?: boolean | null
-          is_pinned?: boolean | null
-          links?: string[] | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       order_items: {
         Row: {
           created_at: string
@@ -272,60 +233,39 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar: string | null
+          avatar_url: string | null
           bio: string | null
           created_at: string
-          display_name: string
-          email: string
+          full_name: string | null
           id: string
-          is_verified: boolean | null
-          last_login: string | null
-          permissions: string[] | null
           preferences: Json | null
-          profile_type: Database["public"]["Enums"]["profile_type"]
-          roles: string[] | null
           social_links: Json | null
-          two_factor_enabled: boolean | null
           updated_at: string
-          username: string
+          username: string | null
           wallet_address: string | null
         }
         Insert: {
-          avatar?: string | null
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          display_name: string
-          email: string
+          full_name?: string | null
           id: string
-          is_verified?: boolean | null
-          last_login?: string | null
-          permissions?: string[] | null
           preferences?: Json | null
-          profile_type?: Database["public"]["Enums"]["profile_type"]
-          roles?: string[] | null
           social_links?: Json | null
-          two_factor_enabled?: boolean | null
           updated_at?: string
-          username: string
+          username?: string | null
           wallet_address?: string | null
         }
         Update: {
-          avatar?: string | null
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
-          display_name?: string
-          email?: string
+          full_name?: string | null
           id?: string
-          is_verified?: boolean | null
-          last_login?: string | null
-          permissions?: string[] | null
           preferences?: Json | null
-          profile_type?: Database["public"]["Enums"]["profile_type"]
-          roles?: string[] | null
           social_links?: Json | null
-          two_factor_enabled?: boolean | null
           updated_at?: string
-          username?: string
+          username?: string | null
           wallet_address?: string | null
         }
         Relationships: []
@@ -435,6 +375,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -453,7 +417,6 @@ export type Database = {
       model_type: "diamond" | "sphere" | "torus" | "crystal" | "sketchfab"
       press_role: "journalist" | "blogger" | "editor" | "podcaster" | "other"
       product_type: "nft" | "music" | "merch" | "collectible"
-      profile_type: "fan" | "artist" | "admin" | "collaborator"
     }
     CompositeTypes: {
       [_ in never]: never

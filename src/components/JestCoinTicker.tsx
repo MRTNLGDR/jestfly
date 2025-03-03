@@ -34,14 +34,14 @@ const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact
   if (compact) {
     // Compact ticker for smaller spaces
     return (
-      <Link to="/airdrop" className={`inline-flex items-center px-3 py-1 rounded-full bg-gradient-to-r from-black/80 to-black/30 backdrop-blur-md border border-yellow-500/30 hover:border-yellow-500/50 transition-all ${className}`}>
+      <Link to="/airdrop" className={`inline-flex items-center px-3 py-1 rounded-full bg-black/30 backdrop-blur-sm border border-yellow-500/30 hover:border-yellow-500/70 transition-all ${className}`}>
         <div className="mr-2 relative">
           <GoldCoin3D size={24} />
         </div>
-        <span className="font-mono text-xs font-bold text-yellow-100">
+        <span className="font-mono text-xs text-yellow-100">
           ${price.toFixed(4)}
         </span>
-        <span className={`ml-1 text-xs ${isIncreasing ? 'text-green-400' : 'text-red-400'}`}>
+        <span className={`ml-1 text-xs ${isIncreasing ? 'text-green-500' : 'text-red-500'}`}>
           {isIncreasing ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
         </span>
       </Link>
@@ -50,24 +50,24 @@ const JestCoinTicker: React.FC<JestCoinTickerProps> = ({ className = "", compact
   
   // Full ticker with more details
   return (
-    <Link to="/airdrop" className={`group flex items-center p-3 rounded-lg bg-gradient-to-br from-black/80 to-zinc-900/50 backdrop-blur-xl border border-yellow-500/20 hover:border-yellow-500/40 transition-all shadow-lg ${className}`}>
-      <div className="w-12 h-12 relative mr-4 flex items-center justify-center">
+    <Link to="/airdrop" className={`group flex items-center p-2 rounded-lg bg-black/30 backdrop-blur-sm border border-yellow-500/30 hover:border-yellow-500/70 transition-all ${className}`}>
+      <div className="w-12 h-12 relative mr-3 flex items-center justify-center">
         <GoldCoin3D size={48} />
       </div>
       
       <div>
         <div className="flex items-center">
           <span className="font-mono font-bold text-yellow-100">${price.toFixed(4)}</span>
-          <span className={`ml-2 text-xs flex items-center ${isIncreasing ? 'text-green-400' : 'text-red-400'}`}>
+          <span className={`ml-2 text-xs flex items-center ${isIncreasing ? 'text-green-500' : 'text-red-500'}`}>
             {isIncreasing ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
             {Math.abs(change)}%
           </span>
         </div>
-        <div className="text-xs text-yellow-100/60 font-medium">JestCoin</div>
+        <div className="text-xs text-yellow-100/60">JestCoin</div>
       </div>
       
-      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span className="text-xs font-semibold bg-gradient-to-r from-yellow-400 to-amber-500 bg-clip-text text-transparent px-2 py-1 rounded border border-yellow-500/20">AIRDROP</span>
+      <div className="ml-auto mr-2 opacity-40 group-hover:opacity-100 transition-opacity">
+        <span className="text-xs text-yellow-100">AIRDROP</span>
       </div>
     </Link>
   );

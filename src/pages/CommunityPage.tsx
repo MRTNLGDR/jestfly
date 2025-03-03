@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Footer from '../components/Footer';
 import CommunityNav from '../components/community/CommunityNav';
@@ -9,23 +9,6 @@ import GiveawaysPage from '../components/community/GiveawaysPage';
 import JestFlyersHubPage from '../components/community/JestFlyersHubPage';
 
 const CommunityPage: React.FC = () => {
-  const [isLoaded, setIsLoaded] = useState(false);
-  
-  useEffect(() => {
-    // Mark as loaded as soon as the component mounts
-    setIsLoaded(true);
-    
-    // Log for diagnostics
-    console.log("CommunityPage mounted successfully");
-    
-    return () => {
-      console.log("CommunityPage unmounted");
-    };
-  }, []);
-
-  // If we have rendering problems, we can see in the console
-  console.log("Rendering CommunityPage, loaded:", isLoaded);
-
   return (
     <div className="min-h-screen bg-black text-white pt-20">
       {/* Community Nav */}

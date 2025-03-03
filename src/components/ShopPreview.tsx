@@ -2,8 +2,6 @@
 import React from 'react';
 import { Music, Package, Diamond, Sparkles, ShoppingCart } from 'lucide-react';
 import { Card, CardContent } from './ui/card';
-import { Badge } from './ui/badge';
-import { useLanguage } from '../contexts/LanguageContext';
 
 interface ShopCategory {
   id: string;
@@ -11,44 +9,37 @@ interface ShopCategory {
   description: string;
   icon: React.ReactNode;
   color: string;
-  paymentMethods: ('money' | 'jestcoin' | 'both')[];
 }
 
 const ShopPreview: React.FC = () => {
-  const { t, formatCurrency } = useLanguage();
-  
   const categories: ShopCategory[] = [
     {
       id: 'cat1',
       name: 'NFTs',
       description: 'Limited edition digital collectibles with blockchain verification.',
       icon: <Diamond className="h-6 w-6" />,
-      color: 'from-purple-600 to-purple-900',
-      paymentMethods: ['jestcoin', 'both']
+      color: 'from-purple-600 to-purple-900'
     },
     {
       id: 'cat2',
       name: 'Music',
       description: 'Exclusive tracks, albums and unreleased content from JESTFLY.',
       icon: <Music className="h-6 w-6" />,
-      color: 'from-blue-600 to-blue-900',
-      paymentMethods: ['money', 'jestcoin', 'both']
+      color: 'from-blue-600 to-blue-900'
     },
     {
       id: 'cat3',
       name: 'Merchandise',
       description: 'Official branded clothing and accessories from the collection.',
       icon: <Package className="h-6 w-6" />,
-      color: 'from-cyan-600 to-cyan-900',
-      paymentMethods: ['money', 'both']
+      color: 'from-cyan-600 to-cyan-900'
     },
     {
       id: 'cat4',
       name: 'Collectibles',
       description: 'Rare physical items and limited edition memorabilia.',
       icon: <Sparkles className="h-6 w-6" />,
-      color: 'from-pink-600 to-pink-900',
-      paymentMethods: ['jestcoin']
+      color: 'from-pink-600 to-pink-900'
     }
   ];
 
@@ -65,7 +56,7 @@ const ShopPreview: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center mb-12">
           <div>
             <h2 className="text-3xl md:text-5xl font-bold mb-3 tracking-tighter">
-              EXPLORE <span className="text-gradient-primary">{t('shop.title').toUpperCase()}</span>
+              EXPLORE <span className="text-gradient-primary">SHOP</span>
             </h2>
             <p className="text-white/70 max-w-md">
               Discover our unique collection of digital and physical products.
@@ -75,7 +66,7 @@ const ShopPreview: React.FC = () => {
           <div className="mt-6 md:mt-0">
             <button className="group flex items-center space-x-2 px-5 py-2.5 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors">
               <ShoppingCart className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium uppercase">{t('shop.browseAll')}</span>
+              <span className="text-sm font-medium uppercase">Browse All</span>
               <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center group-hover:scale-110 transition-transform">
                 <span className="text-black font-bold text-xs">→</span>
               </div>
@@ -100,24 +91,6 @@ const ShopPreview: React.FC = () => {
                 <p className="text-white/60 text-sm mb-6 flex-grow">
                   {category.description}
                 </p>
-                
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {category.paymentMethods.includes('jestcoin') && (
-                    <Badge variant="outline" className="bg-yellow-900/20 text-yellow-400 border-yellow-700/40">
-                      JestCoin (J$C)
-                    </Badge>
-                  )}
-                  {category.paymentMethods.includes('money') && (
-                    <Badge variant="outline" className="bg-green-900/20 text-green-400 border-green-700/40">
-                      {t('currency.' + useLanguage().currency)}
-                    </Badge>
-                  )}
-                  {category.paymentMethods.includes('both') && (
-                    <Badge variant="outline" className="bg-blue-900/20 text-blue-400 border-blue-700/40">
-                      Flexible
-                    </Badge>
-                  )}
-                </div>
                 
                 <div className="flex justify-between items-center mt-auto">
                   <div className="text-xs text-white/50 uppercase tracking-wider">

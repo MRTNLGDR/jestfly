@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
 import CrystalHero from '../components/CrystalHero';
 import CrystalGallery from '../components/CrystalGallery';
 import NFTSection from '../components/NFTSection';
@@ -68,7 +67,7 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </div>
       
-      {/* Artist Showcase Section */}
+      {/* Artist Showcase Section - NEW */}
       <ArtistShowcase />
       
       {/* NFT Section */}
