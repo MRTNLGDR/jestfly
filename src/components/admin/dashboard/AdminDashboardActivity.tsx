@@ -22,22 +22,21 @@ const AdminDashboardActivity: React.FC = () => {
       
       if (error) throw error;
       
-      const safeData = (data || []).map(log => {
-        // Tratamento seguro do objeto profile
-        const profile = log.profile as Record<string, any> | null;
-        
-        return {
-          ...log,
-          profile: profile ? {
-            username: typeof profile.username === 'string' ? profile.username : undefined,
-            display_name: typeof profile.display_name === 'string' ? profile.display_name : undefined,
-            profile_type: typeof profile.profile_type === 'string' ? profile.profile_type : undefined
-          } : null,
-          details: log.details as Record<string, any> | null
-        };
-      }) as ActivityLog[];
+      // Transform data to match ActivityLog interface
+      const transformedData = data?.map(log => ({
+        ...log,
+        timestamp: log.created_at, // Map created_at to timestamp for compatibility
+        profile: log.profile as {
+          username?: string;
+          display_name?: string;
+          profile_type?: string;
+        } | null,
+        details: log.details as Record<string, any> | null,
+        user_display_name: log.profile ? (log.profile as any).display_name : undefined,
+        user_email: undefined // We don't have this in the query
+      })) || [];
       
-      return safeData;
+      return transformedData as ActivityLog[];
     }
   });
 
@@ -67,7 +66,7 @@ const AdminDashboardActivity: React.FC = () => {
                       )}
                     </div>
                     <div className="text-sm text-white/70 mt-1">
-                      {log.profile?.display_name || log.user_id}
+                      {log.profile?.display_name || log.user_display_name || log.user_id}
                       {log.profile && log.profile.username && (
                         <span className="text-white/50"> (@{log.profile.username})</span>
                       )}
@@ -79,7 +78,7 @@ const AdminDashboardActivity: React.FC = () => {
                     )}
                   </div>
                   <div className="text-xs text-white/50">
-                    {formatLogDate(log.created_at)}
+                    {formatLogDate(log.timestamp || log.created_at || '')}
                   </div>
                 </div>
                 {log.ip_address && (

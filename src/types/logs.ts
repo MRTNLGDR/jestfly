@@ -5,12 +5,20 @@ export interface ActivityLog {
   action: string;
   entity_type?: string;
   entity_id?: string;
+  // Add created_at field to match Supabase data structure
+  created_at?: string;
   timestamp: string;
   success: boolean;
   ip_address?: string;
   details?: Record<string, any>;
   user_email?: string;
   user_display_name?: string;
+  // Add profile field to match Supabase joined data
+  profile?: {
+    username?: string;
+    display_name?: string;
+    profile_type?: string;
+  };
 }
 
 // Log interface used in LogsPage
@@ -59,7 +67,11 @@ export const getActionColor = (action: string): string => {
   return 'text-blue-400';
 };
 
-export const getLogEntityDescription = (entityType?: string, entityId?: string): string => {
+// Update this function to accept ActivityLog instead of just entity strings
+export const getLogEntityDescription = (log: ActivityLog | { entity_type?: string, entity_id?: string }): string => {
+  const entityType = log.entity_type;
+  const entityId = log.entity_id;
+  
   if (!entityType) return 'Sistema';
   
   switch (entityType) {
