@@ -1,88 +1,122 @@
 
-import { User } from "../../models/User";
+/**
+ * Utilities for transforming user data between Supabase and app data models
+ */
+
+import { User } from '../../models/User';
 
 /**
- * Transforms Supabase user data to application User model
- * @param authUser The authenticated user data from Supabase
- * @param profile The user profile data from Supabase profiles table
- * @returns Formatted User object for the application
+ * Interface representing a Supabase auth user
+ */
+interface SupabaseAuthUser {
+  email: string;
+  email_confirmed_at?: string | null;
+  [key: string]: any;
+}
+
+/**
+ * Interface representing Supabase profile data
+ */
+interface SupabaseProfileData {
+  id: string;
+  username?: string;
+  full_name?: string;
+  profile_type?: string;
+  avatar_url?: string;
+  bio?: string;
+  social_links?: Record<string, string>;
+  wallet_address?: string;
+  created_at?: string;
+  updated_at?: string;
+  preferences?: {
+    theme?: 'light' | 'dark' | 'system';
+    notifications?: Record<string, boolean>;
+    language?: string;
+    currency?: string;
+    [key: string]: any;
+  };
+  roles?: string[];
+  [key: string]: any;
+}
+
+/**
+ * Transform Supabase user data into the app's User model
+ * @param supabaseUser The user data from Supabase auth
+ * @param profileData The profile data from Supabase profiles table
+ * @returns A user object conforming to the app's User model
  */
 export const createSupabaseUserData = (
-  authUser: any, 
-  profile: any
+  supabaseUser: SupabaseAuthUser,
+  profileData: SupabaseProfileData
 ): User => {
-  // Process socialLinks
-  const socialLinks: User['socialLinks'] = typeof profile.social_links === 'object' 
-    ? profile.social_links 
-    : {};
-
-  // Process preferences with proper defaults
-  const preferences: User['preferences'] = typeof profile.preferences === 'object'
-    ? {
-        theme: ((profile.preferences as any)?.theme || 'dark') as 'light' | 'dark' | 'system',
-        notifications: {
-          email: Boolean((profile.preferences as any)?.notifications?.email || true),
-          push: Boolean((profile.preferences as any)?.notifications?.push || true),
-          sms: Boolean((profile.preferences as any)?.notifications?.sms || false)
-        },
-        language: (profile.preferences as any)?.language || 'pt',
-        currency: (profile.preferences as any)?.currency || 'BRL'
-      }
-    : {
-        theme: 'dark' as const,
-        notifications: { email: true, push: true, sms: false },
-        language: 'pt',
-        currency: 'BRL'
-      };
-
-  // Map Supabase profile to User model
-  return {
-    id: profile.id,
-    email: authUser.email || '',
-    username: profile.username || '',
-    displayName: profile.full_name || authUser.email?.split('@')[0] || '',
-    profileType: (profile.profile_type || 'fan') as 'artist' | 'fan' | 'admin' | 'collaborator',
-    createdAt: new Date(profile.created_at || Date.now()),
-    updatedAt: new Date(profile.updated_at || Date.now()),
+  // Extract the username from email if not provided
+  const usernameFromEmail = supabaseUser.email?.split('@')[0] || '';
+  
+  // Create a new User object with data from Supabase
+  const user: User = {
+    id: profileData.id,
+    email: supabaseUser.email,
+    displayName: profileData.full_name || usernameFromEmail,
+    username: profileData.username || usernameFromEmail,
+    profileType: (profileData.profile_type as User['profileType']) || 'fan',
+    avatar: profileData.avatar_url,
+    bio: profileData.bio,
+    socialLinks: profileData.social_links || {},
+    walletAddress: profileData.wallet_address,
+    createdAt: profileData.created_at ? new Date(profileData.created_at) : new Date(),
+    updatedAt: profileData.updated_at ? new Date(profileData.updated_at) : new Date(),
     lastLogin: new Date(),
-    isVerified: Boolean(authUser.email_confirmed_at),
+    isVerified: !!supabaseUser.email_confirmed_at,
     twoFactorEnabled: false,
-    socialLinks,
-    preferences,
-    avatar: profile.avatar_url,
-    bio: profile.bio,
-    walletAddress: profile.wallet_address,
-    roles: Array.isArray(profile.roles) ? profile.roles : []
+    preferences: {
+      theme: profileData.preferences?.theme || 'system',
+      notifications: {
+        email: profileData.preferences?.notifications?.email ?? true,
+        push: profileData.preferences?.notifications?.push ?? true,
+        sms: profileData.preferences?.notifications?.sms ?? false,
+      },
+      language: profileData.preferences?.language || 'en',
+      currency: profileData.preferences?.currency || 'USD',
+      ...profileData.preferences,
+    },
+    roles: profileData.roles || [],
   };
+  
+  return user;
 };
 
 /**
- * Prepares user data for updating in Supabase
- * @param userData User data to transform for Supabase
- * @returns Formatted data for Supabase update
+ * Transform app User model to Supabase profile format for updates
+ * @param userData User data from the app's User model
+ * @returns Object formatted for Supabase profile updates
  */
-export const prepareUserDataForSupabase = (userData: Partial<User>) => {
-  // Prepare the data structure for Supabase profiles table
-  const profileData: Record<string, any> = {};
+export const prepareUserDataForSupabase = (userData: Partial<User>): Record<string, any> => {
+  const result: Record<string, any> = {};
   
-  if (userData.username !== undefined) profileData.username = userData.username;
-  if (userData.displayName !== undefined) profileData.full_name = userData.displayName;
-  if (userData.profileType !== undefined) profileData.profile_type = userData.profileType;
-  if (userData.bio !== undefined) profileData.bio = userData.bio;
-  if (userData.avatar !== undefined) profileData.avatar_url = userData.avatar;
-  if (userData.walletAddress !== undefined) profileData.wallet_address = userData.walletAddress;
-  
-  // Handle complex objects that need to be stored as JSON
-  if (userData.socialLinks) {
-    profileData.social_links = userData.socialLinks;
+  // Map fields with different names
+  if (userData.displayName !== undefined) {
+    result.full_name = userData.displayName;
   }
   
-  if (userData.preferences) {
-    profileData.preferences = userData.preferences;
+  if (userData.avatar !== undefined) {
+    result.avatar_url = userData.avatar;
   }
   
-  // Add updated timestamp
-  profileData.updated_at = new Date().toISOString();
+  if (userData.profileType !== undefined) {
+    result.profile_type = userData.profileType;
+  }
   
-  return profileData;
+  // Copy fields with the same name
+  const directMappedFields = [
+    'username', 'bio', 'social_links', 'wallet_address', 'preferences'
+  ];
+  
+  directMappedFields.forEach(field => {
+    const appField = field === 'social_links' ? 'socialLinks' : field;
+    if (userData[appField as keyof Partial<User>] !== undefined) {
+      result[field] = userData[appField as keyof Partial<User>];
+    }
+  });
+  
+  return result;
 };
