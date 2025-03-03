@@ -1,26 +1,24 @@
 
 import { useState, useEffect } from 'react';
-import { User as FirebaseUser } from 'firebase/auth';
-import { auth, firestore } from '../../firebase/config';
-import { User } from '../../models/User';
-import { doc, getDoc } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
+import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../../integrations/supabase/client';
-import { createSupabaseUserData, SupabaseAuthUser } from './userDataTransformer';
+import { User as AppUser } from '../../models/User';
+import { createSupabaseUserData } from './userDataTransformer';
 
 /**
- * Custom hook to manage authentication state
+ * Hook personalizado para gerenciar o estado da autenticação
  */
 export const useAuthState = () => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Function to fetch user data from Supabase
+  // Função para buscar dados do usuário do Supabase
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetch user profile
+      // Buscar perfil do usuário
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -28,28 +26,28 @@ export const useAuthState = () => {
         .single();
 
       if (profileError) {
-        console.error('Error fetching profile:', profileError);
+        console.error('Erro ao buscar perfil:', profileError);
         return;
       }
 
-      // Fetch user roles
+      // Buscar roles do usuário
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId);
 
       if (rolesError) {
-        console.error('Error fetching roles:', rolesError);
+        console.error('Erro ao buscar roles:', rolesError);
       }
       
-      // Get email from auth session
+      // Obter email da sessão
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!profile || !session?.user) {
         return;
       }
       
-      // Parse preferences and social_links if they are strings
+      // Converter campos JSON se necessário
       const parsedPreferences = typeof profile.preferences === 'string' 
         ? JSON.parse(profile.preferences) 
         : (profile.preferences || {});
@@ -58,21 +56,17 @@ export const useAuthState = () => {
         ? JSON.parse(profile.social_links)
         : (profile.social_links || {});
       
-      // Create combined profile with roles
+      // Criar perfil completo com roles
       const profileWithRoles = {
         ...profile,
-        // Make sure profile_type is properly typed as expected by SupabaseProfileData
         profile_type: (profile.profile_type || 'fan') as 'artist' | 'fan' | 'admin' | 'collaborator',
-        // Use parsed preferences
         preferences: parsedPreferences,
-        // Use parsed social_links
         social_links: parsedSocialLinks,
-        // Add roles
         roles: roles?.map(r => r.role) || []
       };
       
-      // Transform data to User model
-      const supabaseAuthUser: SupabaseAuthUser = {
+      // Transformar dados para o modelo User da aplicação
+      const supabaseAuthUser = {
         email: session.user.email || '',
         email_confirmed_at: session.user.email_confirmed_at
       };
@@ -84,22 +78,28 @@ export const useAuthState = () => {
 
       setUserData(user);
     } catch (err) {
-      console.error("Error fetching user data from Supabase:", err);
+      console.error("Erro ao buscar dados do usuário do Supabase:", err);
     }
   };
 
   useEffect(() => {
-    // Get initial session
+    // Obter sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
       if (session?.user) {
+        setUser(session.user);
         fetchUserData(session.user.id);
       }
+      setLoading(false);
     });
 
-    // Listen for auth changes
+    // Ouvir mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Supabase auth event:', event);
+        console.log('Evento de autenticação Supabase:', event);
+        
+        setSession(session);
+        setUser(session?.user || null);
         
         if (session?.user) {
           fetchUserData(session.user.id);
@@ -111,29 +111,10 @@ export const useAuthState = () => {
       }
     );
 
-    // Also handle Firebase auth for backward compatibility
-    const unsubscribeFirebase = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      
-      if (user && !userData) {
-        try {
-          const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserData(userDoc.data() as User);
-          }
-        } catch (err) {
-          console.error("Error fetching user data from Firebase:", err);
-        }
-      }
-      
-      setLoading(false);
-    });
-
     return () => {
       subscription.unsubscribe();
-      unsubscribeFirebase();
     };
-  }, [userData]);
+  }, []);
 
-  return { currentUser, userData, setUserData, loading, error, setError };
+  return { session, user, userData, setUserData, loading, error, setError };
 };

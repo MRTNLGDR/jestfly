@@ -2,39 +2,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAuthState } from '../authStateManager';
-import { auth, firestore } from '../../../firebase/config';
-import { onAuthStateChanged } from 'firebase/auth';
 import { supabase } from '../../../integrations/supabase/client';
-import { User } from '../../../models/User';
-
-// Mock Firebase Auth
-vi.mock('firebase/auth', () => ({
-  onAuthStateChanged: vi.fn(),
-  getAuth: vi.fn(),
-}));
-
-// Mock Firebase Firestore
-vi.mock('../../../firebase/config', () => ({
-  auth: {
-    currentUser: null,
-  },
-  firestore: {
-    collection: vi.fn(),
-    doc: vi.fn(),
-    getDoc: vi.fn(),
-  },
-}));
-
-// Create a mock Supabase User type
-type MockSupabaseUser = {
-  id: string;
-  email?: string | null;
-  email_confirmed_at?: string | null;
-  app_metadata: Record<string, any>;
-  user_metadata: Record<string, any>;
-  aud: string;
-  created_at: string;
-};
 
 // Mock Supabase client
 vi.mock('../../../integrations/supabase/client', () => ({
@@ -47,39 +15,52 @@ vi.mock('../../../integrations/supabase/client', () => ({
   },
 }));
 
+// Tipo para um usuário Supabase mockado
+type MockSupabaseUser = {
+  id: string;
+  email?: string | null;
+  email_confirmed_at?: string | null;
+  app_metadata: Record<string, any>;
+  user_metadata: Record<string, any>;
+  aud: string;
+  created_at: string;
+};
+
+// Tipo para uma sessão Supabase mockada
+type MockSupabaseSession = {
+  user: MockSupabaseUser;
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type: string;
+};
+
 describe('useAuthState', () => {
-  // Global mocks and setup
+  // Setup global e mocks
   beforeEach(() => {
-    // Firebase Auth mocks
-    vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
-      // Immediately invoke callback with null user
-      callback(null);
-      return vi.fn(); // Return unsubscribe function
-    });
-    
-    // Supabase mocks
+    // Mock para Supabase getSession
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: { session: null },
       error: null,
     });
     
+    // Mock para Supabase onAuthStateChange
     vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
       data: { 
         subscription: { 
           unsubscribe: vi.fn(),
-          id: 'mock-id',
-          callback: vi.fn()
         } 
       },
     });
     
+    // Mock para Supabase from (para consultas)
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: null, error: null }),
     } as any);
     
-    // Clear all mocks
+    // Limpar todos os mocks
     vi.clearAllMocks();
   });
   
@@ -87,11 +68,12 @@ describe('useAuthState', () => {
     vi.resetAllMocks();
   });
   
-  it('should initialize with loading state and no user', async () => {
+  it('deve inicializar com estado de carregamento e sem usuário', async () => {
     const { result } = renderHook(() => useAuthState());
     
     expect(result.current.loading).toBe(true);
-    expect(result.current.currentUser).toBe(null);
+    expect(result.current.session).toBe(null);
+    expect(result.current.user).toBe(null);
     expect(result.current.userData).toBe(null);
     expect(result.current.error).toBe(null);
     
@@ -100,8 +82,8 @@ describe('useAuthState', () => {
     });
   });
   
-  it('should fetch user data from Supabase when session exists', async () => {
-    // Mock Supabase session
+  it('deve buscar dados do usuário do Supabase quando a sessão existe', async () => {
+    // Mock usuário Supabase
     const mockSupabaseUser: MockSupabaseUser = {
       id: 'user123',
       email: 'test@example.com',
@@ -112,16 +94,23 @@ describe('useAuthState', () => {
       created_at: '2023-01-01T00:00:00Z',
     };
     
+    // Mock sessão Supabase
+    const mockSession: MockSupabaseSession = {
+      user: mockSupabaseUser,
+      access_token: 'fake-token',
+      refresh_token: 'fake-refresh-token',
+      expires_in: 3600,
+      token_type: 'bearer'
+    };
+    
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: {
-        session: {
-          user: mockSupabaseUser,
-        },
+        session: mockSession,
       },
       error: null,
     });
     
-    // Mock profile data
+    // Mock dados do perfil
     const mockProfileData = {
       id: 'user123',
       username: 'testuser',
@@ -142,13 +131,13 @@ describe('useAuthState', () => {
       },
     };
     
-    // Mock roles data
+    // Mock dados de roles
     const mockRolesData = [
       { role: 'user' },
       { role: 'creator' },
     ];
     
-    // Mock Supabase queries
+    // Mock consultas Supabase
     const mockFromSelect = vi.fn().mockReturnValue({
       eq: vi.fn().mockReturnValue({
         single: vi.fn().mockResolvedValue({
@@ -181,6 +170,7 @@ describe('useAuthState', () => {
     
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
+      expect(result.current.user).not.toBe(null);
       expect(result.current.userData).not.toBe(null);
     });
     
@@ -188,11 +178,11 @@ describe('useAuthState', () => {
     expect(supabase.from).toHaveBeenCalledWith('user_roles');
   });
   
-  it('should handle errors when fetching Supabase profile data', async () => {
-    // Spy on console.error
+  it('deve lidar com erros ao buscar dados do perfil do Supabase', async () => {
+    // Espiar console.error
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    // Mock Supabase session
+    // Mock usuário Supabase
     const mockSupabaseUser: MockSupabaseUser = {
       id: 'user123',
       email: 'test@example.com',
@@ -202,22 +192,29 @@ describe('useAuthState', () => {
       created_at: '2023-01-01T00:00:00Z',
     };
     
+    // Mock sessão Supabase
+    const mockSession: MockSupabaseSession = {
+      user: mockSupabaseUser,
+      access_token: 'fake-token',
+      refresh_token: 'fake-refresh-token',
+      expires_in: 3600,
+      token_type: 'bearer'
+    };
+    
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: {
-        session: {
-          user: mockSupabaseUser,
-        },
+        session: mockSession,
       },
       error: null,
     });
     
-    // Mock profile query error
+    // Mock erro de consulta de perfil
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn().mockReturnValue({
         eq: vi.fn().mockReturnValue({
           single: vi.fn().mockResolvedValue({
             data: null,
-            error: new Error('Database error'),
+            error: new Error('Erro de banco de dados'),
           }),
         }),
       }),
@@ -231,7 +228,7 @@ describe('useAuthState', () => {
     
     await waitFor(() => {
       expect(console.error).toHaveBeenCalledWith(
-        "Error fetching profile:", 
+        "Erro ao buscar perfil:", 
         expect.any(Error)
       );
     });
@@ -239,100 +236,73 @@ describe('useAuthState', () => {
     consoleErrorSpy.mockRestore();
   });
   
-  it('should fetch user data from Firebase if Supabase returns no user', async () => {
-    // Mock Firebase auth state
-    const mockFirebaseUser = {
-      uid: 'firebase-user-123',
-      email: 'firebase@example.com',
-    };
-    
-    vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
-      callback(mockFirebaseUser as any);
-      return vi.fn(); // Return unsubscribe function
+  it('deve lidar com mudanças de estado de autenticação', async () => {
+    // Primeiro carregamento sem usuário
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: null },
+      error: null,
     });
     
-    // Mock Firestore doc
-    const mockUserDoc = {
-      exists: () => true,
-      data: () => ({
-        id: 'firebase-user-123',
-        email: 'firebase@example.com',
-        displayName: 'Firebase User',
-        username: 'firebaseuser',
-        profileType: 'fan',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastLogin: new Date(),
-        isVerified: true,
-        twoFactorEnabled: false,
-        preferences: {
-          theme: 'light',
-          notifications: {
-            email: true,
-            push: true,
-            sms: false,
+    const authChangeCallback = vi.fn();
+    
+    // Mock para onAuthStateChange
+    vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((callback) => {
+      authChangeCallback.mockImplementation(callback);
+      return {
+        data: {
+          subscription: {
+            unsubscribe: vi.fn(),
           },
-          language: 'en',
-          currency: 'USD',
         },
-        socialLinks: {},
-      }),
-    };
-    
-    // Setup mocks for doc and getDoc
-    const docMock = vi.fn().mockReturnValue('doc-ref');
-    const getDocMock = vi.fn().mockResolvedValue(mockUserDoc);
-    
-    // @ts-ignore - We know this is a mock
-    firestore.doc = docMock;
-    // @ts-ignore - We know this is a mock
-    firestore.getDoc = getDocMock;
+      };
+    });
     
     const { result } = renderHook(() => useAuthState());
     
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
-      expect(result.current.currentUser).toBe(mockFirebaseUser);
+      expect(result.current.user).toBe(null);
     });
-  });
-  
-  it('should handle errors when fetching Firebase user data', async () => {
-    // Spy on console.error
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    // Mock Firebase auth state
-    const mockFirebaseUser = {
-      uid: 'firebase-user-error',
-      email: 'firebase-error@example.com',
+    // Simular login
+    const mockSupabaseUser: MockSupabaseUser = {
+      id: 'user123',
+      email: 'test@example.com',
+      email_confirmed_at: '2023-01-01T00:00:00Z',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: '2023-01-01T00:00:00Z',
     };
     
-    vi.mocked(onAuthStateChanged).mockImplementation((_auth, callback) => {
-      callback(mockFirebaseUser as any);
-      return vi.fn(); // Return unsubscribe function
-    });
+    // Mock sessão Supabase
+    const mockSession: MockSupabaseSession = {
+      user: mockSupabaseUser,
+      access_token: 'fake-token',
+      refresh_token: 'fake-refresh-token',
+      expires_in: 3600,
+      token_type: 'bearer'
+    };
     
-    // Setup mocks for doc and getDoc
-    const docMock = vi.fn().mockReturnValue('doc-ref');
-    const getDocMock = vi.fn().mockRejectedValue(new Error('Firestore error'));
-    
-    // @ts-ignore - We know this is a mock
-    firestore.doc = docMock;
-    // @ts-ignore - We know this is a mock
-    firestore.getDoc = getDocMock;
-    
-    const { result } = renderHook(() => useAuthState());
-    
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false);
-    });
-    
-    await waitFor(() => {
-      expect(console.error).toHaveBeenCalledWith(
-        "Error fetching user data from Firebase:",
-        expect.any(Error)
-      );
-    });
-    
-    consoleErrorSpy.mockRestore();
+    // Chamar o callback de mudança de autenticação manualmente
+    if (authChangeCallback.mock.calls.length > 0) {
+      authChangeCallback('SIGNED_IN', mockSession);
+      
+      // Mock getSession para o fetchUserData
+      vi.mocked(supabase.auth.getSession).mockResolvedValue({
+        data: { session: mockSession },
+        error: null,
+      });
+      
+      // Mock para busca de perfil após login
+      vi.mocked(supabase.from).mockReturnValue({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ 
+          data: { id: 'user123', profile_type: 'fan' },
+          error: null 
+        }),
+      } as any);
+    }
   });
 });

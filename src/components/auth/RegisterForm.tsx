@@ -64,7 +64,6 @@ export const RegisterForm: React.FC = () => {
       });
       
       toast.dismiss(loadingToast);
-      toast.success('Conta criada! Verifique seu email para confirmar o cadastro.');
       
       // Redirecionar para a página de login após o registro bem-sucedido
       setTimeout(() => {
@@ -73,7 +72,7 @@ export const RegisterForm: React.FC = () => {
       
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
-      toast.error(error.message || 'Falha ao criar conta');
+      // Toast é mostrado na função register
     } finally {
       setIsSubmitting(false);
     }
@@ -85,10 +84,9 @@ export const RegisterForm: React.FC = () => {
       const loadingToast = toast.loading('Conectando com Google...');
       await loginWithGoogle();
       toast.dismiss(loadingToast);
-      toast.success('Login com Google iniciado!');
       // O usuário será redirecionado automaticamente pelo fluxo OAuth do Supabase
     } catch (error: any) {
-      console.error('Google register error:', error);
+      console.error('Erro no registro com Google:', error);
       let errorMessage = 'Falha ao registrar com Google';
       
       if (error.message && error.message.includes('provider is not enabled')) {

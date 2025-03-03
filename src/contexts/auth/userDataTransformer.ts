@@ -1,12 +1,12 @@
 
 /**
- * Utilities for transforming user data between Supabase and app data models
+ * Utilitários para transformar dados do usuário entre Supabase e os modelos de dados da aplicação
  */
 
 import { User } from '../../models/User';
 
 /**
- * Interface representing a Supabase auth user
+ * Interface representando um usuário autenticado do Supabase
  */
 export interface SupabaseAuthUser {
   email: string;
@@ -15,7 +15,7 @@ export interface SupabaseAuthUser {
 }
 
 /**
- * Interface representing Supabase profile data
+ * Interface representando os dados de perfil do Supabase
  */
 export interface SupabaseProfileData {
   id: string;
@@ -40,32 +40,32 @@ export interface SupabaseProfileData {
 }
 
 /**
- * Transform Supabase user data into the app's User model
- * @param supabaseUser The user data from Supabase auth
- * @param profileData The profile data from Supabase profiles table
- * @returns A user object conforming to the app's User model
+ * Transformar dados do usuário Supabase no modelo User da aplicação
+ * @param supabaseUser Os dados do usuário da autenticação Supabase
+ * @param profileData Os dados do perfil da tabela profiles do Supabase
+ * @returns Um objeto usuário conforme o modelo User da aplicação
  */
 export const createSupabaseUserData = (
   supabaseUser: SupabaseAuthUser,
   profileData: SupabaseProfileData
 ): User => {
-  // Extract the username from email if not provided
+  // Extrair o username do email se não fornecido
   const usernameFromEmail = supabaseUser.email?.split('@')[0] || '';
   
-  // Create default notifications object that meets the expected type
+  // Criar objeto de notificações padrão que atende ao tipo esperado
   const defaultNotifications = {
     email: true,
     push: true,
     sms: false
   };
 
-  // Merge profile notifications with defaults to ensure required properties
+  // Mesclar notificações do perfil com os padrões para garantir propriedades obrigatórias
   const notificationsWithDefaults = {
     ...defaultNotifications,
     ...(profileData.preferences?.notifications || {})
   };
   
-  // Create a new User object with data from Supabase
+  // Criar um novo objeto User com dados do Supabase
   const user: User = {
     id: profileData.id,
     email: supabaseUser.email,
@@ -94,14 +94,14 @@ export const createSupabaseUserData = (
 };
 
 /**
- * Transform app User model to Supabase profile format for updates
- * @param userData User data from the app's User model
- * @returns Object formatted for Supabase profile updates
+ * Transformar modelo User da aplicação para o formato de perfil Supabase para atualizações
+ * @param userData Dados do usuário do modelo User da aplicação
+ * @returns Objeto formatado para atualizações de perfil do Supabase
  */
 export const prepareUserDataForSupabase = (userData: Partial<User>): Record<string, any> => {
   const result: Record<string, any> = {};
   
-  // Map fields with different names
+  // Mapear campos com nomes diferentes
   if (userData.displayName !== undefined) {
     result.full_name = userData.displayName;
   }
@@ -114,15 +114,20 @@ export const prepareUserDataForSupabase = (userData: Partial<User>): Record<stri
     result.profile_type = userData.profileType;
   }
   
-  // Copy fields with the same name
-  const directMappedFields = [
-    'username', 'bio', 'social_links', 'wallet_address', 'preferences'
-  ];
+  if (userData.socialLinks !== undefined) {
+    result.social_links = userData.socialLinks;
+  }
   
-  directMappedFields.forEach(field => {
-    const appField = field === 'social_links' ? 'socialLinks' : field;
-    if (userData[appField as keyof Partial<User>] !== undefined) {
-      result[field] = userData[appField as keyof Partial<User>];
+  if (userData.walletAddress !== undefined) {
+    result.wallet_address = userData.walletAddress;
+  }
+  
+  // Copiar campos com o mesmo nome
+  const directFields = ['username', 'bio', 'preferences'];
+  
+  directFields.forEach(field => {
+    if (userData[field as keyof Partial<User>] !== undefined) {
+      result[field] = userData[field as keyof Partial<User>];
     }
   });
   

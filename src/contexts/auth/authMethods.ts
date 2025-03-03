@@ -1,16 +1,14 @@
 
-import { auth } from '../../firebase/config';
 import { supabase } from '../../integrations/supabase/client';
-import { User } from '../../models/User';
-import { signOut } from 'firebase/auth';
+import { User as AppUser } from '../../models/User';
 import { toast } from 'sonner';
+import { prepareUserDataForSupabase } from './userDataTransformer';
 
 /**
- * Login with email and password
+ * Login com email e senha
  */
 export const login = async (email: string, password: string): Promise<void> => {
   try {
-    // Use Supabase for authentication
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -21,13 +19,11 @@ export const login = async (email: string, password: string): Promise<void> => {
     }
     
     if (data.user) {
-      // Update last login time is handled by the profile fetch
       toast.success('Login realizado com sucesso!');
     }
   } catch (err: any) {
-    console.error("Login error:", err);
+    console.error("Erro de login:", err);
     
-    // Traduzir mensagens de erro comuns
     let errorMessage = 'Falha ao fazer login';
     if (err.message.includes('Invalid login credentials')) {
       errorMessage = 'Credenciais inválidas';
@@ -41,11 +37,10 @@ export const login = async (email: string, password: string): Promise<void> => {
 };
 
 /**
- * Login with Google
+ * Login com Google
  */
 export const loginWithGoogle = async (): Promise<void> => {
   try {
-    // Use Supabase for Google login
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -54,24 +49,20 @@ export const loginWithGoogle = async (): Promise<void> => {
     });
     
     if (error) {
-      if (error.message.includes('provider is not enabled')) {
-        throw new Error('Login com Google não está habilitado. Entre em contato com o administrador.');
-      }
       throw error;
     }
     
-    console.log("Supabase Google login initiated:", data);
-    
+    console.log("Login com Google iniciado:", data);
   } catch (err: any) {
-    console.error("Google login error:", err);
+    console.error("Erro no login com Google:", err);
     throw err;
   }
 };
 
 /**
- * Register a new user
+ * Registrar um novo usuário
  */
-export const register = async (email: string, password: string, userData: Partial<User>): Promise<void> => {
+export const register = async (email: string, password: string, userData: Partial<AppUser>): Promise<void> => {
   try {
     // Preparar dados do perfil para registro
     const userMetadata = {
@@ -84,7 +75,7 @@ export const register = async (email: string, password: string, userData: Partia
     if (userData.profileType === 'admin' && userData.adminCode) {
       // Verificar o código admin antes do registro
       const { data: codeValid, error } = await supabase.rpc(
-        'has_role', // Fixed function name that should exist in Supabase
+        'has_role', 
         { user_id: 'system', required_role: 'admin' }
       );
       
@@ -107,7 +98,7 @@ export const register = async (email: string, password: string, userData: Partia
       throw error;
     }
     
-    // Se o código chegou até aqui e é um admin, processar o código admin
+    // Se é admin, processar o código admin
     if (data?.user && userData.profileType === 'admin' && userData.adminCode) {
       try {
         // Buscar token para autorização
@@ -145,9 +136,8 @@ export const register = async (email: string, password: string, userData: Partia
     toast.success('Conta criada! Verifique seu email para confirmar o cadastro.');
     
   } catch (err: any) {
-    console.error("Registration error:", err);
+    console.error("Erro no registro:", err);
     
-    // Traduzir mensagens de erro comuns
     let errorMessage = 'Falha ao criar conta';
     
     if (err.message.includes('User already registered')) {
@@ -166,29 +156,28 @@ export const register = async (email: string, password: string, userData: Partia
 };
 
 /**
- * Logout the current user
+ * Fazer logout do usuário atual
  */
 export const logout = async (): Promise<void> => {
   try {
-    // Sign out from Supabase
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
     
-    // Also sign out from Firebase for backward compatibility
-    await signOut(auth);
+    if (error) {
+      throw error;
+    }
     
     toast.success('Logout realizado com sucesso');
   } catch (err: any) {
-    console.error("Logout error:", err);
+    console.error("Erro no logout:", err);
     throw err;
   }
 };
 
 /**
- * Reset password for a user
+ * Resetar a senha de um usuário
  */
 export const resetPassword = async (email: string): Promise<void> => {
   try {
-    // Use Supabase for password reset
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
@@ -199,15 +188,38 @@ export const resetPassword = async (email: string): Promise<void> => {
     
     toast.success('Instruções para redefinir senha foram enviadas para o seu email');
   } catch (err: any) {
-    console.error("Password reset error:", err);
+    console.error("Erro ao resetar senha:", err);
     
-    // Traduzir mensagens de erro comuns
     let errorMessage = 'Falha ao redefinir senha';
     if (err.message.includes('Email not found')) {
       errorMessage = 'Email não encontrado';
     }
     
     toast.error(errorMessage);
+    throw err;
+  }
+};
+
+/**
+ * Atualizar dados do perfil do usuário
+ */
+export const updateProfile = async (userData: Partial<AppUser>): Promise<void> => {
+  try {
+    const supabaseData = prepareUserDataForSupabase(userData);
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update(supabaseData)
+      .eq('id', userData.id);
+    
+    if (error) {
+      throw error;
+    }
+    
+    toast.success('Perfil atualizado com sucesso');
+  } catch (err: any) {
+    console.error("Erro ao atualizar perfil:", err);
+    toast.error('Falha ao atualizar perfil');
     throw err;
   }
 };

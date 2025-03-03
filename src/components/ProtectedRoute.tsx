@@ -14,7 +14,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requiredRoles = []
 }) => {
-  const { currentUser, userData, loading } = useAuth();
+  const { session, userData, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,19 +23,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     </div>;
   }
 
-  // If authentication is required but user is not logged in
-  if (requireAuth && !currentUser) {
+  // Se autenticação é necessária mas o usuário não está logado
+  if (requireAuth && !session) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If specific roles are required and user doesn't have the required role
+  // Se roles específicas são necessárias e o usuário não tem a role requerida
   if (requireAuth && requiredRoles.length > 0 && userData && 
       !requiredRoles.includes(userData.profileType)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // If user is already logged in and tries to access login/register pages
-  if (!requireAuth && currentUser) {
+  // Se o usuário já está logado e tenta acessar páginas de login/registro
+  if (!requireAuth && session) {
     return <Navigate to="/profile" replace />;
   }
 

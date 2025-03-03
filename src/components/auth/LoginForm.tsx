@@ -33,17 +33,8 @@ export const LoginForm: React.FC = () => {
       toast.success('Login bem-sucedido!');
       navigate('/profile');
     } catch (error: any) {
-      let errorMessage = 'Falha ao fazer login';
-      
-      if (error.message?.includes('user-not-found')) {
-        errorMessage = 'Usuário não encontrado';
-      } else if (error.message?.includes('wrong-password')) {
-        errorMessage = 'Senha incorreta';
-      } else if (error.message?.includes('too-many-requests')) {
-        errorMessage = 'Muitas tentativas de login. Tente novamente mais tarde';
-      }
-      
-      toast.error(errorMessage);
+      console.error('Erro de login:', error);
+      // Toast é exibido dentro da função de login
     } finally {
       setIsSubmitting(false);
     }
@@ -56,9 +47,9 @@ export const LoginForm: React.FC = () => {
       await loginWithGoogle();
       toast.dismiss(loadingToast);
       toast.success('Login com Google iniciado!');
-      // Nota: O usuário será redirecionado automaticamente pelo Supabase OAuth
+      // O usuário será redirecionado automaticamente pelo Supabase OAuth
     } catch (error: any) {
-      console.error('Google login error:', error);
+      console.error('Erro no login com Google:', error);
       let errorMessage = 'Falha ao fazer login com Google';
       
       if (error.message?.includes('provider is not enabled')) {

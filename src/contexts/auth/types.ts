@@ -1,13 +1,14 @@
 
-import { User as FirebaseUser } from 'firebase/auth';
-import { User } from '../../models/User';
+import { Session, User } from '@supabase/supabase-js';
+import { User as AppUser } from '../../models/User';
 
 export interface AuthContextType {
-  currentUser: FirebaseUser | null;
-  userData: User | null;
+  session: Session | null;
+  user: User | null;
+  userData: AppUser | null;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
-  register: (email: string, password: string, userData: Partial<User>) => Promise<void>;
+  register: (email: string, password: string, userData: Partial<AppUser>) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   loading: boolean;
