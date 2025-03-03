@@ -31,7 +31,7 @@ export const useActivityLogger = () => {
       
       // Em produção, enviar para o Supabase
       const { error } = await supabase
-        .from('activity_logs')
+        .from('user_activity_logs')
         .insert({
           user_id: userId,
           action,
@@ -67,9 +67,48 @@ export const useActivityLogger = () => {
     );
   }, [logActivity]);
 
+  // Add the missing login and logout methods
+  const logLogin = useCallback((
+    success: boolean,
+    email?: string,
+    userId?: string
+  ) => {
+    logActivity(
+      success ? 'Login bem-sucedido' : 'Falha no login',
+      userId,
+      'auth',
+      undefined,
+      success,
+      { email }
+    );
+  }, [logActivity]);
+
+  const logLogout = useCallback(async (userId?: string) => {
+    logActivity('Logout', userId, 'auth');
+  }, [logActivity]);
+
+  // Add profile update logging
+  const logProfileUpdate = useCallback((
+    success: boolean,
+    fields?: string[],
+    userId?: string
+  ) => {
+    logActivity(
+      success ? 'Perfil atualizado' : 'Falha ao atualizar perfil',
+      userId,
+      'profile',
+      userId,
+      success,
+      fields ? { updated_fields: fields } : undefined
+    );
+  }, [logActivity]);
+
   return {
     loading,
     logActivity,
-    logAccessAttempt
+    logAccessAttempt,
+    logLogin,
+    logLogout,
+    logProfileUpdate
   };
 };

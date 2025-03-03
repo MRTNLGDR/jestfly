@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -74,7 +73,7 @@ const SettingsPage: React.FC = () => {
         throw error;
       }
       
-      await logProfileUpdate(true, ['display_name', 'username', 'bio']);
+      await logProfileUpdate(true, ['display_name', 'username', 'bio'], profile.id);
       
       toast({
         title: "Perfil atualizado",
@@ -88,7 +87,7 @@ const SettingsPage: React.FC = () => {
         variant: "destructive"
       });
       
-      await logProfileUpdate(false);
+      await logProfileUpdate(false, undefined, profile.id);
     } finally {
       setUpdating(false);
     }
@@ -110,7 +109,7 @@ const SettingsPage: React.FC = () => {
         throw error;
       }
       
-      await logProfileUpdate(true, ['preferences']);
+      await logProfileUpdate(true, ['preferences'], profile.id);
       
       toast({
         title: "Preferências atualizadas",
@@ -123,6 +122,8 @@ const SettingsPage: React.FC = () => {
         description: "Não foi possível atualizar as preferências.",
         variant: "destructive"
       });
+      
+      await logProfileUpdate(false, undefined, profile.id);
     } finally {
       setUpdating(false);
     }

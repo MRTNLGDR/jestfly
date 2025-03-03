@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfileData, SignUpUserData } from '@/types/auth';
@@ -41,7 +42,7 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
         // Navegar para a página solicitada (isso deve ser feito pelo componente chamador)
       }
       
-      logLogin(true, email);
+      logLogin(true, email, data.user?.id);
       setLoading(false);
       return { data, error: null };
     } catch (error) {
@@ -95,7 +96,8 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
   const signOut = async () => {
     try {
       console.log('Deslogando usuário');
-      await logLogout();  // Registrar logout antes de efetivamente sair
+      const { data } = await supabase.auth.getUser();
+      await logLogout(data.user?.id);  // Registrar logout antes de efetivamente sair
       const { error } = await supabase.auth.signOut();
       
       if (error) {
