@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,13 +16,11 @@ const AuthPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   
-  // Estado para o formulário de login
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
   });
   
-  // Estado para o formulário de registro
   const [registerData, setRegisterData] = useState({
     email: '',
     password: '',
@@ -33,24 +30,20 @@ const AuthPage: React.FC = () => {
     profile_type: 'fan' as 'fan' | 'artist' | 'collaborator' | 'admin'
   });
   
-  // Estado para erros
   const [errors, setErrors] = useState({
     login: '',
     register: ''
   });
   
-  // Estado para mensagens de sucesso
   const [success, setSuccess] = useState({
     login: '',
     register: ''
   });
 
-  // Se o usuário já estiver autenticado e for admin, redirecionar para o painel admin
   if (user && profile && profile.profile_type === 'admin') {
     return <Navigate to="/admin" replace />;
   }
 
-  // Se o usuário já estiver autenticado e não for admin, redirecionar para a página inicial
   if (user && profile && profile.profile_type !== 'admin') {
     return <Navigate to="/" replace />;
   }
@@ -152,7 +145,6 @@ const AuthPage: React.FC = () => {
     setErrors((prev) => ({ ...prev, register: '' }));
     setSuccess((prev) => ({ ...prev, register: '' }));
     
-    // Validar dados de registro
     if (registerData.password !== registerData.confirmPassword) {
       setErrors((prev) => ({ 
         ...prev, 
@@ -162,7 +154,6 @@ const AuthPage: React.FC = () => {
       return;
     }
     
-    // Não permitir criar usuários admin pelo formulário de registro público
     if (registerData.profile_type === 'admin') {
       setErrors((prev) => ({ 
         ...prev, 
@@ -193,7 +184,6 @@ const AuthPage: React.FC = () => {
           register: 'Conta criada com sucesso! Verifique seu email para confirmar o cadastro.' 
         }));
         
-        // Limpar formulário após sucesso
         setRegisterData({
           email: '',
           password: '',
