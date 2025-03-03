@@ -1,29 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { supabaseAuthService } from '../../../contexts/auth/supabase';
 
 export const useGoogleAuth = () => {
-  const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(true); // Directly set to true instead of checking
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkGoogleAuth = async () => {
-      try {
-        const enabled = await supabaseAuthService.isGoogleAuthEnabled();
-        setIsGoogleEnabled(enabled);
-      } catch (error) {
-        console.error("Erro ao verificar status do Google Auth:", error);
-        setIsGoogleEnabled(false);
-      }
-    };
-    
-    checkGoogleAuth();
-  }, []);
 
   const handleGoogleLogin = async () => {
     if (!isGoogleEnabled) {

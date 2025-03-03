@@ -25,7 +25,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(session?.user || null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          // Create mock user data until profiles table is created
+          const mockUserData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName: session.user.user_metadata.displayName || 'User',
+            username: session.user.user_metadata.username || 'user',
+            profileType: (session.user.user_metadata.profileType as User['profileType']) || 'fan',
+            socialLinks: {},
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastLogin: new Date(),
+            isVerified: false,
+            twoFactorEnabled: false,
+            preferences: {
+              theme: 'dark',
+              notifications: {},
+              language: 'en',
+              currency: 'USD'
+            }
+          };
+          
+          setUserData(mockUserData);
         }
       } catch (err: any) {
         console.error("Error checking session:", err);
@@ -44,7 +65,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(session?.user || null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          // Create mock user data until profiles table is created
+          const mockUserData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            displayName: session.user.user_metadata.displayName || 'User',
+            username: session.user.user_metadata.username || 'user',
+            profileType: (session.user.user_metadata.profileType as User['profileType']) || 'fan',
+            socialLinks: {},
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            lastLogin: new Date(),
+            isVerified: false,
+            twoFactorEnabled: false,
+            preferences: {
+              theme: 'dark',
+              notifications: {},
+              language: 'en',
+              currency: 'USD'
+            }
+          };
+          
+          setUserData(mockUserData);
         } else {
           setUserData(null);
         }
@@ -55,26 +97,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subscription.unsubscribe();
     };
   }, []);
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setUserData(data as User);
-      }
-    } catch (err: any) {
-      console.error("Error fetching user profile:", err);
-    }
-  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -130,28 +152,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (error) throw error;
       
-      // User profile will be created by the database trigger when a new user is added
-      // But if we want to add additional data, we can do so here
-      if (data.user) {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          email,
-          displayName: userData.displayName,
-          username: userData.username,
-          profileType: userData.profileType || 'fan',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          lastLogin: new Date(),
-          isVerified: false,
-          twoFactorEnabled: false,
-          preferences: {
-            theme: 'dark',
-            notifications: {},
-            language: 'en',
-            currency: 'USD'
-          }
-        });
-      }
+      // In a real implementation, we would create a profile here
+      // Currently, we're using user metadata instead
       
     } catch (err: any) {
       setError(err.message);
