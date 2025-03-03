@@ -29,14 +29,12 @@ export const RegisterForm: React.FC = () => {
   };
 
   const handleProfileTypeChange = (value: ProfileType) => {
-    console.log('Tipo de perfil alterado para:', value);
     setFormData(prev => ({ ...prev, profileType: value }));
     setShowAdminField(value === 'admin');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting registration form:', formData);
     
     if (formData.password !== formData.confirmPassword) {
       toast.error('As senhas não coincidem');
@@ -67,8 +65,6 @@ export const RegisterForm: React.FC = () => {
       
       toast.dismiss(loadingToast);
       
-      console.log('Registro bem-sucedido, redirecionando');
-      
       // Redirecionar para a página de login após o registro bem-sucedido
       setTimeout(() => {
         navigate('/login');
@@ -85,7 +81,6 @@ export const RegisterForm: React.FC = () => {
   const handleGoogleRegister = async () => {
     setIsSubmitting(true);
     try {
-      console.log('Iniciando registro com Google');
       const loadingToast = toast.loading('Conectando com Google...');
       await loginWithGoogle();
       toast.dismiss(loadingToast);
