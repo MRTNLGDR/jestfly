@@ -4,11 +4,11 @@ import { User } from "../../../models/User";
 import { toast } from "sonner";
 
 /**
- * Service for managing user profiles in Supabase
+ * Profile management service for Supabase
  */
 export const profileService = {
   /**
-   * Creates or updates a user's profile in Supabase
+   * Create or update user profile in Supabase
    */
   async syncUserProfile(userId: string, userData: Partial<User>): Promise<void> {
     try {
@@ -48,13 +48,13 @@ export const profileService = {
         if (error) throw error;
       }
     } catch (error: any) {
-      console.error('Error synchronizing profile with Supabase:', error);
+      console.error('Error syncing profile with Supabase:', error);
       toast.error('Error updating profile: ' + error.message);
     }
   },
 
   /**
-   * Gets a user's profile from Supabase
+   * Get user profile from Supabase
    */
   async getUserProfile(userId: string) {
     try {
