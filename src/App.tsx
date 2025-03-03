@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LogsPage from '@/pages/LogsPage';
 import HomePage from '@/pages/HomePage';
+import AdminDashboardPage from '@/pages/AdminDashboardPage';
 import { useAuth } from '@/contexts/AuthContext';
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage {...homePageProps} />} />
         <Route path="/system/logs" element={<LogsPage />} />
+        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         {/* Adicionar outras rotas aqui conforme necessário */}
       </Routes>
     </div>
