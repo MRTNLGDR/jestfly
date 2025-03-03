@@ -28,6 +28,7 @@ const NotesPage: React.FC = () => {
         setNotes(fetchedNotes);
       } catch (error) {
         console.error('Erro ao buscar notas:', error);
+        toast.error('Falha ao carregar notas');
       } finally {
         setIsLoading(false);
       }
@@ -106,8 +107,10 @@ const NotesPage: React.FC = () => {
         setSelectedNote(savedNote);
       }
       
+      return savedNote;
     } catch (error) {
       console.error('Erro ao salvar nota:', error);
+      toast.error('Falha ao salvar nota');
       throw error;
     }
   };

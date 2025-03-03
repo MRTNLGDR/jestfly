@@ -12,7 +12,10 @@ const transformDBNoteToAppNote = (dbNote: any): Note => {
     isPinned: dbNote.is_pinned || false,
     isArchived: dbNote.is_archived || false,
     tags: dbNote.tags || [],
-    links: dbNote.links || [],
+    links: dbNote.links || {
+      incoming: [],
+      outgoing: []
+    },
     createdAt: new Date(dbNote.created_at),
     updatedAt: new Date(dbNote.updated_at)
   };
@@ -30,6 +33,11 @@ const transformAppNoteToDBNote = (appNote: Partial<Note>) => {
   if (appNote.links !== undefined) dbNote.links = appNote.links;
   
   return dbNote;
+};
+
+// Function to fetch all notes for a user (alias for fetchNotes for compatibility)
+export const fetchUserNotes = async (userId: string): Promise<Note[]> => {
+  return fetchNotes(userId);
 };
 
 // Function to fetch all notes for a user
@@ -125,5 +133,36 @@ export const deleteNote = async (noteId: string): Promise<boolean> => {
   } catch (error) {
     console.error('Error deleting note:', error);
     return false;
+  }
+};
+
+// Function to save a note (create or update)
+export const saveNote = async (
+  noteData: Partial<Note>, 
+  userId: string, 
+  existingNotes: Note[]
+): Promise<Note> => {
+  try {
+    // Check if this is a new note or an existing one
+    const isExistingNote = noteData.id && existingNotes.some(note => note.id === noteData.id);
+    
+    if (isExistingNote && noteData.id) {
+      // Update existing note
+      const updatedNote = await updateNote(noteData.id, noteData);
+      if (!updatedNote) {
+        throw new Error('Failed to update note');
+      }
+      return updatedNote;
+    } else {
+      // Create new note
+      const newNote = await createNote(userId, noteData);
+      if (!newNote) {
+        throw new Error('Failed to create note');
+      }
+      return newNote;
+    }
+  } catch (error) {
+    console.error('Error saving note:', error);
+    throw error;
   }
 };
