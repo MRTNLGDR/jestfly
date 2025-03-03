@@ -12,6 +12,13 @@ import { format } from 'date-fns';
 import { CalendarIcon, Download, Search, RefreshCw } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Loading from '@/components/ui/loading';
+import { Json } from '@/integrations/supabase/types';
+
+interface LogProfile {
+  username?: string;
+  display_name?: string;
+  profile_type?: string;
+}
 
 interface ActivityLog {
   id: string;
@@ -24,11 +31,7 @@ interface ActivityLog {
   user_agent: string | null;
   created_at: string;
   success: boolean;
-  profile?: {
-    username: string;
-    display_name: string;
-    profile_type: string;
-  };
+  profile?: LogProfile;
 }
 
 const LogsPage: React.FC = () => {
@@ -96,15 +99,15 @@ const LogsPage: React.FC = () => {
         const lowerSearchTerm = searchTerm.toLowerCase();
         filteredData = filteredData.filter(log => 
           log.action.toLowerCase().includes(lowerSearchTerm) ||
-          (log.profile?.username && log.profile.username.toLowerCase().includes(lowerSearchTerm)) ||
-          (log.profile?.display_name && log.profile.display_name.toLowerCase().includes(lowerSearchTerm)) ||
+          (log.profile && log.profile.username && log.profile.username.toLowerCase().includes(lowerSearchTerm)) ||
+          (log.profile && log.profile.display_name && log.profile.display_name.toLowerCase().includes(lowerSearchTerm)) ||
           (log.entity_type && log.entity_type.toLowerCase().includes(lowerSearchTerm)) ||
           (log.ip_address && log.ip_address.includes(searchTerm))
         );
       }
       
       // TypeScript não sabe o formato exato, então fazemos um cast seguro
-      setLogs(filteredData as ActivityLog[]);
+      setLogs(filteredData as unknown as ActivityLog[]);
     } catch (error) {
       console.error('Erro ao buscar logs:', error);
     } finally {

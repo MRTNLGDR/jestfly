@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ProfileData, SignUpUserData } from '@/types/auth';
@@ -164,7 +163,7 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
           permissions: data.permissions,
           is_verified: data.is_verified,
           social_links: data.social_links as Record<string, string> | null,
-          preferences: data.preferences,
+          preferences: data.preferences as Record<string, any> | null,
           two_factor_enabled: data.two_factor_enabled
         };
         setProfile(profileData);
