@@ -52,12 +52,6 @@ export type CommentLike = {
   created_at: string;
 };
 
-// Work around TypeScript issues by declaring our table types explicitly
-export type CommunityPostsTable = Omit<CommunityPost, "user">;
-export type PostCommentsTable = Omit<PostComment, "user">;
-export type PostLikesTable = PostLike;
-export type CommentLikesTable = CommentLike;
-
 // Input types for creating new records
 export type CreatePostInput = {
   title: string;
