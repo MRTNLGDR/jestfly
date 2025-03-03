@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Badge } from '../ui/badge';
-import { Heart, MessageCircle, Repeat } from 'lucide-react';
+import { Heart, MessageCircle, Repeat, ArrowRight, Loader } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import CommunityNav from './CommunityNav';
+import { useNavigate } from 'react-router-dom';
 
 const JestFlyersHubPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
   
   // Sample data for Instagram-like posts
   const instagramPosts = [
@@ -56,10 +58,16 @@ const JestFlyersHubPage: React.FC = () => {
     // Simular carregamento mais rápido
     const timer = setTimeout(() => {
       setIsLoading(false);
+      console.log("JestFlyers Hub content loaded");
     }, 500);
     
     return () => clearTimeout(timer);
   }, []);
+
+  const handleNextStep = () => {
+    console.log("Navigating to next step: events page");
+    navigate('/community/events');
+  };
 
   return (
     <div className="bg-gradient-to-b from-black to-purple-950 min-h-screen pt-20">
@@ -148,6 +156,24 @@ const JestFlyersHubPage: React.FC = () => {
               </div>
             ))
           )}
+        </div>
+
+        <div className="flex justify-center mt-10">
+          <button 
+            onClick={handleNextStep}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg font-medium flex items-center transition-colors"
+          >
+            {isLoading ? (
+              <>
+                <Loader className="mr-2 h-5 w-5 animate-spin" />
+                Carregando...
+              </>
+            ) : (
+              <>
+                Próximo Passo <ArrowRight className="ml-2 h-5 w-5" />
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

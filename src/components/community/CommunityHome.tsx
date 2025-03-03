@@ -1,9 +1,16 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Instagram, Video, Users } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Instagram, Video, Users, ArrowRight } from 'lucide-react';
 
 const CommunityHome: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleNextStep = () => {
+    console.log("Navigating to next step: hub page");
+    navigate('/community/hub');
+  };
+
   return (
     <div className="pt-24 px-6">
       <h1 className="text-4xl md:text-6xl font-bold text-white mb-8">JESTFLY Community</h1>
@@ -90,6 +97,15 @@ const CommunityHome: React.FC = () => {
             View all Instagram posts <span className="ml-2">→</span>
           </Link>
         </div>
+      </div>
+
+      <div className="flex justify-center mt-10">
+        <button 
+          onClick={handleNextStep}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-3 rounded-lg font-medium flex items-center transition-colors"
+        >
+          Próximo Passo <ArrowRight className="ml-2 h-5 w-5" />
+        </button>
       </div>
     </div>
   );
