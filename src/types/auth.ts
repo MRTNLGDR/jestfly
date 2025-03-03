@@ -1,3 +1,4 @@
+
 import { User, Session } from '@supabase/supabase-js';
 
 export interface ProfileData {
@@ -15,6 +16,8 @@ export interface ProfileData {
   social_links: Record<string, string> | null;
   preferences: Record<string, any> | null;
   two_factor_enabled?: boolean;
+  roles?: string[] | null;
+  permissions?: string[] | null;
 }
 
 export interface SignUpUserData {

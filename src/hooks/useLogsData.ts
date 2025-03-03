@@ -94,7 +94,7 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
             username: 'username' in log.profile ? log.profile.username : undefined,
             display_name: 'display_name' in log.profile ? log.profile.display_name : undefined,
             profile_type: 'profile_type' in log.profile ? log.profile.profile_type : undefined
-          } : undefined,
+          } : null,
           details: log.details as Record<string, any> | null
         };
       }) as ActivityLog[];

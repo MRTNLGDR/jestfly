@@ -18,7 +18,7 @@ export interface ActivityLog {
   user_agent: string | null;
   created_at: string;
   success: boolean;
-  profile?: LogProfile;
+  profile?: LogProfile | null;
 }
 
 export interface LogsFilterState {
