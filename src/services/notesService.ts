@@ -1,105 +1,93 @@
 
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  getDocs, 
-  doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc 
-} from 'firebase/firestore';
-import { firestore } from '../firebase/config';
+import { supabase } from '../integrations/supabase/client';
 import { Note } from '../models/Note';
-import { generateUniqueId } from '../utils/noteUtils';
-import { toast } from 'sonner';
 
-export const fetchUserNotes = async (userId: string): Promise<Note[]> => {
+// Função para buscar todas as notas do usuário
+export const fetchNotes = async (userId: string): Promise<Note[]> => {
   try {
-    const notesQuery = query(
-      collection(firestore, 'notes'),
-      where('userId', '==', userId),
-      where('isArchived', '==', false),
-      orderBy('updatedAt', 'desc')
-    );
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
     
-    const snapshot = await getDocs(notesQuery);
-    const fetchedNotes: Note[] = [];
+    if (error) throw error;
     
-    snapshot.forEach((doc) => {
-      fetchedNotes.push({ id: doc.id, ...doc.data() } as Note);
-    });
-    
-    return fetchedNotes;
+    return data as Note[];
   } catch (error) {
-    console.error('Erro ao buscar notas:', error);
-    toast.error('Falha ao carregar notas');
-    throw error;
+    console.error('Error fetching notes:', error);
+    return [];
   }
 };
 
-export const saveNote = async (noteData: Partial<Note>, userId: string, currentNotes: Note[]): Promise<Note> => {
+// Função para buscar uma nota específica
+export const fetchNote = async (noteId: string): Promise<Note | null> => {
   try {
-    const isNewNote = !noteData.id || !currentNotes.some(note => note.id === noteData.id);
-    const noteRef = doc(firestore, 'notes', noteData.id || generateUniqueId());
+    const { data, error } = await supabase
+      .from('notes')
+      .select('*')
+      .eq('id', noteId)
+      .single();
     
-    if (isNewNote) {
-      // Criar nova nota
-      const newNote = {
-        ...noteData,
-        userId: userId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isPinned: false,
-        isArchived: false
-      } as Note;
-      
-      await setDoc(noteRef, newNote);
-      return newNote;
-    } else {
-      // Atualizar nota existente
-      await updateDoc(noteRef, {
-        ...noteData,
-        updatedAt: new Date()
-      });
-      
-      // Atualizar links bidirecionais
-      if (noteData.links && noteData.links.outgoing) {
-        await updateBidirectionalLinks(noteData as Note);
-      }
-      
-      const updatedNote = currentNotes.find(note => note.id === noteData.id);
-      return { 
-        ...updatedNote, 
-        ...noteData, 
-        updatedAt: new Date() 
-      } as Note;
-    }
+    if (error) throw error;
+    
+    return data as Note;
   } catch (error) {
-    console.error('Erro ao salvar nota:', error);
-    throw error;
+    console.error('Error fetching note:', error);
+    return null;
   }
 };
 
-export const updateBidirectionalLinks = async (noteData: Note): Promise<void> => {
-  if (!noteData.links || !noteData.links.outgoing) return;
-  
-  // Para cada link de saída, verificar/atualizar o link de entrada correspondente
-  for (const targetId of noteData.links.outgoing) {
-    const targetNoteRef = doc(firestore, 'notes', targetId);
-    const targetNoteSnap = await getDoc(targetNoteRef);
+// Função para criar uma nova nota
+export const createNote = async (userId: string, note: Partial<Note>): Promise<Note | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('notes')
+      .insert([{ ...note, user_id: userId }])
+      .select()
+      .single();
     
-    if (targetNoteSnap.exists()) {
-      const targetNote = targetNoteSnap.data() as Note;
-      if (!targetNote.links.incoming || !targetNote.links.incoming.includes(noteData.id)) {
-        // Adicionar o link de entrada no targetNote
-        const updatedIncoming = [...(targetNote.links.incoming || []), noteData.id];
-        await updateDoc(targetNoteRef, {
-          'links.incoming': updatedIncoming,
-          updatedAt: new Date()
-        });
-      }
-    }
+    if (error) throw error;
+    
+    return data as Note;
+  } catch (error) {
+    console.error('Error creating note:', error);
+    return null;
+  }
+};
+
+// Função para atualizar uma nota existente
+export const updateNote = async (noteId: string, updates: Partial<Note>): Promise<Note | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('notes')
+      .update(updates)
+      .eq('id', noteId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return data as Note;
+  } catch (error) {
+    console.error('Error updating note:', error);
+    return null;
+  }
+};
+
+// Função para excluir uma nota
+export const deleteNote = async (noteId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('notes')
+      .delete()
+      .eq('id', noteId);
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    return false;
   }
 };

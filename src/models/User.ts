@@ -4,39 +4,37 @@ export interface User {
   email: string;
   displayName: string;
   username: string;
-  profileType: 'artist' | 'fan' | 'admin' | 'collaborator';
-  avatar?: string;
+  profileType: 'fan' | 'artist' | 'admin' | 'collaborator';
   bio?: string;
-  socialLinks: {
-    instagram?: string;
-    twitter?: string;
-    spotify?: string;
-    youtube?: string;
-    website?: string;
-  };
+  avatar?: string | null;
   walletAddress?: string;
-  createdAt: Date;
-  updatedAt: Date;
-  lastLogin: Date;
-  isVerified: boolean;
-  twoFactorEnabled: boolean;
   permissions?: string[];
   roles?: string[];
-  preferences: {
-    theme: 'light' | 'dark' | 'system';
-    notifications: any;
-    language: 'en' | 'pt' | 'es' | 'fr';
-    currency: 'USD' | 'EUR' | 'BRL' | 'JEST';
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+    facebook?: string;
+    website?: string;
+    soundcloud?: string;
+    youtube?: string;
+    tiktok?: string;
+    [key: string]: string | undefined;
   };
+  preferences?: {
+    theme: 'light' | 'dark' | 'system';
+    language: 'en' | 'pt' | 'es' | 'fr';
+    currency: 'USD' | 'EUR' | 'BRL' | 'GBP';
+    notifications: {
+      email: boolean;
+      push: boolean;
+      sms: boolean;
+      [key: string]: boolean | undefined;
+    };
+    [key: string]: any;
+  };
+  isVerified?: boolean;
+  twoFactorEnabled?: boolean;
+  lastLogin?: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
-
-export const DEFAULT_USER_PREFERENCES = {
-  theme: 'dark' as const,
-  language: 'pt' as const,
-  currency: 'BRL' as const,
-  notifications: {
-    email: true,
-    push: true,
-    sms: false
-  }
-};
