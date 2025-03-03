@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { CommunityPost, PostComment, PostCategory } from '@/types/community';
+import { CommunityPost, PostComment, PostCategory, TablesInsert } from '@/types/community';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useCommunityPosts = (category?: string) => {
@@ -17,7 +17,7 @@ export const useCommunityPosts = (category?: string) => {
       user:profiles(username, display_name, avatar)
     `);
 
-    // Usar a API baseada em strings para evitar problemas com o TypeScript
+    // Filtrar por categoria se especificada
     if (category && category !== 'all') {
       query = query.eq('category', category);
     }
@@ -32,7 +32,7 @@ export const useCommunityPosts = (category?: string) => {
       throw new Error(error.message);
     }
 
-    // Converter explicitamente para nosso tipo já que não podemos confiar na tipagem automática
+    // Converter explicitamente para nosso tipo
     return (data || []) as unknown as CommunityPost[];
   };
 
@@ -47,27 +47,14 @@ export const useCommunityPosts = (category?: string) => {
   });
 
   const createPost = useMutation({
-    mutationFn: async (newPost: {
-      title: string;
-      content: string;
-      category: PostCategory;
-      is_pinned?: boolean;
-      is_featured?: boolean;
-    }) => {
+    mutationFn: async (newPost: TablesInsert['community_posts']) => {
       if (!user) {
         throw new Error('Você precisa estar logado para criar um post');
       }
 
-      const postData = {
-        ...newPost,
-        user_id: user.id,
-        likes_count: 0,
-        comments_count: 0
-      };
-
       const { data, error } = await supabase
         .from('community_posts')
-        .insert(postData)
+        .insert(newPost)
         .select();
 
       if (error) {
@@ -116,12 +103,14 @@ export const useCommunityPosts = (category?: string) => {
       }
 
       // Se não curtiu, adiciona a curtida
+      const likeData: TablesInsert['post_likes'] = {
+        post_id: postId,
+        user_id: user.id
+      };
+
       const { error } = await supabase
         .from('post_likes')
-        .insert({
-          post_id: postId,
-          user_id: user.id
-        });
+        .insert(likeData);
 
       if (error) {
         throw new Error(error.message);
@@ -219,11 +208,10 @@ export const usePostComments = (postId: string) => {
         throw new Error('Você precisa estar logado para comentar');
       }
 
-      const commentData = {
+      const commentData: TablesInsert['post_comments'] = {
         post_id: postId,
         user_id: user.id,
-        content,
-        likes_count: 0
+        content
       };
 
       const { data, error } = await supabase
@@ -304,12 +292,14 @@ export const usePostComments = (postId: string) => {
       }
 
       // Se não curtiu, adiciona a curtida
+      const likeData: TablesInsert['comment_likes'] = {
+        comment_id: commentId,
+        user_id: user.id
+      };
+
       const { error } = await supabase
         .from('comment_likes')
-        .insert({
-          comment_id: commentId,
-          user_id: user.id
-        });
+        .insert(likeData);
 
       if (error) {
         throw new Error(error.message);

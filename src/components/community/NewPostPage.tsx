@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
+import { PostCategory } from '@/types/community';
 
 const NewPostPage: React.FC = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const NewPostPage: React.FC = () => {
   
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [category, setCategory] = useState<'announcement' | 'event' | 'discussion' | 'collaboration' | 'question'>('discussion');
+  const [category, setCategory] = useState<PostCategory>('discussion');
   
   // Redirecionar se o usuário não estiver logado
   React.useEffect(() => {
@@ -29,7 +30,7 @@ const NewPostPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !content.trim() || !category) {
+    if (!title.trim() || !content.trim() || !category || !user) {
       return;
     }
     
@@ -40,7 +41,7 @@ const NewPostPage: React.FC = () => {
         category,
         is_pinned: false,
         is_featured: false,
-        user_id: user?.id || ''
+        user_id: user.id
       });
       
       navigate('/community');
@@ -76,7 +77,7 @@ const NewPostPage: React.FC = () => {
               <label htmlFor="category" className="text-sm font-medium text-white">Categoria</label>
               <Select
                 value={category}
-                onValueChange={(value) => setCategory(value as any)}
+                onValueChange={(value) => setCategory(value as PostCategory)}
               >
                 <SelectTrigger className="bg-black/30 border-white/10 text-white">
                   <SelectValue placeholder="Selecione uma categoria" />

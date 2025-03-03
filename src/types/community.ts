@@ -52,11 +52,27 @@ export type CommentLike = {
   created_at: string;
 };
 
-// Tipos mocados para contornar as limitações do Supabase TypeScript
-export type MockedCommunityTypes = {
-  community_posts: CommunityPost;
-  post_comments: PostComment;
-  post_likes: PostLike;
-  comment_likes: CommentLike;
+// Tipos relacionados às tabelas do Supabase para uso com tipagem genérica
+export type TablesInsert = {
+  community_posts: {
+    title: string;
+    content: string;
+    category: PostCategory;
+    user_id: string;
+    is_pinned?: boolean;
+    is_featured?: boolean;
+  };
+  post_comments: {
+    post_id: string;
+    user_id: string;
+    content: string;
+  };
+  post_likes: {
+    post_id: string;
+    user_id: string;
+  };
+  comment_likes: {
+    comment_id: string;
+    user_id: string;
+  };
 };
-
