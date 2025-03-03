@@ -1,19 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { LoginForm } from '../components/auth/LoginForm';
 import { ProtectedRoute } from '../components/ProtectedRoute';
-import { useAuth } from '../contexts/auth';
 
 const LoginPage: React.FC = () => {
-  const { userData } = useAuth();
-  const isAdmin = userData?.profileType === 'admin';
-  const [showAdminIndicator, setShowAdminIndicator] = useState(false);
-
-  useEffect(() => {
-    // Verifica se é admin e atualiza o indicador
-    setShowAdminIndicator(isAdmin);
-  }, [isAdmin]);
-
   return (
     <ProtectedRoute requireAuth={false}>
       <div className="min-h-screen w-full py-12 px-4 sm:px-6 lg:px-8 flex flex-col justify-center relative overflow-hidden">
@@ -29,30 +19,21 @@ const LoginPage: React.FC = () => {
           ></div>
         </div>
         
-        {/* Gradient light effects - posicionados nas bordas */}
+        {/* Gradient light effects */}
         <div className="absolute top-0 left-0 right-0 bottom-0 -z-5">
           <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-purple-600/10 rounded-full blur-[120px] transform -translate-x-1/4"></div>
           <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-blue-600/10 rounded-full blur-[120px] transform translate-x-1/4"></div>
           <div className="absolute top-1/2 right-0 w-1/4 h-1/4 bg-indigo-600/10 rounded-full blur-[80px] transform -translate-y-1/2"></div>
-          {showAdminIndicator && (
-            <div className="absolute top-1/3 left-1/2 w-1/4 h-1/4 bg-red-600/10 rounded-full blur-[100px] transform -translate-x-1/2"></div>
-          )}
         </div>
         
         <div className="relative z-10">
-          {/* Formulário com estilo diferente para admin */}
-          <div className={showAdminIndicator ? "admin-login" : ""}>
-            <LoginForm />
+          <div className="sm:mx-auto sm:w-full sm:max-w-md">
+            <h2 className="text-3xl font-bold text-center text-white mb-6 flex flex-col items-center">
+              <span className="text-3xl bg-gradient-to-r from-purple-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">JESTFLY</span>
+              <div className="w-40 h-1 bg-gradient-to-r from-purple-600 to-blue-500 mt-3 rounded-full"></div>
+            </h2>
           </div>
-          
-          {/* Indicador visual para login de admin */}
-          {showAdminIndicator && (
-            <div className="mt-4 text-center">
-              <span className="px-4 py-1 bg-gradient-to-r from-red-600 to-purple-600 text-white text-xs rounded-full">
-                Acesso de Administrador
-              </span>
-            </div>
-          )}
+          <LoginForm />
         </div>
       </div>
     </ProtectedRoute>
