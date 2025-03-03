@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import HomePage from '@/pages/HomePage';
 import AuthPage from '@/pages/AuthPage';
 import AdminAuthPage from '@/pages/AdminAuthPage';
@@ -43,7 +44,7 @@ const sampleGalleryImages = [
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <LanguageProvider>
         <Routes>
           <Route path="/" element={<HomePage crystalParams={{
             color: "#ffffff",
@@ -103,7 +104,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />
-      </Router>
+      </LanguageProvider>
     </AuthProvider>
   );
 }
