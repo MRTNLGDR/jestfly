@@ -84,7 +84,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
             
-            {/* Rotas protegidas (requerem autenticação) */}
+            {/* Rotas protegidas por autenticação (qualquer usuário logado) */}
             <Route path="/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
@@ -97,14 +97,30 @@ function App() {
               </ProtectedRoute>
             } />
             
-            {/* Outras rotas do aplicativo */}
+            {/* Rotas da comunidade (todos podem ver, usuarios autenticados podem interagir) */}
             <Route path="/community/*" element={<CommunityPage />} />
+            
+            {/* Loja (todos podem ver, usuários autenticados podem comprar) */}
             <Route path="/store" element={<StorePage />} />
+            
+            {/* Bookings (todos podem ver, artistas podem gerenciar) */}
             <Route path="/bookings" element={<BookingsPage />} />
+            
+            {/* Press Kit (todos podem ver, mas apenas usuários autenticados podem baixar recursos) */}
             <Route path="/press-kit" element={<PressKitPage />} />
+            
+            {/* Live Stream (todos podem assistir, artistas podem transmitir) */}
             <Route path="/live" element={<LiveStreamPage />} />
+            
+            {/* Airdrop (todos podem ver, usuários autenticados podem participar) */}
             <Route path="/airdrop" element={<AirdropPage />} />
-            <Route path="/submit-demo" element={<DemoSubmissionPage />} />
+            
+            {/* Demo Submission (apenas artistas podem enviar) */}
+            <Route path="/submit-demo" element={
+              <ProtectedRoute requiredRole="artist" redirectPath="/">
+                <DemoSubmissionPage />
+              </ProtectedRoute>
+            } />
             
             {/* Rotas adicionais para páginas do footer */}
             <Route path="/about" element={<NotFound />} />
@@ -120,7 +136,10 @@ function App() {
           
           {/* Rota para o painel de administração (fora do layout principal) */}
           <Route path="/admin/*" element={
-            <ProtectedRoute requiredRole="admin">
+            <ProtectedRoute 
+              requiredRole="admin" 
+              redirectPath="/auth"
+            >
               <AdminPanel />
             </ProtectedRoute>
           } />
