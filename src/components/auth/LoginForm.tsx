@@ -27,10 +27,15 @@ export const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    console.log('Tentando login para:', formData.email);
     
     try {
+      const loadingToast = toast.loading('Realizando login...');
       await login(formData.email, formData.password);
+      toast.dismiss(loadingToast);
+      
       toast.success('Login bem-sucedido!');
+      console.log('Login bem-sucedido, redirecionando para /profile');
       navigate('/profile');
     } catch (error: any) {
       console.error('Erro de login:', error);
@@ -43,6 +48,7 @@ export const LoginForm: React.FC = () => {
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     try {
+      console.log('Iniciando login com Google');
       const loadingToast = toast.loading('Conectando com Google...');
       await loginWithGoogle();
       toast.dismiss(loadingToast);

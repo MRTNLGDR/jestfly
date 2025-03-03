@@ -8,6 +8,8 @@ import { toast } from 'sonner';
  */
 export const register = async (email: string, password: string, userData: Partial<AppUser>): Promise<void> => {
   try {
+    console.log('Iniciando registro para:', email, 'Tipo de perfil:', userData.profileType);
+    
     // Preparar dados do perfil para registro
     const userMetadata = {
       full_name: userData.displayName,
@@ -17,6 +19,8 @@ export const register = async (email: string, password: string, userData: Partia
     
     // Verificar se é cadastro de admin e validar código
     if (userData.profileType === 'admin' && userData.adminCode) {
+      console.log('Validando código de administrador');
+      
       // Verificar o código admin antes do registro
       const { data: codeValid, error } = await supabase.rpc(
         'has_role', 
@@ -24,9 +28,12 @@ export const register = async (email: string, password: string, userData: Partia
       );
       
       if (error || !codeValid) {
+        console.error('Código de administrador inválido:', error);
         throw new Error('Código de administrador inválido ou já utilizado');
       }
     }
+    
+    console.log('Enviando solicitação de registro para Supabase');
     
     // Registrar usuário no Supabase
     const { data, error } = await supabase.auth.signUp({
@@ -39,12 +46,17 @@ export const register = async (email: string, password: string, userData: Partia
     });
     
     if (error) {
+      console.error('Erro no registro:', error.message);
       throw error;
     }
+    
+    console.log('Registro bem-sucedido:', data.user?.id);
     
     // Se é admin, processar o código admin
     if (data?.user && userData.profileType === 'admin' && userData.adminCode) {
       try {
+        console.log('Processando código de administrador para o usuário:', data.user.id);
+        
         // Buscar token para autorização
         const { data: authData } = await supabase.auth.getSession();
         const token = authData.session?.access_token;
