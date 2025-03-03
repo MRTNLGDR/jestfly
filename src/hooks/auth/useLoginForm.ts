@@ -58,23 +58,23 @@ export const useLoginForm = () => {
       setError('');
       let demoEmail, demoPassword;
       
-      // Usar emails e senhas dos usuários demo atualizados
+      // Usar os emails e senhas dos usuários demo atualizados de acordo com o migration
       switch (type) {
         case 'fan':
-          demoEmail = 'fan_demo@jestfly.com';
-          demoPassword = 'fan123';
+          demoEmail = 'fan@jestfly.com';
+          demoPassword = 'fanpassword';
           break;
         case 'artist':
-          demoEmail = 'artist_demo@jestfly.com';
-          demoPassword = 'artist123';
+          demoEmail = 'artist@jestfly.com';
+          demoPassword = 'artistpassword';
           break;
         case 'collaborator':
           demoEmail = 'collaborator@jestfly.com';
-          demoPassword = 'collaborator123';
+          demoPassword = 'collaboratorpassword';
           break;
         case 'admin':
-          demoEmail = 'admin_demo@jestfly.com';
-          demoPassword = 'admin123';
+          demoEmail = 'admin@jestfly.com';
+          demoPassword = 'adminpassword';
           break;
       }
       

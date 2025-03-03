@@ -62,8 +62,9 @@ const AdminLoginForm = () => {
   const handleDemoAdminLogin = async () => {
     try {
       setError('');
-      const demoEmail = 'admin_demo@jestfly.com';
-      const demoPassword = 'admin123';
+      // Atualização para usar o email correto do usuário admin demo
+      const demoEmail = 'admin@jestfly.com';
+      const demoPassword = 'adminpassword';
       
       console.log('Tentando login como admin demo');
       const { error, data } = await signIn(demoEmail, demoPassword);
@@ -73,7 +74,7 @@ const AdminLoginForm = () => {
         setError(error.message || 'Erro ao fazer login como admin demo');
         toast({
           title: "Erro de autenticação",
-          description: "Não foi possível fazer login como admin demo",
+          description: "Não foi possível fazer login como admin demo. Verifique se o usuário existe no Supabase.",
           variant: "destructive",
         });
       } else if (data) {
