@@ -10,4 +10,5 @@ export interface RegisterFormData {
   profileType: ProfileType;
 }
 
-export type ProfileType = PermissionType;
+// Garantir que o tipo ProfileType seja exatamente igual ao enum no banco de dados
+export type ProfileType = 'admin' | 'artist' | 'fan' | 'collaborator';

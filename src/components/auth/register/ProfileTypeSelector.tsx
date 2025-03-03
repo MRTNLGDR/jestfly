@@ -15,12 +15,19 @@ export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({
   onChange,
   disabled = false
 }) => {
+  // Esta função garante que os valores são convertidos corretamente para o tipo esperado pelo banco
+  const handleProfileTypeChange = (selected: string) => {
+    // Converte o valor string para o tipo ProfileType
+    const profileType = selected as ProfileType;
+    onChange(profileType);
+  };
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-zinc-300">Tipo de Conta</label>
       <RadioGroup 
         value={value} 
-        onValueChange={(value: any) => onChange(value)}
+        onValueChange={handleProfileTypeChange}
         className="flex flex-wrap gap-4"
         disabled={disabled}
       >

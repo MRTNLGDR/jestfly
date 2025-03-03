@@ -1,4 +1,3 @@
-
 import { supabase } from '../../integrations/supabase/client';
 import { User } from '../../models/User';
 import { toast } from 'sonner';
@@ -60,6 +59,12 @@ export const registerUser = async (email: string, password: string, userData: Pa
       throw new Error('Este email já está sendo usado');
     }
     
+    // Garantir que o profileType seja um dos valores válidos
+    const validProfileTypes = ['admin', 'artist', 'fan', 'collaborator'];
+    const profileType = userData.profileType && validProfileTypes.includes(userData.profileType) 
+      ? userData.profileType 
+      : 'fan';
+    
     // Registrar o usuário
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -68,14 +73,13 @@ export const registerUser = async (email: string, password: string, userData: Pa
         data: {
           displayName: userData.displayName,
           username: userData.username,
-          profileType: userData.profileType || 'fan',
+          profileType: profileType,
         }
       }
     });
     
     if (error) throw error;
     
-    const profileType = userData.profileType || 'fan';
     let successMessage = '';
     
     switch (profileType) {
