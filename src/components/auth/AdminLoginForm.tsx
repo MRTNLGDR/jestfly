@@ -1,133 +1,137 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Loader2, ShieldIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
 
-const AdminLoginForm: React.FC = () => {
+const AdminLoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [error, setError] = useState('');
+  const { signIn, loading } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Email e senha são obrigatórios",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setLoading(true);
-    
-    const { error } = await signIn(email, password);
-    
-    if (error) {
-      console.error('Erro ao fazer login como admin:', error);
-      toast({
-        title: "Erro de autenticação",
-        description: error.message || "Credenciais inválidas ou sem permissão de administrador",
-        variant: "destructive",
-      });
-    }
-    
-    setLoading(false);
-  };
-
-  const handleDemoLogin = async () => {
-    setLoading(true);
+    setError('');
     
     try {
-      console.log('Tentando login como admin demo');
-      // Usamos a credencial do admin que criamos via SQL
-      const { error } = await signIn('admin_demo@jestfly.com', 'admin123');
+      const { error } = await signIn(email, password);
       
       if (error) {
-        console.error('Erro ao fazer login como admin demo:', error);
+        setError(error.message);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleDemoAdminLogin = async () => {
+    try {
+      setError('');
+      const demoEmail = 'admin_demo@jestfly.com';
+      const demoPassword = 'admin123';
+      
+      console.log('Tentando login como admin demo');
+      const { error } = await signIn(demoEmail, demoPassword);
+      
+      if (error) {
+        console.error('Erro no login admin demo:', error);
+        setError(error.message || 'Erro ao fazer login como admin demo');
         toast({
-          title: "Erro no login demo",
-          description: error.message || "Não foi possível fazer login com a conta demo",
+          title: "Erro de autenticação",
+          description: "Não foi possível fazer login como admin demo",
           variant: "destructive",
         });
+      } else {
+        toast({
+          title: "Login admin bem-sucedido",
+          description: "Você está logado como admin demo",
+          variant: "default",
+        });
+        navigate('/admin');
       }
-    } catch (error) {
-      console.error('Exceção ao fazer login como admin demo:', error);
-      toast({
-        title: "Erro inesperado",
-        description: "Ocorreu um erro ao tentar fazer login com a conta demo",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Erro ao fazer login como admin demo:', err);
+      setError((err as Error).message || 'Ocorreu um erro durante o login demo');
     }
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-6">
+      <div className="text-center">
+        <ShieldIcon className="w-12 h-12 mx-auto mb-2 text-blue-400" />
+        <p className="text-white/60 text-sm">Acesso restrito a administradores</p>
+      </div>
+
+      <form onSubmit={handleAdminLogin} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-white">Email de administrador</Label>
           <Input
             id="email"
             type="email"
             placeholder="admin@jestfly.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="text-black"
-            autoComplete="email"
+            required
+            className="bg-black/30 border-white/10 text-white"
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="password">Senha</Label>
+          <Label htmlFor="password" className="text-white">Senha</Label>
           <Input
             id="password"
             type="password"
+            placeholder="********"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="text-black"
-            autoComplete="current-password"
+            required
+            className="bg-black/30 border-white/10 text-white"
           />
         </div>
         
-        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        
+        <Button 
+          type="submit" 
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
+          disabled={loading}
+        >
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Entrando...
+              Verificando...
             </>
           ) : (
             'Entrar como Admin'
           )}
         </Button>
       </form>
-      
-      <div className="mt-4">
-        <Button 
-          type="button" 
-          onClick={handleDemoLogin} 
-          variant="outline" 
-          className="w-full" 
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Entrando...
-            </>
-          ) : (
-            'Usar conta demo'
-          )}
-        </Button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-white/10"></span>
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-black px-2 text-white/60">Ou</span>
+        </div>
       </div>
+
+      <Button 
+        variant="outline" 
+        className="w-full border-blue-500/30 hover:bg-blue-900/30 text-sm"
+        onClick={handleDemoAdminLogin}
+        disabled={loading}
+      >
+        <ShieldIcon className="mr-2 h-4 w-4" />
+        Acessar como Admin Demo
+      </Button>
     </div>
   );
 };

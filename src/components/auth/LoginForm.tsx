@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Mail, Lock } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLoginForm } from '@/hooks/auth/useLoginForm';
 import FormField from '@/components/auth/FormField';
@@ -91,6 +91,7 @@ const LoginForm: React.FC = () => {
         <DemoLoginButtons 
           onFanLogin={() => handleDemoLogin('fan')}
           onArtistLogin={() => handleDemoLogin('artist')}
+          onAdminLogin={() => handleDemoLogin('admin')}
           disabled={loading}
         />
       </CardContent>

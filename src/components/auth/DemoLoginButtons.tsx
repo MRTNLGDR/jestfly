@@ -1,16 +1,19 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { UserIcon, PencilIcon, ShieldIcon } from 'lucide-react';
 
 interface DemoLoginButtonsProps {
   onFanLogin: () => Promise<void>;
   onArtistLogin: () => Promise<void>;
+  onAdminLogin?: () => Promise<void>;
   disabled: boolean;
 }
 
 const DemoLoginButtons: React.FC<DemoLoginButtonsProps> = ({ 
   onFanLogin, 
-  onArtistLogin, 
+  onArtistLogin,
+  onAdminLogin,
   disabled 
 }) => {
   return (
@@ -31,6 +34,7 @@ const DemoLoginButtons: React.FC<DemoLoginButtonsProps> = ({
           onClick={onFanLogin}
           disabled={disabled}
         >
+          <UserIcon className="mr-1 h-3 w-3" />
           Demo Fã
         </Button>
         <Button 
@@ -39,9 +43,24 @@ const DemoLoginButtons: React.FC<DemoLoginButtonsProps> = ({
           onClick={onArtistLogin}
           disabled={disabled}
         >
+          <PencilIcon className="mr-1 h-3 w-3" />
           Demo Artista
         </Button>
       </div>
+      
+      {onAdminLogin && (
+        <div className="mt-2">
+          <Button 
+            variant="outline" 
+            className="w-full border-red-500/30 hover:bg-red-900/30 text-sm"
+            onClick={onAdminLogin}
+            disabled={disabled}
+          >
+            <ShieldIcon className="mr-1 h-3 w-3" />
+            Demo Admin
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
