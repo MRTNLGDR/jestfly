@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -79,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Perfil recuperado:', data);
       return data as ProfileData;
     } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
+      console.error('Exceção ao buscar perfil:', error);
       return null;
     }
   };
@@ -87,11 +88,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Função para atualizar o perfil
   const refreshProfile = async () => {
     if (user) {
-      console.log('Atualizando dados do perfil');
+      console.log('Atualizando dados do perfil para usuário:', user.id);
       const profileData = await fetchProfile(user.id);
       if (profileData) {
+        console.log('Perfil atualizado com sucesso:', profileData);
         setProfile(profileData);
+      } else {
+        console.warn('Não foi possível atualizar o perfil do usuário:', user.id);
       }
+    } else {
+      console.log('Tentativa de atualizar perfil sem usuário autenticado');
     }
   };
 
@@ -99,13 +105,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Obter sessão inicial
     console.log('Verificando sessão inicial');
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      console.log('Sessão inicial:', session);
+      console.log('Sessão inicial:', session?.user?.id || 'Nenhuma sessão');
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('Usuário encontrado na sessão inicial, buscando perfil');
         const profileData = await fetchProfile(session.user.id);
         setProfile(profileData);
+        console.log('Perfil definido após sessão inicial:', profileData?.id || 'Perfil não encontrado');
       }
       
       setLoading(false);
@@ -113,15 +121,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Monitorar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Evento de autenticação:', _event, 'Session:', session);
+      console.log('Evento de autenticação:', _event, 'ID do usuário:', session?.user?.id || 'Nenhum usuário');
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('Perfil sendo buscado após mudança de estado de autenticação');
         const profileData = await fetchProfile(session.user.id);
         setProfile(profileData);
+        console.log('Perfil definido após mudança de autenticação:', profileData?.id || 'Perfil não encontrado');
       } else {
         setProfile(null);
+        console.log('Perfil removido após logout/expiração de sessão');
       }
       
       setLoading(false);
@@ -133,36 +144,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       console.log(`Tentando login com email: ${email}`);
+      setLoading(true);
+      
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
-      if (!error && data.user) {
-        console.log('Login bem-sucedido:', data.user);
-        toast({
-          title: "Login realizado com sucesso!",
-          description: `Bem-vindo de volta, ${data.user.email}!`,
-          variant: "default",
-        });
-        
-        // Buscar perfil após login
-        const profileData = await fetchProfile(data.user.id);
-        setProfile(profileData);
-        
-        // Verificar o tipo de perfil e redirecionar adequadamente
-        if (profileData?.profile_type === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/');
-        }
-      } else if (error) {
-        console.error('Erro no login:', error);
+      if (error) {
+        console.error('Erro de autenticação:', error.message, error);
         toast({
           title: "Erro ao fazer login",
           description: error.message,
           variant: "destructive",
         });
+        setLoading(false);
+        return { data: null, error };
       }
       
-      return { data: data?.user ?? null, error };
+      if (data.user) {
+        console.log('Login bem-sucedido:', data.user.id);
+        
+        // Buscar perfil após login
+        const profileData = await fetchProfile(data.user.id);
+        if (profileData) {
+          console.log('Perfil recuperado após login:', profileData.profile_type);
+          setProfile(profileData);
+        
+          // Verificar o tipo de perfil e redirecionar adequadamente
+          toast({
+            title: "Login realizado com sucesso!",
+            description: `Bem-vindo, ${profileData.display_name}!`,
+            variant: "default",
+          });
+          
+          if (profileData.profile_type === 'admin') {
+            console.log('Redirecionando para painel de admin');
+            navigate('/admin');
+          } else {
+            console.log('Redirecionando para página inicial');
+            navigate('/');
+          }
+        } else {
+          console.error('Perfil não encontrado após login bem-sucedido');
+          toast({
+            title: "Perfil não encontrado",
+            description: "Seu login foi bem-sucedido, mas não encontramos seu perfil.",
+            variant: "destructive",
+          });
+          navigate('/');
+        }
+      }
+      
+      setLoading(false);
+      return { data: data?.user ?? null, error: null };
     } catch (error) {
       console.error('Exceção durante login:', error);
       const err = error as Error;
@@ -171,12 +203,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: err.message,
         variant: "destructive",
       });
+      setLoading(false);
       return { data: null, error: err };
     }
   };
 
   const signUp = async (email: string, password: string, userData: SignUpUserData) => {
     try {
+      setLoading(true);
+      console.log('Iniciando registro com email:', email, 'e dados:', userData);
+      
       // Registrar o usuário
       const { data, error } = await supabase.auth.signUp({ 
         email, 
@@ -190,7 +226,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (!error && data.user) {
+      if (error) {
+        console.error('Erro no registro:', error);
+        toast({
+          title: "Erro ao criar conta",
+          description: error.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return { data: null, error };
+      }
+      
+      if (data.user) {
+        console.log('Registro bem-sucedido, usuário criado:', data.user.id);
+        
+        // Verificar se o perfil foi criado automaticamente pelo trigger
+        setTimeout(async () => {
+          const profileData = await fetchProfile(data.user!.id);
+          if (profileData) {
+            console.log('Perfil encontrado após registro:', profileData);
+            setProfile(profileData);
+          } else {
+            console.warn('Perfil não encontrado após registro, pode haver um atraso na criação');
+          }
+        }, 1000); // Pequeno atraso para dar tempo ao trigger
+        
         toast({
           title: "Conta criada com sucesso!",
           description: "Verifique seu e-mail para confirmar o cadastro.",
@@ -198,52 +258,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         
         navigate('/');
-      } else if (error) {
-        toast({
-          title: "Erro ao criar conta",
-          description: error.message,
-          variant: "destructive",
-        });
       }
       
-      return { data: data?.user ?? null, error };
+      setLoading(false);
+      return { data: data?.user ?? null, error: null };
     } catch (error) {
+      console.error('Exceção durante registro:', error);
+      const err = error as Error;
       toast({
         title: "Erro ao criar conta",
-        description: (error as Error).message,
+        description: err.message,
         variant: "destructive",
       });
-      return { data: null, error: error as Error };
+      setLoading(false);
+      return { data: null, error: err };
     }
   };
 
   const signOut = async () => {
     try {
       console.log('Realizando logout');
-      await supabase.auth.signOut();
-      setProfile(null);
-      toast({
-        title: "Logout realizado",
-        description: "Você saiu da sua conta com sucesso.",
-        variant: "default",
-      });
-      navigate('/');
+      setLoading(true);
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Erro ao fazer logout:', error);
+        toast({
+          title: "Erro ao fazer logout",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setProfile(null);
+        console.log('Logout bem-sucedido, perfil removido');
+        toast({
+          title: "Logout realizado",
+          description: "Você saiu da sua conta com sucesso.",
+          variant: "default",
+        });
+        navigate('/');
+      }
+      
+      setLoading(false);
     } catch (error) {
-      console.error('Erro ao fazer logout:', error);
+      console.error('Exceção durante logout:', error);
       toast({
         title: "Erro ao fazer logout",
         description: (error as Error).message,
         variant: "destructive",
       });
+      setLoading(false);
     }
   };
 
   const updateProfile = async (profileData: Partial<ProfileData>) => {
     if (!user) {
+      console.error('Tentativa de atualizar perfil sem usuário autenticado');
       return { data: null, error: new Error('Usuário não autenticado') };
     }
 
     try {
+      console.log('Atualizando perfil para usuário:', user.id, 'com dados:', profileData);
+      
       const { data, error } = await supabase
         .from('profiles')
         .update(profileData)
@@ -252,6 +329,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (error) {
+        console.error('Erro ao atualizar perfil:', error);
         toast({
           title: "Erro ao atualizar perfil",
           description: error.message,
@@ -260,6 +338,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { data: null, error };
       }
 
+      console.log('Perfil atualizado com sucesso:', data);
       setProfile(data as ProfileData);
       toast({
         title: "Perfil atualizado",
@@ -269,6 +348,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { data: data as ProfileData, error: null };
     } catch (error) {
+      console.error('Exceção ao atualizar perfil:', error);
       toast({
         title: "Erro ao atualizar perfil",
         description: (error as Error).message,
@@ -280,14 +360,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const uploadAvatar = async (file: File) => {
     if (!user) {
+      console.error('Tentativa de upload de avatar sem usuário autenticado');
       return { error: new Error('Usuário não autenticado'), avatarUrl: null };
     }
 
     try {
+      console.log('Iniciando upload de avatar para usuário:', user.id);
+      
+      // Verificar se o bucket existe
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      if (bucketsError) {
+        console.error('Erro ao listar buckets:', bucketsError);
+        throw bucketsError;
+      }
+      
+      const avatarBucketExists = buckets.some(bucket => bucket.name === 'avatars');
+      if (!avatarBucketExists) {
+        console.error('Bucket "avatars" não encontrado');
+        throw new Error('O bucket de avatares não está configurado no projeto Supabase');
+      }
+      
       // Criar nome único para o arquivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${fileName}`;
+      
+      console.log('Fazendo upload do arquivo:', filePath);
 
       // Upload do arquivo para o bucket 'avatars'
       const { error: uploadError } = await supabase.storage
@@ -295,6 +393,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .upload(filePath, file);
 
       if (uploadError) {
+        console.error('Erro no upload:', uploadError);
         throw uploadError;
       }
 
@@ -305,7 +404,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Atualizar perfil com a nova URL do avatar
       const avatarUrl = data.publicUrl;
+      console.log('URL do avatar obtida:', avatarUrl);
+      
       await updateProfile({ avatar: avatarUrl });
+      console.log('Perfil atualizado com novo avatar');
 
       toast({
         title: "Avatar atualizado",
@@ -315,6 +417,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error: null, avatarUrl };
     } catch (error) {
+      console.error('Exceção durante upload de avatar:', error);
       toast({
         title: "Erro ao fazer upload",
         description: (error as Error).message,

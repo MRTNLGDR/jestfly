@@ -8,6 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, InfoIcon } from 'lucide-react';
 
 const AuthPage: React.FC = () => {
   const { signIn, signUp } = useAuth();
@@ -34,6 +36,12 @@ const AuthPage: React.FC = () => {
     login: '',
     register: ''
   });
+  
+  // Estado para mensagens de sucesso
+  const [success, setSuccess] = useState({
+    login: '',
+    register: ''
+  });
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,17 +60,75 @@ const AuthPage: React.FC = () => {
     }));
   };
 
+  const handleDemoLogin = async (type: 'admin' | 'artist' | 'fan' | 'collaborator') => {
+    setLoading(true);
+    setErrors((prev) => ({ ...prev, login: '' }));
+    setSuccess((prev) => ({ ...prev, login: '' }));
+    
+    let email, password;
+    
+    switch(type) {
+      case 'admin':
+        email = 'admin@jestfly.com';
+        password = 'adminpassword';
+        break;
+      case 'artist':
+        email = 'artist@jestfly.com';
+        password = 'artistpassword';
+        break;
+      case 'collaborator':
+        email = 'collaborator@jestfly.com';
+        password = 'collaboratorpassword';
+        break;
+      case 'fan':
+        email = 'fan@jestfly.com';
+        password = 'fanpassword';
+        break;
+    }
+    
+    try {
+      console.log(`Tentando login de demonstração como ${type}`, { email });
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        console.error(`Erro no login demo ${type}:`, error);
+        setErrors((prev) => ({ 
+          ...prev, 
+          login: `Erro no login de demonstração (${type}): ${error.message}` 
+        }));
+      } else {
+        setSuccess((prev) => ({ 
+          ...prev, 
+          login: `Login de demonstração como ${type} bem-sucedido!` 
+        }));
+      }
+    } catch (err) {
+      console.error(`Exceção no login demo ${type}:`, err);
+      setErrors((prev) => ({ 
+        ...prev, 
+        login: `Erro inesperado no login de demonstração: ${(err as Error).message}` 
+      }));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrors((prev) => ({ ...prev, login: '' }));
+    setSuccess((prev) => ({ ...prev, login: '' }));
     
     try {
+      console.log('Tentando login normal com:', loginData.email);
       const { error } = await signIn(loginData.email, loginData.password);
+      
       if (error) {
+        console.error('Erro no login normal:', error);
         setErrors((prev) => ({ ...prev, login: error.message }));
       }
     } catch (error) {
+      console.error('Exceção no login normal:', error);
       setErrors((prev) => ({ 
         ...prev, 
         login: (error as Error).message || 'Ocorreu um erro durante o login' 
@@ -76,6 +142,7 @@ const AuthPage: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setErrors((prev) => ({ ...prev, register: '' }));
+    setSuccess((prev) => ({ ...prev, register: '' }));
     
     // Validar dados de registro
     if (registerData.password !== registerData.confirmPassword) {
@@ -88,6 +155,7 @@ const AuthPage: React.FC = () => {
     }
     
     try {
+      console.log('Tentando registro com:', registerData.email);
       const { error } = await signUp(
         registerData.email, 
         registerData.password,
@@ -99,9 +167,26 @@ const AuthPage: React.FC = () => {
       );
       
       if (error) {
+        console.error('Erro no registro:', error);
         setErrors((prev) => ({ ...prev, register: error.message }));
+      } else {
+        setSuccess((prev) => ({ 
+          ...prev, 
+          register: 'Conta criada com sucesso! Verifique seu email para confirmar o cadastro.' 
+        }));
+        
+        // Limpar formulário após sucesso
+        setRegisterData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          display_name: '',
+          username: '',
+          profile_type: 'fan'
+        });
       }
     } catch (error) {
+      console.error('Exceção no registro:', error);
       setErrors((prev) => ({ 
         ...prev, 
         register: (error as Error).message || 'Ocorreu um erro durante o registro' 
@@ -160,9 +245,19 @@ const AuthPage: React.FC = () => {
                   </div>
                   
                   {errors.login && (
-                    <div className="p-3 bg-red-900/30 border border-red-700 rounded-md text-red-300 text-sm">
-                      {errors.login}
-                    </div>
+                    <Alert variant="destructive" className="bg-red-900/30 border-red-700 text-red-300">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Erro</AlertTitle>
+                      <AlertDescription>{errors.login}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {success.login && (
+                    <Alert className="bg-green-900/30 border-green-700 text-green-300">
+                      <InfoIcon className="h-4 w-4" />
+                      <AlertTitle>Sucesso</AlertTitle>
+                      <AlertDescription>{success.login}</AlertDescription>
+                    </Alert>
                   )}
                   
                   <Button 
@@ -180,6 +275,59 @@ const AuthPage: React.FC = () => {
                     )}
                   </Button>
                 </form>
+                
+                <div className="mt-6 space-y-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-white/10"></span>
+                    </div>
+                    <div className="relative flex justify-center text-xs">
+                      <span className="bg-black px-2 text-white/60">Ou entre com uma conta de demonstração</span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      className="bg-black/50 text-white border-purple-500/50 hover:bg-purple-900/30"
+                      onClick={() => handleDemoLogin('admin')}
+                      disabled={loading}
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Admin'}
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      className="bg-black/50 text-white border-blue-500/50 hover:bg-blue-900/30"
+                      onClick={() => handleDemoLogin('artist')}
+                      disabled={loading}
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Artista'}
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      className="bg-black/50 text-white border-green-500/50 hover:bg-green-900/30"
+                      onClick={() => handleDemoLogin('collaborator')}
+                      disabled={loading}
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Colaborador'}
+                    </Button>
+                    
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      className="bg-black/50 text-white border-indigo-500/50 hover:bg-indigo-900/30"
+                      onClick={() => handleDemoLogin('fan')}
+                      disabled={loading}
+                    >
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Fã'}
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -284,9 +432,19 @@ const AuthPage: React.FC = () => {
                   </div>
                   
                   {errors.register && (
-                    <div className="p-3 bg-red-900/30 border border-red-700 rounded-md text-red-300 text-sm">
-                      {errors.register}
-                    </div>
+                    <Alert variant="destructive" className="bg-red-900/30 border-red-700 text-red-300">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Erro</AlertTitle>
+                      <AlertDescription>{errors.register}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {success.register && (
+                    <Alert className="bg-green-900/30 border-green-700 text-green-300">
+                      <InfoIcon className="h-4 w-4" />
+                      <AlertTitle>Sucesso</AlertTitle>
+                      <AlertDescription>{success.register}</AlertDescription>
+                    </Alert>
                   )}
                   
                   <Button 
