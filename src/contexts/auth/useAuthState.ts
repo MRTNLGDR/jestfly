@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { auth, firestore } from '../../firebase/config';
 import { supabase } from '../../integrations/supabase/client';
 import { doc, getDoc } from 'firebase/firestore';
-import { createSupabaseUserData } from './userDataTransformer';
+import { createSupabaseUserData, SupabaseProfileData } from './userDataTransformer';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export type AuthStateHook = {
@@ -14,7 +14,7 @@ export type AuthStateHook = {
   userData: User | null;
   session: Session | null;
   loading: boolean;
-  error: Error | null;
+  error: string | null;
 } & SupabaseClient;
 
 /**
@@ -25,7 +25,7 @@ export const useAuthState = (): AuthStateHook => {
   const [userData, setUserData] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Primeiro verificar se o usuário está autenticado com o Supabase
@@ -63,12 +63,20 @@ export const useAuthState = (): AuthStateHook => {
             
             // Transformar os dados do Supabase para o formato da aplicação
             const roles = rolesData ? rolesData.map(r => r.role) : [];
+            
+            // Convert profile_type to the expected type
+            const profileDataWithCorrectType: SupabaseProfileData = {
+              ...profileData,
+              profile_type: profileData.profile_type as "artist" | "fan" | "admin" | "collaborator",
+              roles
+            };
+            
             const userData = createSupabaseUserData(
               { 
                 email: supabaseSession.user.email || '', 
                 email_confirmed_at: supabaseSession.user.email_confirmed_at 
               },
-              { ...profileData, roles }
+              profileDataWithCorrectType
             );
             
             setUserData(userData);
@@ -76,6 +84,7 @@ export const useAuthState = (): AuthStateHook => {
         }
       } catch (err) {
         console.error("Error checking Supabase auth:", err);
+        setError(err instanceof Error ? err.message : String(err));
       }
     };
     
@@ -95,6 +104,7 @@ export const useAuthState = (): AuthStateHook => {
           }
         } catch (err) {
           console.error("Error fetching user data from Firebase:", err);
+          setError(err instanceof Error ? err.message : String(err));
         }
       }
       
@@ -140,17 +150,26 @@ export const useAuthState = (): AuthStateHook => {
             
             // Transformar os dados do Supabase para o formato da aplicação
             const roles = rolesData ? rolesData.map(r => r.role) : [];
+            
+            // Convert profile_type to the expected type
+            const profileDataWithCorrectType: SupabaseProfileData = {
+              ...profileData,
+              profile_type: profileData.profile_type as "artist" | "fan" | "admin" | "collaborator",
+              roles
+            };
+            
             const userData = createSupabaseUserData(
               { 
                 email: session.user.email || '', 
                 email_confirmed_at: session.user.email_confirmed_at 
               },
-              { ...profileData, roles }
+              profileDataWithCorrectType
             );
             
             setUserData(userData);
           } catch (err) {
             console.error("Error processing auth change:", err);
+            setError(err instanceof Error ? err.message : String(err));
           }
         } else if (event === 'SIGNED_OUT') {
           setUserData(null);

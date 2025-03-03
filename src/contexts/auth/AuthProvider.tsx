@@ -1,7 +1,7 @@
 
 import React, { createContext } from 'react';
 import { AuthContextType } from './types';
-import { useAuthState } from './authStateManager';
+import { useAuthState } from './useAuthState';
 import { login, loginWithGoogle, register, logout, resetPassword } from './authMethods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     resetPassword,
     loading,
-    error
+    error: error || null // Convert to string or null to match the expected type
   };
 
   return (

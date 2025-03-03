@@ -150,7 +150,9 @@ export const setupSupabaseAuth = (): AuthStateManager => {
       },
       { 
         ...profileData, 
-        roles 
+        roles,
+        // Ensure profile_type is one of the expected values
+        profile_type: (profileData.profile_type as "artist" | "fan" | "admin" | "collaborator") || 'fan'
       }
     );
   };
