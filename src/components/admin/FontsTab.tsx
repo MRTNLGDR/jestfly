@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,10 +48,13 @@ const FontsTab = () => {
   const [previewText, setPreviewText] = useState("AaBbCcDdEeFfGg 1234567890");
   const [saving, setSaving] = useState(false);
   
+  // Carregar fontes do banco de dados
   useEffect(() => {
     const fetchFonts = async () => {
       try {
         setLoading(true);
+        // Substituir por uma tabela real quando estiver disponível
+        // Exemplo simulado de dados
         const mockFonts: Font[] = [
           {
             id: '1',
@@ -80,6 +84,7 @@ const FontsTab = () => {
         
         setFonts(mockFonts);
         
+        // Carregar a fonte atual do site
         const siteFont = localStorage.getItem("siteFont") || "Roboto";
         setCurrentSiteFont(siteFont);
         
@@ -98,6 +103,7 @@ const FontsTab = () => {
     fetchFonts();
   }, [toast]);
 
+  // Adicionar fonte do Google
   const addGoogleFont = () => {
     if (!googleFontName.trim() || !googleFontUrl.trim()) {
       toast({
@@ -108,6 +114,7 @@ const FontsTab = () => {
       return;
     }
     
+    // Verificar se a URL é válida (exemplo básico)
     if (!googleFontUrl.includes('fonts.googleapis.com')) {
       toast({
         variant: "destructive",
@@ -119,6 +126,7 @@ const FontsTab = () => {
     
     setSaving(true);
     
+    // Simulação de salvamento
     setTimeout(() => {
       const newFont: Font = {
         id: Date.now().toString(),
@@ -131,6 +139,7 @@ const FontsTab = () => {
       
       setFonts([newFont, ...fonts]);
       
+      // Limpar os campos
       setGoogleFontName("");
       setGoogleFontUrl("");
       setGoogleFontWeights("400,700");
@@ -144,6 +153,7 @@ const FontsTab = () => {
     }, 1000);
   };
   
+  // Upload de fonte customizada
   const handleFontUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -157,6 +167,7 @@ const FontsTab = () => {
       return;
     }
     
+    // Verificar se é um arquivo de fonte válido
     const validExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
     const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     
@@ -171,11 +182,12 @@ const FontsTab = () => {
     
     setUploadingFont(true);
     
+    // Simulação de upload
     setTimeout(() => {
       const newFont: Font = {
         id: Date.now().toString(),
         name: customFontName,
-        url: URL.createObjectURL(file),
+        url: URL.createObjectURL(file), // Na produção, seria o URL de uma fonte armazenada
         type: 'custom',
         fallback: customFontFallback,
         created_at: new Date().toISOString()
@@ -183,6 +195,7 @@ const FontsTab = () => {
       
       setFonts([newFont, ...fonts]);
       
+      // Limpar os campos
       setCustomFontName("");
       setCustomFontFallback("sans-serif");
       if (fileInputRef.current) {
@@ -198,10 +211,13 @@ const FontsTab = () => {
     }, 1500);
   };
   
+  // Aplicar fonte ao site
   const applyFont = (font: Font) => {
     setSaving(true);
     
+    // Aplicar folha de estilo se for do Google
     if (font.type === 'google') {
+      // Verificar se o link já existe
       const existingLink = document.querySelector(`link[href="${font.url}"]`);
       if (!existingLink) {
         const link = document.createElement('link');
@@ -211,9 +227,11 @@ const FontsTab = () => {
       }
     }
     
+    // Salvar no localStorage
     localStorage.setItem("siteFont", font.name);
     setCurrentSiteFont(font.name);
     
+    // Aplicar a fonte ao elemento root
     document.documentElement.style.setProperty('--font-primary', `'${font.name}', ${font.fallback || 'sans-serif'}`);
     
     setTimeout(() => {
@@ -225,6 +243,7 @@ const FontsTab = () => {
     }, 800);
   };
   
+  // Remover fonte
   const removeFont = (fontId: string) => {
     const fontToRemove = fonts.find(f => f.id === fontId);
     if (!fontToRemove) return;
@@ -236,6 +255,7 @@ const FontsTab = () => {
       description: `A fonte ${fontToRemove.name} foi removida com sucesso.`
     });
     
+    // Se a fonte removida era a atual, resetar para a primeira disponível
     if (currentSiteFont === fontToRemove.name && fonts.length > 1) {
       const nextFont = fonts.find(f => f.id !== fontId);
       if (nextFont) {
@@ -244,6 +264,7 @@ const FontsTab = () => {
     }
   };
   
+  // Gerar CSS para @font-face (apenas para exemplo)
   const generateFontFaceCSS = (font: Font) => {
     if (font.type === 'google') return '';
     
@@ -257,6 +278,7 @@ const FontsTab = () => {
 }`;
   };
   
+  // Copiar CSS para @font-face
   const copyFontFaceCSS = (font: Font) => {
     const css = generateFontFaceCSS(font);
     navigator.clipboard.writeText(css);

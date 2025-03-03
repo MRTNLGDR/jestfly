@@ -40,8 +40,7 @@ export const useCommunityPosts = (category?: string) => {
       throw new Error(error.message);
     }
 
-    // Need to explicitly cast the data to our CommunityPost type
-    return (data || []) as CommunityPost[];
+    return data as unknown as CommunityPost[];
   };
 
   const {
@@ -77,14 +76,14 @@ export const useCommunityPosts = (category?: string) => {
         throw new Error(error.message);
       }
 
-      return (data?.[0] || null) as CommunityPost;
+      return data?.[0] as unknown as CommunityPost;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['communityPosts'] });
       toast.success('Post criado com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao criar post: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error(`Erro ao criar post: ${error.message}`);
     }
   });
 
@@ -95,42 +94,40 @@ export const useCommunityPosts = (category?: string) => {
       }
 
       // Verificar se já existe um like
-      const { data: existingLike, error: checkError } = await supabase
+      const { data: existingLike } = await supabase
         .from('post_likes')
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (checkError) {
-        throw new Error(checkError.message);
-      }
+        .single();
 
       if (existingLike) {
         // Se já curtiu, remove a curtida
-        const { error: deleteError } = await supabase
+        const { error } = await supabase
           .from('post_likes')
           .delete()
           .eq('post_id', postId)
           .eq('user_id', user.id);
 
-        if (deleteError) {
-          throw new Error(deleteError.message);
+        if (error) {
+          throw new Error(error.message);
         }
         
         return { action: 'unliked', postId };
       }
 
       // Se não curtiu, adiciona a curtida
-      const { error: insertError } = await supabase
-        .from('post_likes')
-        .insert({
-          post_id: postId,
-          user_id: user.id
-        } as any); // Use type assertion to bypass type checking
+      const likeData: CreatePostLikeInput = {
+        post_id: postId,
+        user_id: user.id
+      };
 
-      if (insertError) {
-        throw new Error(insertError.message);
+      const { error } = await supabase
+        .from('post_likes')
+        .insert(likeData);
+
+      if (error) {
+        throw new Error(error.message);
       }
 
       return { action: 'liked', postId };
@@ -144,7 +141,7 @@ export const useCommunityPosts = (category?: string) => {
       }
     },
     onError: (error) => {
-      toast.error(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error(`Erro: ${error.message}`);
     }
   });
 
@@ -169,7 +166,7 @@ export const useCommunityPosts = (category?: string) => {
       toast.success('Post excluído com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir post: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error(`Erro ao excluir post: ${error.message}`);
     }
   });
 
@@ -205,7 +202,7 @@ export const usePostComments = (postId: string) => {
       throw new Error(error.message);
     }
 
-    return (data || []) as PostComment[];
+    return data as unknown as PostComment[];
   };
 
   const {
@@ -225,7 +222,7 @@ export const usePostComments = (postId: string) => {
         throw new Error('Você precisa estar logado para comentar');
       }
 
-      const commentData = {
+      const commentData: CreateCommentInput = {
         post_id: postId,
         user_id: user.id,
         content
@@ -233,7 +230,7 @@ export const usePostComments = (postId: string) => {
 
       const { data, error } = await supabase
         .from('post_comments')
-        .insert(commentData as any) // Use type assertion to bypass type checking
+        .insert(commentData)
         .select();
 
       if (error) {
@@ -241,7 +238,7 @@ export const usePostComments = (postId: string) => {
         throw new Error(error.message);
       }
 
-      return (data?.[0] || null) as PostComment;
+      return data?.[0] as unknown as PostComment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['postComments', postId] });
@@ -249,7 +246,7 @@ export const usePostComments = (postId: string) => {
       toast.success('Comentário adicionado com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao comentar: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error(`Erro ao comentar: ${error.message}`);
     }
   });
 
@@ -275,7 +272,7 @@ export const usePostComments = (postId: string) => {
       toast.success('Comentário excluído com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir comentário: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error(`Erro ao excluir comentário: ${error.message}`);
     }
   });
 
@@ -286,42 +283,40 @@ export const usePostComments = (postId: string) => {
       }
 
       // Verificar se já existe um like
-      const { data: existingLike, error: checkError } = await supabase
+      const { data: existingLike } = await supabase
         .from('comment_likes')
         .select('id')
         .eq('comment_id', commentId)
         .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (checkError) {
-        throw new Error(checkError.message);
-      }
+        .single();
 
       if (existingLike) {
         // Se já curtiu, remove a curtida
-        const { error: deleteError } = await supabase
+        const { error } = await supabase
           .from('comment_likes')
           .delete()
           .eq('comment_id', commentId)
           .eq('user_id', user.id);
 
-        if (deleteError) {
-          throw new Error(deleteError.message);
+        if (error) {
+          throw new Error(error.message);
         }
         
         return { action: 'unliked', commentId };
       }
 
       // Se não curtiu, adiciona a curtida
-      const { error: insertError } = await supabase
-        .from('comment_likes')
-        .insert({
-          comment_id: commentId,
-          user_id: user.id
-        } as any); // Use type assertion to bypass type checking
+      const likeData: CreateCommentLikeInput = {
+        comment_id: commentId,
+        user_id: user.id
+      };
 
-      if (insertError) {
-        throw new Error(insertError.message);
+      const { error } = await supabase
+        .from('comment_likes')
+        .insert(likeData);
+
+      if (error) {
+        throw new Error(error.message);
       }
 
       return { action: 'liked', commentId };
@@ -335,7 +330,7 @@ export const usePostComments = (postId: string) => {
       }
     },
     onError: (error) => {
-      toast.error(`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error(`Erro: ${error.message}`);
     }
   });
 
