@@ -222,9 +222,9 @@ export const useAuthState = (): AuthStateHook => {
     };
   }, []);
   
-  // Combina o estado de autenticação com o cliente Supabase
+  // Combina o estado de autenticação com o cliente Supabase - spread the entire supabase client object
   return {
-    ...supabase,
+    ...supabase, // This spreads all properties from the supabase client
     currentUser,
     userData,
     session,
