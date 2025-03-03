@@ -1,77 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
 
 const Footer: React.FC = () => {
-  const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
-  const { signIn } = useAuth();
-  const [loginError, setLoginError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  const handleAdminLogin = async (demoType: 'admin' | 'artist' | 'collaborator' | 'fan') => {
-    setIsLoading(true);
-    setLoginError('');
-    
-    // Credenciais de demonstração atualizadas para garantir funcionamento
-    const demoAccounts = {
-      admin: { email: 'admin@jestfly.com', password: 'admin123' },
-      artist: { email: 'artist@jestfly.com', password: 'artist123' },
-      collaborator: { email: 'collaborator@jestfly.com', password: 'collab123' },
-      fan: { email: 'fan@jestfly.com', password: 'fan123' }
-    };
-    
-    try {
-      const { email, password } = demoAccounts[demoType];
-      console.log(`Tentando login com: ${email}`);
-      
-      const { error, data } = await signIn(email, password);
-      
-      if (error) {
-        console.error('Erro de login:', error.message);
-        setLoginError(error.message);
-        toast({
-          title: "Falha no login",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        console.log('Login bem-sucedido:', data);
-        setIsAdminDialogOpen(false);
-        toast({
-          title: "Login bem-sucedido",
-          description: `Bem-vindo, ${demoType}!`,
-          variant: "default"
-        });
-        
-        // Redirecionar para o painel apropriado
-        if (demoType === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/profile');
-        }
-      }
-    } catch (error) {
-      console.error('Erro inesperado:', error);
-      setLoginError('Falha ao realizar login. Tente novamente.');
-      toast({
-        title: "Erro",
-        description: 'Ocorreu um erro inesperado. Tente novamente.',
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <footer className="bg-black relative overflow-hidden">
@@ -157,7 +91,7 @@ const Footer: React.FC = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setIsAdminDialogOpen(true)}
+              onClick={() => navigate('/admin/login')}
               className="ml-2 text-xs bg-gray-900/30 hover:bg-gray-900/50 border-gray-700/50 text-white/70 flex items-center gap-1 h-7 px-2"
             >
               <Lock className="h-3 w-3 opacity-70" />
@@ -166,73 +100,6 @@ const Footer: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      {/* Admin Login Dialog */}
-      <Dialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen}>
-        <DialogContent className="bg-black/90 border-gray-800 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-xl text-center mb-2">Acesso Rápido</DialogTitle>
-            <DialogDescription className="text-center text-white/60">
-              Selecione uma conta para login automático
-            </DialogDescription>
-          </DialogHeader>
-          
-          {loginError && (
-            <div className="bg-red-900/30 border border-red-800/50 text-red-200 p-3 rounded-md text-sm mb-4">
-              {loginError}
-            </div>
-          )}
-          
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
-              onClick={() => handleAdminLogin('admin')}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Admin
-            </Button>
-            <Button
-              variant="outline"
-              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
-              onClick={() => handleAdminLogin('artist')}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Artista
-            </Button>
-            <Button
-              variant="outline"
-              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
-              onClick={() => handleAdminLogin('collaborator')}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Colaborador
-            </Button>
-            <Button
-              variant="outline"
-              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
-              onClick={() => handleAdminLogin('fan')}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Fã
-            </Button>
-          </div>
-          
-          <div className="mt-4 text-center text-white/60 text-xs">
-            <Link to="/auth" className="underline hover:text-white">
-              Fazer login com outra conta
-            </Link>
-          </div>
-          
-          <div className="mt-2 text-center text-xs text-white/40">
-            Acesso temporário para fins de demonstração
-          </div>
-        </DialogContent>
-      </Dialog>
       
       {/* Decorative elements */}
       <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-900/10 rounded-full blur-[100px]"></div>

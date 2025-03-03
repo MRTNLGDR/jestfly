@@ -7,13 +7,15 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, InfoIcon } from 'lucide-react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 const AuthPage: React.FC = () => {
-  const { signIn, signUp } = useAuth();
+  const { user, profile, signIn, signUp } = useAuth();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   
   // Estado para o formulário de login
   const [loginData, setLoginData] = useState({
@@ -43,6 +45,16 @@ const AuthPage: React.FC = () => {
     register: ''
   });
 
+  // Se o usuário já estiver autenticado e for admin, redirecionar para o painel admin
+  if (user && profile && profile.profile_type === 'admin') {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // Se o usuário já estiver autenticado e não for admin, redirecionar para a página inicial
+  if (user && profile && profile.profile_type !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
+
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginData((prev) => ({ ...prev, [name]: value }));
@@ -60,7 +72,7 @@ const AuthPage: React.FC = () => {
     }));
   };
 
-  const handleDemoLogin = async (type: 'admin' | 'artist' | 'fan' | 'collaborator') => {
+  const handleDemoLogin = async (type: 'artist' | 'fan' | 'collaborator') => {
     setLoading(true);
     setErrors((prev) => ({ ...prev, login: '' }));
     setSuccess((prev) => ({ ...prev, login: '' }));
@@ -68,10 +80,6 @@ const AuthPage: React.FC = () => {
     let email, password;
     
     switch(type) {
-      case 'admin':
-        email = 'admin@jestfly.com';
-        password = 'adminpassword';
-        break;
       case 'artist':
         email = 'artist@jestfly.com';
         password = 'artistpassword';
@@ -149,6 +157,16 @@ const AuthPage: React.FC = () => {
       setErrors((prev) => ({ 
         ...prev, 
         register: 'As senhas não coincidem' 
+      }));
+      setLoading(false);
+      return;
+    }
+    
+    // Não permitir criar usuários admin pelo formulário de registro público
+    if (registerData.profile_type === 'admin') {
+      setErrors((prev) => ({ 
+        ...prev, 
+        register: 'Não é permitido criar contas de administrador' 
       }));
       setLoading(false);
       return;
@@ -286,17 +304,7 @@ const AuthPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      className="bg-black/50 text-white border-purple-500/50 hover:bg-purple-900/30"
-                      onClick={() => handleDemoLogin('admin')}
-                      disabled={loading}
-                    >
-                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Admin'}
-                    </Button>
-                    
+                  <div className="grid grid-cols-3 gap-2">
                     <Button 
                       type="button" 
                       variant="outline"
@@ -325,6 +333,17 @@ const AuthPage: React.FC = () => {
                       disabled={loading}
                     >
                       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Fã'}
+                    </Button>
+                  </div>
+                  
+                  <div className="text-center mt-4">
+                    <Button 
+                      variant="link" 
+                      className="text-white/60 hover:text-white flex items-center justify-center gap-1.5"
+                      onClick={() => navigate('/admin/login')}
+                    >
+                      <Lock className="h-3.5 w-3.5" />
+                      Área de Administração
                     </Button>
                   </div>
                 </div>

@@ -1,4 +1,3 @@
-
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import CrystalHero from './components/CrystalHero';
@@ -25,6 +24,7 @@ import AirdropPage from './pages/AirdropPage';
 import LanguageProvider from './contexts/LanguageContext';
 import { AuthProvider } from './contexts/AuthContext';
 import AuthPage from './pages/AuthPage';
+import AdminAuthPage from './pages/AdminAuthPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -81,6 +81,7 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/admin/login" element={<AdminAuthPage />} />
               <Route path="/store/*" element={<StorePage />} />
               <Route path="/community/*" element={<CommunityPage />} />
               <Route path="/bookings" element={<BookingsPage />} />
