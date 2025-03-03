@@ -73,6 +73,8 @@ export const RegisterForm: React.FC = () => {
       
     } catch (error: any) {
       console.error('Erro no cadastro:', error);
+      toast.error(error.message || 'Falha ao criar conta');
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -89,11 +91,12 @@ export const RegisterForm: React.FC = () => {
       console.error('Google register error:', error);
       let errorMessage = 'Falha ao registrar com Google';
       
-      if (error.message.includes('provider is not enabled')) {
+      if (error.message && error.message.includes('provider is not enabled')) {
         errorMessage = 'Login com Google não está habilitado. Entre em contato com o administrador.';
       } 
       
       toast.error(errorMessage);
+    } finally {
       setIsSubmitting(false);
     }
   };

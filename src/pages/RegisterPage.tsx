@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { RegisterForm } from '../components/auth/RegisterForm';
 import { ProtectedRoute } from '../components/ProtectedRoute';
+import { RegisterForm } from '../components/auth/RegisterForm'; // Changed import path
 
 const RegisterPage: React.FC = () => {
   return (
