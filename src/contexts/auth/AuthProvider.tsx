@@ -5,13 +5,10 @@ import { auth, firestore } from '../../firebase/config';
 import { User } from '../../models/User';
 import { AuthContextType } from './types';
 import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail
+  onAuthStateChanged
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { supabase } from '../../integrations/supabase/client';
 
@@ -23,42 +20,141 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Effect to handle Supabase auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchUserData(session.user.id);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Supabase auth event:', event);
+        
+        if (session?.user) {
+          fetchUserData(session.user.id);
+        } else {
+          setUserData(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // Also handle Firebase auth for backward compatibility
+    const unsubscribeFirebase = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       
-      if (user) {
+      if (user && !userData) {
         try {
           const userDoc = await getDoc(doc(firestore, 'users', user.uid));
           if (userDoc.exists()) {
             setUserData(userDoc.data() as User);
           }
         } catch (err) {
-          console.error("Error fetching user data:", err);
+          console.error("Error fetching user data from Firebase:", err);
         }
-      } else {
-        setUserData(null);
       }
       
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      subscription.unsubscribe();
+      unsubscribeFirebase();
+    };
   }, []);
+
+  // Function to fetch user data from Supabase
+  const fetchUserData = async (userId: string) => {
+    try {
+      // Fetch user profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return;
+      }
+
+      // Fetch user roles
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (rolesError) {
+        console.error('Error fetching roles:', rolesError);
+      }
+
+      // Map Supabase profile to user data format
+      const user: User = {
+        id: profile.id,
+        email: '', // Supabase doesn't expose email in profiles
+        displayName: profile.full_name,
+        username: profile.username,
+        profileType: profile.profile_type,
+        avatar: profile.avatar_url,
+        bio: profile.bio,
+        socialLinks: profile.social_links || {},
+        walletAddress: profile.wallet_address,
+        createdAt: new Date(profile.created_at),
+        updatedAt: new Date(profile.updated_at),
+        lastLogin: new Date(),
+        isVerified: true, // Assuming verified if we have the profile
+        twoFactorEnabled: false,
+        preferences: profile.preferences || {
+          theme: 'dark',
+          notifications: { email: true, push: true, sms: false },
+          language: 'pt',
+          currency: 'BRL',
+        },
+        roles: roles?.map(r => r.role) || []
+      };
+
+      setUserData(user);
+    } catch (err) {
+      console.error("Error fetching user data from Supabase:", err);
+    }
+  };
 
   const login = async (email: string, password: string): Promise<void> => {
     try {
       setError(null);
-      const result = await signInWithEmailAndPassword(auth, email, password);
       
-      // Update last login time
-      await setDoc(doc(firestore, 'users', result.user.uid), 
-        { lastLogin: new Date() }, 
-        { merge: true }
-      );
+      // Use Supabase for authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.user) {
+        // Update last login time is handled by the profile fetch
+        toast.success('Login realizado com sucesso!');
+      }
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message);
+      
+      // Traduzir mensagens de erro comuns
+      let errorMessage = 'Falha ao fazer login';
+      if (err.message.includes('Invalid login credentials')) {
+        errorMessage = 'Credenciais inválidas';
+      } else if (err.message.includes('Email not confirmed')) {
+        errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
+      }
+      
+      toast.error(errorMessage);
       throw err;
     }
   };
@@ -67,21 +163,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       
-      // Use Supabase for Google login instead of Firebase
+      // Use Supabase for Google login
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/profile`
         }
       });
       
       if (error) {
-        console.error("Supabase Google login error:", error);
+        if (error.message.includes('provider is not enabled')) {
+          throw new Error('Login com Google não está habilitado. Entre em contato com o administrador.');
+        }
         throw error;
       }
       
-      // Note: The auth state will be handled by Supabase's auth listener 
-      // and the user will be redirected back to the app after authentication
       console.log("Supabase Google login initiated:", data);
       
     } catch (err: any) {
@@ -95,44 +191,110 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       
-      // Use Supabase for registration instead of Firebase
+      // Preparar dados do perfil para registro
+      const userMetadata = {
+        full_name: userData.displayName,
+        username: userData.username,
+        profile_type: userData.profileType
+      };
+      
+      // Verificar se é cadastro de admin e validar código
+      if (userData.profileType === 'admin' && userData.adminCode) {
+        // Verificar o código admin antes do registro
+        const { data: codeValid } = await supabase.rpc('check_admin_code', {
+          admin_code: userData.adminCode
+        });
+        
+        if (!codeValid) {
+          throw new Error('Código de administrador inválido ou já utilizado');
+        }
+      }
+      
+      // Registrar usuário no Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: userData.displayName,
-            username: userData.username,
-            profile_type: userData.profileType,
-            admin_code: userData.adminCode
-          },
-          emailRedirectTo: window.location.origin
+          data: userMetadata,
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
       
       if (error) {
-        console.error("Supabase registration error:", error);
         throw error;
       }
       
-      console.log("Supabase registration success:", data);
+      // Se o código chegou até aqui e é um admin, processar o código admin
+      if (data?.user && userData.profileType === 'admin' && userData.adminCode) {
+        try {
+          // Buscar token para autorização
+          const { data: authData } = await supabase.auth.getSession();
+          const token = authData.session?.access_token;
+          
+          if (!token) {
+            console.error('Token não disponível para verificação de código admin');
+            return;
+          }
+          
+          // Chamar a edge function para verificar e processar o código admin
+          const response = await fetch(`${window.location.origin}/functions/v1/verify-admin-code`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              userId: data.user.id,
+              adminCode: userData.adminCode
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (!result.success) {
+            console.error('Falha ao processar código admin:', result.error);
+          }
+        } catch (adminErr) {
+          console.error('Erro ao processar código admin:', adminErr);
+        }
+      }
       
-      // Return immediately as the user will need to verify their email
-      // Profiles will be created automatically via Supabase trigger
-      return;
+      toast.success('Conta criada! Verifique seu email para confirmar o cadastro.');
       
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message);
+      
+      // Traduzir mensagens de erro comuns
+      let errorMessage = 'Falha ao criar conta';
+      
+      if (err.message.includes('User already registered')) {
+        errorMessage = 'Este email já está em uso';
+      } else if (err.message.includes('invalid email')) {
+        errorMessage = 'Email inválido';
+      } else if (err.message.includes('Password should be')) {
+        errorMessage = 'A senha deve ter pelo menos 6 caracteres';
+      } else if (err.message.includes('Código de administrador inválido')) {
+        errorMessage = 'Código de administrador inválido ou já utilizado';
+      }
+      
+      toast.error(errorMessage);
       throw err;
     }
   };
 
   const logout = async (): Promise<void> => {
     try {
-      // Also sign out from Supabase if we're using it
+      // Sign out from Supabase
       await supabase.auth.signOut();
+      
+      // Also sign out from Firebase for backward compatibility
       await signOut(auth);
+      
+      setCurrentUser(null);
+      setUserData(null);
+      
+      toast.success('Logout realizado com sucesso');
     } catch (err: any) {
       console.error("Logout error:", err);
       setError(err.message);
@@ -157,6 +319,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       console.error("Password reset error:", err);
       setError(err.message);
+      
+      // Traduzir mensagens de erro comuns
+      let errorMessage = 'Falha ao redefinir senha';
+      if (err.message.includes('Email not found')) {
+        errorMessage = 'Email não encontrado';
+      }
+      
+      toast.error(errorMessage);
       throw err;
     }
   };

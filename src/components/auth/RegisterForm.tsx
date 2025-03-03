@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -49,6 +50,11 @@ export const RegisterForm: React.FC = () => {
       return;
     }
     
+    if (formData.profileType === 'admin' && !formData.adminCode) {
+      toast.error('Código de administrador é obrigatório para contas do tipo Admin');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -64,23 +70,13 @@ export const RegisterForm: React.FC = () => {
       toast.dismiss(loadingToast);
       toast.success('Conta criada! Verifique seu email para confirmar o cadastro.');
       
-      // Não navegamos para o profile imediatamente, pois o usuário precisa
-      // verificar o email primeiro (configuração padrão do Supabase)
+      // Redirecionar para a página de login após o registro bem-sucedido
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+      
     } catch (error: any) {
-      let errorMessage = 'Falha ao criar conta';
-      
-      if (error.message?.includes('email-already-in-use') || 
-          error.message?.includes('User already registered')) {
-        errorMessage = 'Este email já está em uso';
-      } else if (error.message?.includes('invalid-email')) {
-        errorMessage = 'Email inválido';
-      } else if (error.message?.includes('weak-password')) {
-        errorMessage = 'Senha muito fraca';
-      }
-      
-      toast.error(errorMessage);
       console.error('Erro no cadastro:', error);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -97,12 +93,11 @@ export const RegisterForm: React.FC = () => {
       console.error('Google register error:', error);
       let errorMessage = 'Falha ao registrar com Google';
       
-      if (error.message?.includes('provider is not enabled')) {
+      if (error.message.includes('provider is not enabled')) {
         errorMessage = 'Login com Google não está habilitado. Entre em contato com o administrador.';
       } 
       
       toast.error(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -220,6 +215,9 @@ export const RegisterForm: React.FC = () => {
                 required
                 className="bg-zinc-900/60 border-zinc-800 text-white"
               />
+              <p className="text-xs text-zinc-500 italic">
+                Para contas de administrador, é necessário um código de autorização.
+              </p>
             </div>
           )}
           
