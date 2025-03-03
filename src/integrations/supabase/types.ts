@@ -607,6 +607,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_user_profile_type: {
+        Args: {
+          required_type: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           user_id: string
