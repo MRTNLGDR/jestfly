@@ -2,7 +2,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarPrimitive } from 'react-day-picker';
+import { DayPicker } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -14,8 +14,8 @@ const Calendar = ({
   classNames,
   showOutsideDays = true,
   ...props
-}: React.ComponentProps<typeof CalendarPrimitive>) => (
-  <CalendarPrimitive
+}: React.ComponentProps<typeof DayPicker>) => (
+  <DayPicker
     showOutsideDays={showOutsideDays}
     className={cn("p-3", className)}
     classNames={{
