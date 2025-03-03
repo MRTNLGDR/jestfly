@@ -94,35 +94,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string, userData: Partial<User>): Promise<void> => {
     try {
       setError(null);
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      const user = result.user;
       
-      // Create user document in Firestore
-      const newUserData = {
-        id: user.uid,
+      // Use Supabase for registration instead of Firebase
+      const { data, error } = await supabase.auth.signUp({
         email,
-        ...userData,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastLogin: new Date(),
-        isVerified: false,
-        twoFactorEnabled: false,
-        preferences: userData.preferences || {
-          theme: 'system',
-          language: 'pt',
-          currency: 'BRL',
-          notifications: {
-            email: true,
-            push: true,
-            sms: false
-          }
-        },
-        socialLinks: userData.socialLinks || {},
-        collectionItems: [],
-        transactions: []
-      };
+        password,
+        options: {
+          data: {
+            full_name: userData.displayName,
+            username: userData.username,
+            profile_type: userData.profileType,
+            admin_code: userData.adminCode
+          },
+          emailRedirectTo: window.location.origin
+        }
+      });
       
-      await setDoc(doc(firestore, 'users', user.uid), newUserData);
+      if (error) {
+        console.error("Supabase registration error:", error);
+        throw error;
+      }
+      
+      console.log("Supabase registration success:", data);
+      
+      // Return immediately as the user will need to verify their email
+      // Profiles will be created automatically via Supabase trigger
+      return;
+      
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message);
@@ -145,8 +143,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string): Promise<void> => {
     try {
       setError(null);
-      await sendPasswordResetEmail(auth, email);
-      toast.success('Password reset instructions have been sent to your email');
+      
+      // Use Supabase for password reset
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success('Instruções para redefinir senha foram enviadas para o seu email');
     } catch (err: any) {
       console.error("Password reset error:", err);
       setError(err.message);

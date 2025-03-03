@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -53,21 +52,25 @@ export const RegisterForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      const userData = {
+      const loadingToast = toast.loading('Criando conta...');
+      
+      await register(formData.email, formData.password, {
         displayName: formData.displayName,
         username: formData.username,
         profileType: formData.profileType,
         adminCode: formData.adminCode
-      };
+      });
       
-      await register(formData.email, formData.password, userData);
+      toast.dismiss(loadingToast);
+      toast.success('Conta criada! Verifique seu email para confirmar o cadastro.');
       
-      toast.success('Conta criada com sucesso!');
-      navigate('/profile');
+      // Não navegamos para o profile imediatamente, pois o usuário precisa
+      // verificar o email primeiro (configuração padrão do Supabase)
     } catch (error: any) {
       let errorMessage = 'Falha ao criar conta';
       
-      if (error.message?.includes('email-already-in-use')) {
+      if (error.message?.includes('email-already-in-use') || 
+          error.message?.includes('User already registered')) {
         errorMessage = 'Este email já está em uso';
       } else if (error.message?.includes('invalid-email')) {
         errorMessage = 'Email inválido';
@@ -76,6 +79,7 @@ export const RegisterForm: React.FC = () => {
       }
       
       toast.error(errorMessage);
+      console.error('Erro no cadastro:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -84,11 +88,20 @@ export const RegisterForm: React.FC = () => {
   const handleGoogleRegister = async () => {
     setIsSubmitting(true);
     try {
+      const loadingToast = toast.loading('Conectando com Google...');
       await loginWithGoogle();
-      toast.success('Conta criada com sucesso!');
-      navigate('/profile');
+      toast.dismiss(loadingToast);
+      toast.success('Login com Google iniciado!');
+      // O usuário será redirecionado automaticamente pelo fluxo OAuth do Supabase
     } catch (error: any) {
-      toast.error('Falha ao registrar com Google: ' + error.message);
+      console.error('Google register error:', error);
+      let errorMessage = 'Falha ao registrar com Google';
+      
+      if (error.message?.includes('provider is not enabled')) {
+        errorMessage = 'Login com Google não está habilitado. Entre em contato com o administrador.';
+      } 
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
