@@ -1,79 +1,29 @@
 
-import { Database } from "@/integrations/supabase/types";
-
-// Definindo categoria como união de strings literal em vez de enum
-export type PostCategory = 'announcement' | 'event' | 'discussion' | 'collaboration' | 'question';
-
-export type CommunityPost = {
+export interface Post {
   id: string;
   title: string;
   content: string;
-  category: PostCategory;
-  likes_count: number;
-  comments_count: number;
-  is_pinned: boolean;
-  is_featured: boolean;
-  created_at: string;
-  updated_at: string;
   user_id: string;
-  user?: {
+  created_at: string;
+  updated_at?: string;
+  image_url?: string | null;
+  likes_count?: number;
+  comments_count?: number;
+  profiles?: {
     username: string;
-    avatar?: string;
-    display_name: string;
+    avatar: string | null;
   };
-};
+}
 
-export type PostComment = {
+export interface Comment {
   id: string;
-  post_id: string;
-  user_id: string;
   content: string;
-  likes_count: number;
+  user_id: string;
+  post_id: string;
   created_at: string;
-  updated_at: string;
-  user?: {
+  updated_at?: string;
+  profiles?: {
     username: string;
-    avatar?: string;
-    display_name: string;
+    avatar: string | null;
   };
-};
-
-export type PostLike = {
-  id: string;
-  post_id: string;
-  user_id: string;
-  created_at: string;
-};
-
-export type CommentLike = {
-  id: string;
-  comment_id: string;
-  user_id: string;
-  created_at: string;
-};
-
-// Input types for creating new records
-export type CreatePostInput = {
-  title: string;
-  content: string;
-  category: PostCategory;
-  user_id: string;
-  is_pinned?: boolean;
-  is_featured?: boolean;
-};
-
-export type CreateCommentInput = {
-  post_id: string;
-  user_id: string;
-  content: string;
-};
-
-export type CreatePostLikeInput = {
-  post_id: string;
-  user_id: string;
-};
-
-export type CreateCommentLikeInput = {
-  comment_id: string;
-  user_id: string;
-};
+}
