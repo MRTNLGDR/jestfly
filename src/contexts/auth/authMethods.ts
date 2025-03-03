@@ -56,7 +56,11 @@ export const registerUser = async (email: string, password: string, userData: Pa
       socialLinks: userData.socialLinks || {},
     });
     
-    toast.success('Conta criada com sucesso!');
+    const profileType = userData.profileType || 'fan';
+    toast.success(`Conta de ${profileType === 'artist' ? 'artista' : 
+                  profileType === 'admin' ? 'administrador' : 
+                  profileType === 'collaborator' ? 'colaborador' : 'fã'} 
+                  criada com sucesso!`);
     return result;
   } catch (error: any) {
     console.error('Erro ao criar conta:', error);

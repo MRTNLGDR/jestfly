@@ -33,12 +33,12 @@ export const RegisterForm: React.FC = () => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error('As senhas não coincidem');
       return;
     }
     
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error('A senha deve ter pelo menos 6 caracteres');
       return;
     }
     
@@ -53,7 +53,20 @@ export const RegisterForm: React.FC = () => {
       
       navigate('/profile');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create account');
+      console.error('Erro ao cadastrar:', error);
+      
+      // Exibir mensagens de erro mais específicas
+      if (error.code === 'auth/email-already-in-use') {
+        toast.error('Este email já está sendo usado por outra conta');
+      } else if (error.code === 'auth/invalid-email') {
+        toast.error('Formato de email inválido');
+      } else if (error.code === 'auth/weak-password') {
+        toast.error('Senha muito fraca. Use uma senha mais forte');
+      } else if (error.code === 'auth/network-request-failed') {
+        toast.error('Erro de conexão. Verifique sua internet e tente novamente');
+      } else {
+        toast.error(error.message || 'Falha ao criar conta');
+      }
     } finally {
       setIsSubmitting(false);
     }
