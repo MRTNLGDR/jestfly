@@ -23,12 +23,15 @@ const AdminDashboardActivity: React.FC = () => {
       if (error) throw error;
       
       const safeData = (data || []).map(log => {
+        // Cast to any first to avoid TypeScript issues
+        const profileObj: any = log.profile && typeof log.profile === 'object' ? log.profile : null;
+        
         return {
           ...log,
-          profile: log.profile && typeof log.profile === 'object' ? {
-            username: log.profile && typeof log.profile === 'object' && 'username' in log.profile ? String(log.profile.username || '') : undefined,
-            display_name: log.profile && typeof log.profile === 'object' && 'display_name' in log.profile ? String(log.profile.display_name || '') : undefined,
-            profile_type: log.profile && typeof log.profile === 'object' && 'profile_type' in log.profile ? String(log.profile.profile_type || '') : undefined
+          profile: profileObj ? {
+            username: profileObj.username ? String(profileObj.username) : undefined,
+            display_name: profileObj.display_name ? String(profileObj.display_name) : undefined,
+            profile_type: profileObj.profile_type ? String(profileObj.profile_type) : undefined
           } : null,
           details: log.details as Record<string, any> | null
         };

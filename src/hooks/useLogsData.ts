@@ -65,21 +65,19 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
       if (filters.searchTerm) {
         const lowerSearchTerm = filters.searchTerm.toLowerCase();
         filteredData = filteredData.filter(log => {
-          // Safe type checks for profile properties
-          const profileObject = log.profile && typeof log.profile === 'object' ? log.profile : null;
+          // Use type assertion for profile object to avoid TypeScript errors
+          const profileObj: any = log.profile && typeof log.profile === 'object' ? log.profile : null;
           
           // Check if properties exist before accessing
-          const usernameMatch = profileObject && 
-            typeof profileObject === 'object' &&
-            'username' in profileObject && 
-            typeof profileObject.username === 'string' && 
-            profileObject.username.toLowerCase().includes(lowerSearchTerm);
+          const usernameMatch = profileObj && 
+            typeof profileObj === 'object' &&
+            profileObj.username && 
+            String(profileObj.username).toLowerCase().includes(lowerSearchTerm);
           
-          const displayNameMatch = profileObject && 
-            typeof profileObject === 'object' &&
-            'display_name' in profileObject && 
-            typeof profileObject.display_name === 'string' && 
-            profileObject.display_name.toLowerCase().includes(lowerSearchTerm);
+          const displayNameMatch = profileObj && 
+            typeof profileObj === 'object' &&
+            profileObj.display_name && 
+            String(profileObj.display_name).toLowerCase().includes(lowerSearchTerm);
           
           return log.action.toLowerCase().includes(lowerSearchTerm) ||
             usernameMatch ||
@@ -91,10 +89,13 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
       
       // Safe type conversion with proper null checks
       const safeData = filteredData.map(log => {
-        const profileData = log.profile && typeof log.profile === 'object' ? {
-          username: log.profile && typeof log.profile === 'object' && 'username' in log.profile ? String(log.profile.username || '') : undefined,
-          display_name: log.profile && typeof log.profile === 'object' && 'display_name' in log.profile ? String(log.profile.display_name || '') : undefined,
-          profile_type: log.profile && typeof log.profile === 'object' && 'profile_type' in log.profile ? String(log.profile.profile_type || '') : undefined
+        // Cast to any first to safely access properties
+        const profileObj: any = log.profile && typeof log.profile === 'object' ? log.profile : null;
+        
+        const profileData = profileObj ? {
+          username: profileObj.username ? String(profileObj.username) : undefined,
+          display_name: profileObj.display_name ? String(profileObj.display_name) : undefined,
+          profile_type: profileObj.profile_type ? String(profileObj.profile_type) : undefined
         } : null;
         
         return {
