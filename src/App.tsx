@@ -22,7 +22,10 @@ import DemoSubmissionPage from './pages/DemoSubmissionPage';
 import LiveStreamPage from './pages/LiveStreamPage';
 import PressKitPage from './pages/PressKitPage';
 import AirdropPage from './pages/AirdropPage';
+import AuthPage from './pages/AuthPage';
 import LanguageProvider from './contexts/LanguageContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -70,23 +73,26 @@ function App() {
   
   return (
     <LanguageProvider>
-      <Router>
-        <div className="app">
-          <GlassHeader menuItems={menuItems} />
-          <Routes>
-            <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-            <Route path="/store/*" element={<StorePage />} />
-            <Route path="/community/*" element={<CommunityPage />} />
-            <Route path="/bookings" element={<BookingsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/demo-submission" element={<DemoSubmissionPage />} />
-            <Route path="/live-stream" element={<LiveStreamPage />} />
-            <Route path="/press-kit" element={<PressKitPage />} />
-            <Route path="/airdrop" element={<AirdropPage />} />
-            <Route path="/admin" element={<AdminPanel />} />
-          </Routes>
-        </div>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <div className="app">
+            <Routes>
+              <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
+              <Route path="/store/*" element={<StorePage />} />
+              <Route path="/community/*" element={<CommunityPage />} />
+              <Route path="/bookings" element={<BookingsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/demo-submission" element={<DemoSubmissionPage />} />
+              <Route path="/live-stream" element={<LiveStreamPage />} />
+              <Route path="/press-kit" element={<PressKitPage />} />
+              <Route path="/airdrop" element={<AirdropPage />} />
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/auth" element={<AuthPage />} />
+            </Routes>
+            <Toaster />
+          </div>
+        </Router>
+      </AuthProvider>
     </LanguageProvider>
   );
 }

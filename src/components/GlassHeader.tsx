@@ -1,166 +1,169 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Diamond, ChevronRight, Plus, Minus, Menu, X } from 'lucide-react';
-import { useIsMobile } from '../hooks/use-mobile';
-
-interface MenuItem {
-  label: string;
-  href: string;
-}
+import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { LogOut, User } from 'lucide-react';
 
 interface GlassHeaderProps {
-  menuItems?: MenuItem[];
+  menuItems: { label: string; href: string }[];
 }
 
-const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const isMobile = useIsMobile();
+const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
   const location = useLocation();
-  
-  // Track page changes and scrolling
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  const handleScroll = () => {
+    const offset = window.scrollY;
+    setIsScrolled(offset > 50);
+  };
+
   useEffect(() => {
-    // Add initial glassmorphism effect when navigating to a new page
-    setScrolled(true);
-    
-    // Reset the effect after a delay (for animation purposes)
-    const timer = setTimeout(() => {
-      setScrolled(false);
-    }, 1000);
-    
-    // Track scrolling
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      setScrolled(isScrolled);
-    };
-    
     window.addEventListener('scroll', handleScroll);
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(timer);
-    };
-  }, [location.pathname]); // Re-run when the path changes
-  
-  // Define glass effect classes based on scrolled state
-  const glassEffect = scrolled 
-    ? "bg-black/40 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
-    : "bg-black/20 backdrop-blur-sm transition-all duration-500";
-  
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
+
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 ${glassEffect}`}>
-      <div className="max-w-full mx-auto px-6 sm:px-8 py-3 sm:py-4">
-        <div className="flex items-center justify-between">
-          {/* Left side - Logo and welcome text */}
-          <div className="flex items-center space-x-6 sm:space-x-12">
-            <Link to="/" className="flex items-center">
-              <Diamond className="h-6 w-6 sm:h-8 sm:w-8 text-white glow-purple" />
-            </Link>
-            
-            <div className="hidden md:flex items-center space-x-4">
-              <span className="text-xs tracking-widest opacity-70">N1:WELCOME TO THE FUTURE</span>
-            </div>
-          </div>
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? 'bg-black/70 backdrop-blur-md' : 'bg-transparent'
+      }`}
+    >
+      <div className="container mx-auto px-6 py-4">
+        <div className="flex justify-between items-center">
+          {/* Logo */}
+          <Link to="/" className="text-xl font-bold text-white">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+              JESTFLY
+            </span>
+          </Link>
           
-          {/* Center - Navigation (desktop only) */}
-          <nav className="hidden lg:flex items-center">
-            <div className="flex items-center space-x-6">
-              {menuItems.map((item) => (
-                <Link 
-                  key={item.href} 
-                  to={item.href}
-                  className={`text-white/80 text-sm hover:text-white transition-colors uppercase ${
-                    location.pathname.includes(item.href) && item.href !== '/' ? 'text-white font-medium' : ''
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            
-            <div className="h-8 mx-6 border-l border-white/20"></div>
-            
-            <div className="flex items-center space-x-6">
-              <Link 
-                to="/info"
-                className="text-white/80 text-sm hover:text-white transition-colors"
-              >
-                .info
-              </Link>
-              
-              <div className="flex items-center space-x-2">
-                <span className="text-white/80 text-sm">[PRG]</span>
-                <span className="px-3 py-1 rounded border border-white/20 text-white/90 text-sm">11:03</span>
-              </div>
-            </div>
-          </nav>
-          
-          {/* Mobile menu button */}
-          <button 
-            className="lg:hidden text-white p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          
-          {/* Right side - Controls (hide on small mobile) */}
-          <div className="hidden sm:flex md:flex items-center space-x-4">
-            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom in">
-              <Plus className="h-5 w-5" />
-            </button>
-            
-            <button className="text-white opacity-80 hover:opacity-100" aria-label="Zoom out">
-              <Minus className="h-5 w-5" />
-            </button>
-            
-            <Link 
-              to="/order" 
-              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
-            >
-              <span className="text-sm font-medium uppercase">Pre-order</span>
-              <div className="w-5 h-5 rounded-full bg-white flex items-center justify-center">
-                <ChevronRight className="h-3 w-3 text-black" />
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-      
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-black/90 backdrop-blur-md">
-          <div className="px-6 py-4 space-y-4 max-h-[80vh] overflow-y-auto">
-            {menuItems.map((item) => (
-              <Link 
-                key={item.href} 
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex space-x-8">
+            {menuItems.map((item, index) => (
+              <Link
+                key={index}
                 to={item.href}
-                className={`block text-white py-2 hover:text-purple-400 transition-colors uppercase ${
-                  location.pathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+                className={`text-sm font-medium transition-colors hover:text-purple-400 ${
+                  location.pathname === item.href ? 'text-purple-400' : 'text-white/80'
                 }`}
-                onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
-            
-            {/* Mobile-only controls */}
-            <div className="sm:hidden pt-4 border-t border-white/10 flex justify-center space-x-8">
-              <Link 
-                to="/order" 
-                className="flex items-center space-x-1 px-3 py-1.5 rounded-full border border-white/30 text-white bg-black/40 hover:bg-black/60 transition-colors"
-              >
-                <span className="text-xs font-medium uppercase">Pre-order</span>
-                <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
-                  <ChevronRight className="h-2 w-2 text-black" />
-                </div>
+          </nav>
+          
+          {/* Auth Buttons / User Menu */}
+          <div className="flex items-center gap-4">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10 border border-white/20">
+                      <AvatarImage src="/assets/imagem1.jpg" alt={user.email || ""} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-blue-600 text-white">
+                        {user.email?.charAt(0).toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 bg-black/90 backdrop-blur-lg border-white/10 text-white" align="end">
+                  <DropdownMenuItem className="cursor-pointer" asChild>
+                    <Link to="/profile" className="flex items-center gap-2">
+                      <User size={16} />
+                      <span>Meu Perfil</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem 
+                    className="text-red-400 cursor-pointer" 
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={16} className="mr-2" />
+                    <span>Sair</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/auth">
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-none"
+                >
+                  Login
+                </Button>
               </Link>
-            </div>
+            )}
+            
+            {/* Mobile Menu Toggle */}
+            <button
+              className="md:hidden flex flex-col space-y-1.5"
+              onClick={toggleMobileMenu}
+            >
+              <span className={`block w-6 h-0.5 bg-white transition-transform ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
+              <span className={`block w-6 h-0.5 bg-white transition-opacity ${mobileMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+              <span className={`block w-6 h-0.5 bg-white transition-transform ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
+            </button>
           </div>
         </div>
-      )}
+        
+        {/* Mobile Menu */}
+        <div 
+          className={`md:hidden absolute left-0 right-0 bg-black/90 backdrop-blur-lg transition-all duration-300 overflow-hidden ${
+            mobileMenuOpen ? 'max-h-screen py-4 border-b border-white/10' : 'max-h-0'
+          }`}
+        >
+          <div className="container mx-auto px-6">
+            <nav className="flex flex-col space-y-4">
+              {menuItems.map((item, index) => (
+                <Link
+                  key={index}
+                  to={item.href}
+                  className={`text-sm font-medium transition-colors hover:text-purple-400 ${
+                    location.pathname === item.href ? 'text-purple-400' : 'text-white/80'
+                  }`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              
+              {!user && (
+                <Link
+                  to="/auth"
+                  className="text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 px-4 py-2 rounded-md mt-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Login / Registro
+                </Link>
+              )}
+            </nav>
+          </div>
+        </div>
+      </div>
     </header>
   );
 };
