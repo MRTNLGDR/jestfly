@@ -26,6 +26,7 @@ export interface User {
   lastLogin: Date;
   isVerified: boolean;
   twoFactorEnabled: boolean;
+  adminCode?: string; // Added adminCode as an optional property
   preferences: {
     theme: 'light' | 'dark' | 'system';
     notifications: NotificationPreferences;
