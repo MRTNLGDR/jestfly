@@ -1,70 +1,186 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'sonner';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Textarea } from '../components/ui/textarea';
+import { Separator } from '../components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 
-// Mock data for demonstration
-const mockUserData = {
-  username: 'JESTFLYfan123',
-  email: 'fan@example.com',
-  joinDate: '2023-05-12',
-  jestCoins: 750,
-  nftCollection: [
+const ProfilePage: React.FC = () => {
+  const { profile, updateProfile, signOut, refreshProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'settings'>('overview');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [profileData, setProfileData] = useState({
+    display_name: '',
+    username: '',
+    bio: '',
+    location: '',
+    website: '',
+    avatar: '',
+  });
+
+  const [nftCollection, setNftCollection] = useState([
     { id: 1, name: 'Future Beats #12', image: '/assets/imagem1.jpg' },
     { id: 2, name: 'Neon Dreams #7', image: '/assets/imagem1.jpg' },
     { id: 3, name: 'Sonic Wave #3', image: '/assets/imagem1.jpg' }
-  ],
-  upcomingEvents: [
+  ]);
+
+  const [upcomingEvents, setUpcomingEvents] = useState([
     { id: 1, name: 'JESTFLY Summer Tour', date: '2023-07-15', location: 'Club Neon' }
-  ],
-  purchaseHistory: [
+  ]);
+
+  const [purchaseHistory, setPurchaseHistory] = useState([
     { id: 1, date: '2023-06-01', item: 'JESTFLY T-Shirt', price: '$29.99' },
     { id: 2, date: '2023-05-20', item: 'Digital Album', price: '$12.99' }
-  ]
-};
+  ]);
 
-const ProfilePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'nfts' | 'settings'>('overview');
-  const [profileData, setProfileData] = useState({
-    displayName: mockUserData.username,
-    bio: "Electronic music enthusiast and proud member of the JESTFLY community!",
-    location: "New York, NY",
-    website: "music.example.com",
-    avatarUrl: "/assets/imagem1.jpg"
-  });
-
-  const handleProfileUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Profile updated:', profileData);
-    alert('Profile updated successfully!');
-  };
+  useEffect(() => {
+    if (profile) {
+      setProfileData({
+        display_name: profile.display_name || '',
+        username: profile.username || '',
+        bio: profile.bio || '',
+        location: profile.preferences?.location || '',
+        website: profile.preferences?.website || '',
+        avatar: profile.avatar || '',
+      });
+    }
+  }, [profile]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile) return;
+
+    setIsUpdating(true);
+
+    try {
+      const updates: any = {};
+      if (profileData.display_name !== profile.display_name) {
+        updates.display_name = profileData.display_name;
+      }
+      if (profileData.username !== profile.username) {
+        updates.username = profileData.username;
+      }
+      if (profileData.bio !== profile.bio) {
+        updates.bio = profileData.bio;
+      }
+
+      const currentPreferences = profile.preferences || {};
+      const updatedPreferences = {
+        ...currentPreferences,
+        location: profileData.location,
+        website: profileData.website,
+      };
+
+      if (JSON.stringify(updatedPreferences) !== JSON.stringify(currentPreferences)) {
+        updates.preferences = updatedPreferences;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await updateProfile(updates);
+        if (error) {
+          toast.error('Erro ao atualizar perfil');
+        } else {
+          toast.success('Perfil atualizado com sucesso!');
+        }
+      } else {
+        toast.info('Nenhuma alteração detectada');
+      }
+    } catch (error) {
+      toast.error('Erro ao atualizar perfil');
+      console.error('Error updating profile:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !profile) {
+      return;
+    }
+
+    const file = e.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const filePath = `avatars/${profile.id}.${fileExt}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from('profiles')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data } = supabase.storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+
+      if (data?.publicUrl) {
+        const { error: updateError } = await updateProfile({
+          avatar: data.publicUrl,
+        });
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        setProfileData(prev => ({ ...prev, avatar: data.publicUrl }));
+        toast.success('Avatar atualizado com sucesso!');
+      }
+    } catch (error) {
+      toast.error('Erro ao atualizar avatar');
+      console.error('Error uploading avatar:', error);
+    }
+  };
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-black text-white pt-24 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl mb-4">Você precisa estar logado para acessar esta página</p>
+          <Button asChild className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+            <a href="/auth">Fazer Login</a>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white pt-24">
       <div className="container mx-auto px-6 pb-20">
         <div className="flex flex-col md:flex-row items-start gap-8">
-          {/* Profile Sidebar */}
           <div className="w-full md:w-1/4 bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6 sticky top-24">
             <div className="flex flex-col items-center mb-6">
               <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 mb-4 overflow-hidden">
-                <img src={profileData.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                {profileData.avatar ? (
+                  <img src={profileData.avatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold">
+                    {profile.display_name.substring(0, 2).toUpperCase()}
+                  </div>
+                )}
               </div>
-              <h2 className="text-2xl font-bold text-white">{profileData.displayName}</h2>
-              <p className="text-white/70 text-sm mt-1">Member since {mockUserData.joinDate}</p>
+              <h2 className="text-2xl font-bold text-white">{profile.display_name}</h2>
+              <p className="text-white/70 text-sm mt-1">Membro desde {new Date(profile.created_at).toLocaleDateString()}</p>
             </div>
             
             <div className="mb-6 p-4 bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-lg">
               <div className="flex justify-between mb-2">
                 <span className="text-white/80">JestCoins</span>
-                <span className="text-white font-bold">{mockUserData.jestCoins}</span>
+                <span className="text-white font-bold">750</span>
               </div>
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" 
-                     style={{ width: `${(mockUserData.jestCoins / 1000) * 100}%` }}></div>
+                     style={{ width: `${(750 / 1000) * 100}%` }}></div>
               </div>
               <div className="flex justify-between text-xs text-white/60 mt-1">
                 <span>Level 3</span>
@@ -109,13 +225,15 @@ const ProfilePage: React.FC = () => {
               <button className="w-full text-left px-4 py-3 rounded-lg text-white/70 hover:bg-white/5 transition-colors">
                 Saved Events
               </button>
-              <button className="w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors mt-4">
+              <button 
+                onClick={() => signOut()}
+                className="w-full text-left px-4 py-3 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors mt-4"
+              >
                 Sign Out
               </button>
             </div>
           </div>
           
-          {/* Main Content */}
           <div className="flex-1">
             {activeTab === 'overview' && (
               <div className="space-y-8">
@@ -124,24 +242,24 @@ const ProfilePage: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-white/80 font-medium">Bio</h3>
-                      <p className="text-white mt-1">{profileData.bio}</p>
+                      <p className="text-white mt-1">{profile.bio || "Nenhuma biografia adicionada"}</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <h3 className="text-white/80 font-medium">Location</h3>
-                        <p className="text-white mt-1">{profileData.location}</p>
+                        <p className="text-white mt-1">{profileData.location || "Não especificado"}</p>
                       </div>
                       <div>
                         <h3 className="text-white/80 font-medium">Website</h3>
-                        <p className="text-white mt-1">{profileData.website}</p>
+                        <p className="text-white mt-1">{profileData.website || "Não especificado"}</p>
                       </div>
                       <div>
                         <h3 className="text-white/80 font-medium">NFTs Owned</h3>
-                        <p className="text-white mt-1">{mockUserData.nftCollection.length}</p>
+                        <p className="text-white mt-1">{nftCollection.length}</p>
                       </div>
                       <div>
                         <h3 className="text-white/80 font-medium">Email</h3>
-                        <p className="text-white mt-1">{mockUserData.email}</p>
+                        <p className="text-white mt-1">{profile.email}</p>
                       </div>
                     </div>
                   </div>
@@ -150,7 +268,7 @@ const ProfilePage: React.FC = () => {
                 <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6">
                   <h2 className="text-2xl font-semibold text-white mb-4">Your NFT Collection</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {mockUserData.nftCollection.map(nft => (
+                    {nftCollection.map(nft => (
                       <div key={nft.id} className="bg-white/5 rounded-lg overflow-hidden">
                         <div className="aspect-square bg-gradient-to-br from-purple-900 to-blue-900">
                           <img src={nft.image} alt={nft.name} className="w-full h-full object-cover" />
@@ -176,9 +294,9 @@ const ProfilePage: React.FC = () => {
                 
                 <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6">
                   <h2 className="text-2xl font-semibold text-white mb-4">Upcoming Events</h2>
-                  {mockUserData.upcomingEvents.length > 0 ? (
+                  {upcomingEvents.length > 0 ? (
                     <div className="space-y-4">
-                      {mockUserData.upcomingEvents.map(event => (
+                      {upcomingEvents.map(event => (
                         <div key={event.id} className="bg-white/5 p-4 rounded-lg flex flex-col md:flex-row md:items-center gap-4">
                           <div className="w-full md:w-1/4 aspect-video bg-gradient-to-br from-purple-800 to-blue-900 rounded-lg flex items-center justify-center">
                             <span className="text-3xl">🎉</span>
@@ -210,7 +328,7 @@ const ProfilePage: React.FC = () => {
                 
                 <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-6">
                   <h2 className="text-2xl font-semibold text-white mb-4">Recent Purchases</h2>
-                  {mockUserData.purchaseHistory.length > 0 ? (
+                  {purchaseHistory.length > 0 ? (
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="text-left text-white/70 border-b border-white/10">
@@ -222,7 +340,7 @@ const ProfilePage: React.FC = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {mockUserData.purchaseHistory.map(purchase => (
+                          {purchaseHistory.map(purchase => (
                             <tr key={purchase.id} className="border-b border-white/5">
                               <td className="py-3">{purchase.date}</td>
                               <td className="py-3">{purchase.item}</td>
@@ -265,7 +383,7 @@ const ProfilePage: React.FC = () => {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {mockUserData.nftCollection.map(nft => (
+                    {nftCollection.map(nft => (
                       <div key={nft.id} className="bg-white/5 rounded-lg overflow-hidden hover:bg-white/10 transition-colors cursor-pointer">
                         <div className="aspect-square bg-gradient-to-br from-purple-900 to-blue-900">
                           <img src={nft.image} alt={nft.name} className="w-full h-full object-cover" />
@@ -284,7 +402,6 @@ const ProfilePage: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    {/* Add more placeholder NFTs */}
                     {[1, 2, 3, 4, 5, 6].map(item => (
                       <div key={`placeholder-${item}`} className="bg-white/5 rounded-lg overflow-hidden opacity-30 hover:opacity-40 transition-opacity">
                         <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
@@ -376,27 +493,60 @@ const ProfilePage: React.FC = () => {
                   <div className="space-y-6">
                     <div className="flex flex-col md:flex-row gap-6 items-start">
                       <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 overflow-hidden">
-                        <img src={profileData.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                        {profileData.avatar ? (
+                          <img src={profileData.avatar} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold">
+                            {profile.display_name.substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1">
                         <h3 className="text-lg font-medium text-white mb-3">Profile Picture</h3>
                         <div className="flex gap-3">
-                          <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors">
+                          <Button type="button" variant="outline" className="relative border-white/20" onClick={() => document.getElementById('avatar-upload')?.click()}>
                             Upload Image
-                          </button>
-                          <button type="button" className="bg-red-900/20 hover:bg-red-900/30 text-red-400 px-4 py-2 rounded-lg transition-colors">
+                            <input
+                              id="avatar-upload"
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleAvatarUpload}
+                            />
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="destructive"
+                            onClick={async () => {
+                              await updateProfile({ avatar: null });
+                              setProfileData(prev => ({ ...prev, avatar: '' }));
+                              toast.success('Avatar removido');
+                            }}
+                            disabled={!profileData.avatar}
+                          >
                             Remove
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>
                     
                     <div>
                       <label className="block text-white/80 mb-2">Display Name</label>
-                      <input
+                      <Input
                         type="text"
-                        name="displayName"
-                        value={profileData.displayName}
+                        name="display_name"
+                        value={profileData.display_name}
+                        onChange={handleInputChange}
+                        className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-white/80 mb-2">Username</label>
+                      <Input
+                        type="text"
+                        name="username"
+                        value={profileData.username}
                         onChange={handleInputChange}
                         className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
                       />
@@ -404,19 +554,19 @@ const ProfilePage: React.FC = () => {
                     
                     <div>
                       <label className="block text-white/80 mb-2">Bio</label>
-                      <textarea
+                      <Textarea
                         name="bio"
                         value={profileData.bio}
                         onChange={handleInputChange}
                         className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
                         rows={4}
-                      ></textarea>
+                      />
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-white/80 mb-2">Location</label>
-                        <input
+                        <Input
                           type="text"
                           name="location"
                           value={profileData.location}
@@ -426,7 +576,7 @@ const ProfilePage: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-white/80 mb-2">Website</label>
-                        <input
+                        <Input
                           type="text"
                           name="website"
                           value={profileData.website}
@@ -441,9 +591,9 @@ const ProfilePage: React.FC = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <label className="block text-white/80 mb-2">Email Address</label>
-                          <input
+                          <Input
                             type="email"
-                            value={mockUserData.email}
+                            value={profile.email}
                             disabled
                             className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white/50"
                           />
@@ -451,9 +601,9 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div>
                           <label className="block text-white/80 mb-2">Password</label>
-                          <button type="button" className="bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-lg transition-colors">
+                          <Button type="button" variant="outline" className="border-white/20">
                             Change Password
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -477,18 +627,24 @@ const ProfilePage: React.FC = () => {
                     </div>
                     
                     <div className="flex justify-between border-t border-white/10 pt-6">
-                      <button
+                      <Button
                         type="button"
-                        className="bg-red-900/20 hover:bg-red-900/30 text-red-400 px-6 py-3 rounded-lg transition-colors"
+                        variant="destructive"
+                        onClick={() => {
+                          if (confirm("Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.")) {
+                            toast.error('Funcionalidade ainda não implementada');
+                          }
+                        }}
                       >
                         Delete Account
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="submit"
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        disabled={isUpdating}
                       >
-                        Save Changes
-                      </button>
+                        {isUpdating ? 'Salvando...' : 'Save Changes'}
+                      </Button>
                     </div>
                   </div>
                 </form>

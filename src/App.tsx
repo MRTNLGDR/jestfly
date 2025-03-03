@@ -1,31 +1,26 @@
-
 import './App.css';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import CrystalHero from './components/CrystalHero';
-import CrystalGallery from './components/CrystalGallery';
-import AdminPanel from './pages/AdminPanel';
-import CyberMenu from './components/CyberMenu';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
-import NFTSection from './components/NFTSection';
-import EventsSection from './components/EventsSection';
-import ConnectionSection from './components/ConnectionSection';
-import ShopPreview from './components/ShopPreview';
-import Footer from './components/Footer';
-import RoadmapSection from './components/RoadmapSection';
+import HomePage from './pages/HomePage';
 import StorePage from './pages/StorePage';
 import CommunityPage from './pages/CommunityPage';
 import BookingsPage from './pages/BookingsPage';
 import ProfilePage from './pages/ProfilePage';
-import HomePage from './pages/HomePage';
 import DemoSubmissionPage from './pages/DemoSubmissionPage';
 import LiveStreamPage from './pages/LiveStreamPage';
 import PressKitPage from './pages/PressKitPage';
 import AirdropPage from './pages/AirdropPage';
+import AdminPanel from './pages/AdminPanel';
+import AuthPage from './pages/AuthPage';
+import PermissionDeniedPage from './pages/PermissionDeniedPage';
 import LanguageProvider from './contexts/LanguageContext';
+import { Toaster } from 'sonner';
 
-function App() {
-  // Crystal parameters with customized values for enhanced futuristic effect
+function AppWithProviders() {
+  // Crystal parameters com valores customizados para efeito futurista aprimorado
   const crystalParams = {
     ...defaultModelParams,
     color: "#ffffff", // Pure white base color for better refraction
@@ -47,14 +42,14 @@ function App() {
     lightIntensity: 5.0 // Brighter lights to enhance the model
   };
   
-  // Gallery images
+  // Imagens da galeria
   const galleryImages = [
     { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'default' as const },
     { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'bottom-left' as const },
     { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'center' as const }
   ];
   
-  // Menu items for the cyber menu
+  // Itens do menu para o menu cyber
   const menuItems = [
     { label: 'Início', href: '/' },
     { label: 'Store', href: '/store' },
@@ -69,23 +64,69 @@ function App() {
   ];
   
   return (
+    <div className="app">
+      <GlassHeader menuItems={menuItems} />
+      <Toaster position="top-center" richColors />
+      <Routes>
+        <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/permission-denied" element={<PermissionDeniedPage />} />
+        
+        {/* Rotas protegidas que requerem autenticação */}
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/bookings" 
+          element={
+            <ProtectedRoute>
+              <BookingsPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/demo-submission" 
+          element={
+            <ProtectedRoute requiredProfileType="artist">
+              <DemoSubmissionPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute requiredProfileType="admin">
+              <AdminPanel />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rotas públicas */}
+        <Route path="/store/*" element={<StorePage />} />
+        <Route path="/community/*" element={<CommunityPage />} />
+        <Route path="/live-stream" element={<LiveStreamPage />} />
+        <Route path="/press-kit" element={<PressKitPage />} />
+        <Route path="/airdrop" element={<AirdropPage />} />
+      </Routes>
+    </div>
+  );
+}
+
+function App() {
+  return (
     <LanguageProvider>
       <Router>
-        <div className="app">
-          <GlassHeader menuItems={menuItems} />
-          <Routes>
-            <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-            <Route path="/store/*" element={<StorePage />} />
-            <Route path="/community/*" element={<CommunityPage />} />
-            <Route path="/bookings" element={<BookingsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/demo-submission" element={<DemoSubmissionPage />} />
-            <Route path="/live-stream" element={<LiveStreamPage />} />
-            <Route path="/press-kit" element={<PressKitPage />} />
-            <Route path="/airdrop" element={<AirdropPage />} />
-            <Route path="/admin" element={<AdminPanel />} />
-          </Routes>
-        </div>
+        <AuthProvider>
+          <AppWithProviders />
+        </AuthProvider>
       </Router>
     </LanguageProvider>
   );
