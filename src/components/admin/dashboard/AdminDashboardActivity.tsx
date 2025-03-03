@@ -65,7 +65,9 @@ const AdminDashboardActivity: React.FC = () => {
                     </div>
                     <div className="text-sm text-white/70 mt-1">
                       {log.profile?.display_name || log.user_id}
-                      {log.profile?.username && <span className="text-white/50"> (@{log.profile.username})</span>}
+                      {log.profile && log.profile.username && (
+                        <span className="text-white/50"> (@{log.profile.username})</span>
+                      )}
                     </div>
                     {log.entity_type && (
                       <div className="text-xs text-white/50 mt-1">

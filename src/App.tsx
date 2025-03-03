@@ -1,13 +1,12 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '@/contexts/AuthContext';
 import LogsPage from '@/pages/LogsPage';
 import HomePage from '@/pages/HomePage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
-import { useAuth } from '@/contexts/AuthContext';
 
 function App() {
-  const { profile } = useAuth();
-  
   // Creating default props for HomePage
   const homePageProps = {
     crystalParams: {
@@ -26,15 +25,17 @@ function App() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black to-purple-900">
-      <Routes>
-        <Route path="/" element={<HomePage {...homePageProps} />} />
-        <Route path="/system/logs" element={<LogsPage />} />
-        <Route path="/admin/logs" element={<LogsPage />} />
-        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-        {/* Adicionar outras rotas aqui conforme necessário */}
-      </Routes>
-    </div>
+    <AuthProvider>
+      <div className="min-h-screen bg-gradient-to-br from-black to-purple-900">
+        <Routes>
+          <Route path="/" element={<HomePage {...homePageProps} />} />
+          <Route path="/system/logs" element={<LogsPage />} />
+          <Route path="/admin/logs" element={<LogsPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          {/* Adicionar outras rotas aqui conforme necessário */}
+        </Routes>
+      </div>
+    </AuthProvider>
   );
 }
 
