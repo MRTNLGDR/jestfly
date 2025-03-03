@@ -9,14 +9,14 @@ interface UseAvatarUploadResult {
 
 export const useAvatarUpload = (): UseAvatarUploadResult => {
   const [uploading, setUploading] = useState(false);
-  const { uploadAvatar } = useAuth();
+  const { uploadAvatar: uploadAvatarContext } = useAuth();
 
   const handleUpload = async (file: File): Promise<string | null> => {
     if (!file) return null;
     
     try {
       setUploading(true);
-      const result = await uploadAvatar(file);
+      const result = await uploadAvatarContext(file);
       return result.avatarUrl;
     } catch (error) {
       console.error('Erro ao fazer upload do avatar:', error);
