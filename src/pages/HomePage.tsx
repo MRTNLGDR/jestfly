@@ -10,6 +10,7 @@ import ConnectionSection from '../components/ConnectionSection';
 import Footer from '../components/Footer';
 import { ModelParameters } from '../types/modelParameters';
 import ArtistShowcase from '../components/ArtistShowcase';
+import GlassHeader from '../components/GlassHeader';
 
 interface HomePageProps {
   crystalParams: ModelParameters;
@@ -24,8 +25,20 @@ const HomePage: React.FC<HomePageProps> = ({
   crystalParams,
   galleryImages 
 }) => {
+  // Itens do menu para o cabeçalho
+  const menuItems = [
+    { label: 'Home', href: '/' },
+    { label: 'NFTs', href: '/nfts' },
+    { label: 'Events', href: '/events' },
+    { label: 'Shop', href: '/shop' },
+    { label: 'Community', href: '/community' },
+  ];
+
   return (
     <>
+      {/* Cabeçalho */}
+      <GlassHeader menuItems={menuItems} />
+      
       {/* Hero section with futuristic crystal and Nike-inspired layout */}
       <CrystalHero 
         title="JESTFLY" 

@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import LocationIndicator from './LocationIndicator';
+import { NavLink } from 'react-router-dom';
 
 interface MenuItem {
   label: string;
@@ -13,84 +12,21 @@ interface DesktopNavProps {
 }
 
 const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
-  const location = useLocation();
-  
-  // Agrupar itens de menu por categorias
-  const mainMenuItems = menuItems.filter(item => 
-    ['Início', 'Store', 'Community', 'Bookings'].includes(item.label)
-  );
-  
-  const resourceMenuItems = menuItems.filter(item => 
-    ['Resources', 'Notes', 'Demo Submission', 'Press Kit'].includes(item.label)
-  );
-  
-  const userMenuItems = menuItems.filter(item => 
-    ['Profile', 'Live Stream', 'Airdrop'].includes(item.label)
-  );
-  
   return (
-    <nav className="hidden lg:flex items-center overflow-x-auto scrollbar-none">
-      {/* Seção Principal */}
-      <div className="flex items-center space-x-4 xl:space-x-6 whitespace-nowrap">
-        {mainMenuItems.map((item) => (
-          <Link 
-            key={item.href} 
-            to={item.href}
-            className={`text-white/80 text-sm hover:text-white transition-colors uppercase ${
-              location.pathname.includes(item.href) && item.href !== '/' ? 'text-white font-medium' : ''
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
-      
-      <div className="h-8 mx-4 xl:mx-6 border-l border-white/20"></div>
-      
-      {/* Seção de Recursos */}
-      <div className="flex items-center space-x-4 xl:space-x-6 whitespace-nowrap">
-        {resourceMenuItems.map((item) => (
-          <Link 
-            key={item.href} 
-            to={item.href}
-            className={`text-white/80 text-sm hover:text-white transition-colors uppercase ${
-              location.pathname.includes(item.href) && item.href !== '/' ? 'text-white font-medium' : ''
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
-      
-      <div className="h-8 mx-4 xl:mx-6 border-l border-white/20"></div>
-      
-      {/* Seção do Usuário */}
-      <div className="flex items-center space-x-4 xl:space-x-6 whitespace-nowrap">
-        {userMenuItems.map((item) => (
-          <Link 
-            key={item.href} 
-            to={item.href}
-            className={`text-white/80 text-sm hover:text-white transition-colors uppercase ${
-              location.pathname.includes(item.href) && item.href !== '/' ? 'text-white font-medium' : ''
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-        
-        <Link 
-          to="/login" 
-          className="px-3 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-500 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-600 transition-colors"
+    <nav className="hidden md:flex items-center space-x-6">
+      {menuItems.map((item) => (
+        <NavLink
+          key={item.label}
+          to={item.href}
+          className={({ isActive }) =>
+            `text-sm font-medium transition-colors hover:text-white/90 ${
+              isActive ? 'text-white' : 'text-white/70'
+            }`
+          }
         >
-          Login
-        </Link>
-      </div>
-      
-      <div className="h-8 mx-4 xl:mx-6 border-l border-white/20"></div>
-      
-      <div className="flex items-center">
-        <LocationIndicator />
-      </div>
+          {item.label}
+        </NavLink>
+      ))}
     </nav>
   );
 };
