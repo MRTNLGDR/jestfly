@@ -1,24 +1,28 @@
 
 import React, { useState } from 'react';
 import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const { signIn } = useAuth();
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleAdminLogin = async (demoType: 'admin' | 'artist' | 'collaborator' | 'fan') => {
     setIsLoading(true);
     setLoginError('');
     
+    // Credenciais de demonstração atualizadas para garantir funcionamento
     const demoAccounts = {
       admin: { email: 'admin@jestfly.com', password: 'admin123' },
       artist: { email: 'artist@jestfly.com', password: 'artist123' },
@@ -28,16 +32,42 @@ const Footer: React.FC = () => {
     
     try {
       const { email, password } = demoAccounts[demoType];
-      const { error } = await signIn(email, password);
+      console.log(`Tentando login com: ${email}`);
+      
+      const { error, data } = await signIn(email, password);
       
       if (error) {
+        console.error('Erro de login:', error.message);
         setLoginError(error.message);
+        toast({
+          title: "Falha no login",
+          description: error.message,
+          variant: "destructive"
+        });
       } else {
+        console.log('Login bem-sucedido:', data);
         setIsAdminDialogOpen(false);
+        toast({
+          title: "Login bem-sucedido",
+          description: `Bem-vindo, ${demoType}!`,
+          variant: "default"
+        });
+        
+        // Redirecionar para o painel apropriado
+        if (demoType === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/profile');
+        }
       }
     } catch (error) {
+      console.error('Erro inesperado:', error);
       setLoginError('Falha ao realizar login. Tente novamente.');
-      console.error('Login error:', error);
+      toast({
+        title: "Erro",
+        description: 'Ocorreu um erro inesperado. Tente novamente.',
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
@@ -160,6 +190,7 @@ const Footer: React.FC = () => {
               onClick={() => handleAdminLogin('admin')}
               disabled={isLoading}
             >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Admin
             </Button>
             <Button
@@ -168,6 +199,7 @@ const Footer: React.FC = () => {
               onClick={() => handleAdminLogin('artist')}
               disabled={isLoading}
             >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Artista
             </Button>
             <Button
@@ -176,6 +208,7 @@ const Footer: React.FC = () => {
               onClick={() => handleAdminLogin('collaborator')}
               disabled={isLoading}
             >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Colaborador
             </Button>
             <Button
@@ -184,8 +217,15 @@ const Footer: React.FC = () => {
               onClick={() => handleAdminLogin('fan')}
               disabled={isLoading}
             >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               Fã
             </Button>
+          </div>
+          
+          <div className="mt-4 text-center text-white/60 text-xs">
+            <Link to="/auth" className="underline hover:text-white">
+              Fazer login com outra conta
+            </Link>
           </div>
           
           <div className="mt-2 text-center text-xs text-white/40">

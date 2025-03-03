@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -65,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Função para buscar o perfil do usuário
   const fetchProfile = async (userId: string) => {
     try {
+      console.log(`Buscando perfil para userId: ${userId}`);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -76,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
       
+      console.log('Perfil recuperado:', data);
       return data as ProfileData;
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
@@ -86,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Função para atualizar o perfil
   const refreshProfile = async () => {
     if (user) {
+      console.log('Atualizando dados do perfil');
       const profileData = await fetchProfile(user.id);
       if (profileData) {
         setProfile(profileData);
@@ -95,7 +97,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Obter sessão inicial
+    console.log('Verificando sessão inicial');
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      console.log('Sessão inicial:', session);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -109,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Monitorar mudanças na autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Evento de autenticação:', _event, 'Session:', session);
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -127,9 +132,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log(`Tentando login com email: ${email}`);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (!error && data.user) {
+        console.log('Login bem-sucedido:', data.user);
         toast({
           title: "Login realizado com sucesso!",
           description: `Bem-vindo de volta, ${data.user.email}!`,
@@ -140,8 +147,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const profileData = await fetchProfile(data.user.id);
         setProfile(profileData);
         
-        navigate('/');
+        // Verificar o tipo de perfil e redirecionar adequadamente
+        if (profileData?.profile_type === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       } else if (error) {
+        console.error('Erro no login:', error);
         toast({
           title: "Erro ao fazer login",
           description: error.message,
@@ -151,12 +164,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return { data: data?.user ?? null, error };
     } catch (error) {
+      console.error('Exceção durante login:', error);
+      const err = error as Error;
       toast({
         title: "Erro ao fazer login",
-        description: (error as Error).message,
+        description: err.message,
         variant: "destructive",
       });
-      return { data: null, error: error as Error };
+      return { data: null, error: err };
     }
   };
 
@@ -204,6 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      console.log('Realizando logout');
       await supabase.auth.signOut();
       setProfile(null);
       toast({
@@ -213,6 +229,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       navigate('/');
     } catch (error) {
+      console.error('Erro ao fazer logout:', error);
       toast({
         title: "Erro ao fazer logout",
         description: (error as Error).message,
