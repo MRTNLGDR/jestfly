@@ -65,18 +65,18 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
       if (filters.searchTerm) {
         const lowerSearchTerm = filters.searchTerm.toLowerCase();
         filteredData = filteredData.filter(log => {
-          // Safe check for nested profile properties
-          const usernameMatch = log.profile && 
-            typeof log.profile === 'object' && 
-            'username' in log.profile && 
-            typeof log.profile.username === 'string' && 
-            log.profile.username.toLowerCase().includes(lowerSearchTerm);
+          // Safe check for profile properties
+          const profile = log.profile && typeof log.profile === 'object' ? log.profile : null;
           
-          const displayNameMatch = log.profile && 
-            typeof log.profile === 'object' && 
-            'display_name' in log.profile && 
-            typeof log.profile.display_name === 'string' && 
-            log.profile.display_name.toLowerCase().includes(lowerSearchTerm);
+          const usernameMatch = profile && 
+            'username' in profile && 
+            typeof profile.username === 'string' && 
+            profile.username.toLowerCase().includes(lowerSearchTerm);
+          
+          const displayNameMatch = profile && 
+            'display_name' in profile && 
+            typeof profile.display_name === 'string' && 
+            profile.display_name.toLowerCase().includes(lowerSearchTerm);
           
           return log.action.toLowerCase().includes(lowerSearchTerm) ||
             usernameMatch ||
@@ -86,7 +86,7 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
         });
       }
       
-      // Safe type conversion
+      // Safe type conversion with proper null checks
       const safeData = filteredData.map(log => {
         return {
           ...log,
