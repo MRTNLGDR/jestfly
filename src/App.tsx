@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import LogsPage from '@/pages/LogsPage';
 import HomePage from '@/pages/HomePage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
+import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   // Creating default props for HomePage
@@ -34,6 +35,7 @@ function App() {
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           {/* Adicionar outras rotas aqui conforme necessário */}
         </Routes>
+        <Toaster />
       </div>
     </AuthProvider>
   );

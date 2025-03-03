@@ -26,9 +26,9 @@ const AdminDashboardActivity: React.FC = () => {
         return {
           ...log,
           profile: log.profile && typeof log.profile === 'object' ? {
-            username: 'username' in log.profile ? String(log.profile.username || '') : undefined,
-            display_name: 'display_name' in log.profile ? String(log.profile.display_name || '') : undefined,
-            profile_type: 'profile_type' in log.profile ? String(log.profile.profile_type || '') : undefined
+            username: log.profile && typeof log.profile === 'object' && 'username' in log.profile ? String(log.profile.username || '') : undefined,
+            display_name: log.profile && typeof log.profile === 'object' && 'display_name' in log.profile ? String(log.profile.display_name || '') : undefined,
+            profile_type: log.profile && typeof log.profile === 'object' && 'profile_type' in log.profile ? String(log.profile.profile_type || '') : undefined
           } : null,
           details: log.details as Record<string, any> | null
         };
