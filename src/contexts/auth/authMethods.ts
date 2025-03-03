@@ -1,7 +1,7 @@
 
 import { User } from '../../models/User';
 import { authService } from './authService';
-import { supabaseAuthService } from './supabaseAuthService';
+import { supabaseAuthService } from './supabase';
 import { createSupabaseUserData } from './userDataTransformer';
 
 // Login method

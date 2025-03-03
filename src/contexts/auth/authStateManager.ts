@@ -2,7 +2,7 @@
 import { User } from "../../models/User";
 import { auth } from '../../firebase/config';
 import { authService } from './authService';
-import { supabaseAuthService } from './supabaseAuthService';
+import { supabaseAuthService } from './supabase';
 import { supabase } from '../../integrations/supabase/client';
 import { createSupabaseUserData } from './userDataTransformer';
 

@@ -10,7 +10,8 @@ import {
   signOut,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
@@ -46,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<void> => {
     try {
       setError(null);
       const result = await signInWithEmailAndPassword(auth, email, password);
@@ -56,8 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         { lastLogin: new Date() }, 
         { merge: true }
       );
-      
-      return result.user;
     } catch (err: any) {
       console.error("Login error:", err);
       setError(err.message);
@@ -65,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (): Promise<void> => {
     try {
       setError(null);
       const provider = new GoogleAuthProvider();
@@ -108,8 +107,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           { merge: true }
         );
       }
-      
-      return user;
     } catch (err: any) {
       console.error("Google login error:", err);
       setError(err.message);
@@ -117,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, userData: Partial<User>) => {
+  const register = async (email: string, password: string, userData: Partial<User>): Promise<void> => {
     try {
       setError(null);
       const result = await createUserWithEmailAndPassword(auth, email, password);
@@ -149,8 +146,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
       
       await setDoc(doc(firestore, 'users', user.uid), newUserData);
-      
-      return user;
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message);
@@ -158,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await signOut(auth);
     } catch (err: any) {
@@ -168,10 +163,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<void> => {
     try {
       setError(null);
-      // Using Firebase password reset (implementation needed)
+      await sendPasswordResetEmail(auth, email);
       toast.success('Password reset instructions have been sent to your email');
     } catch (err: any) {
       console.error("Password reset error:", err);
@@ -180,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     currentUser,
     userData,
     login,

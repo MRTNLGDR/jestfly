@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { supabaseAuthService } from '../../../contexts/auth/supabaseAuthService';
+import { supabaseAuthService } from '../../../contexts/auth/supabase';
 
 export const useGoogleAuth = () => {
   const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
@@ -12,7 +11,6 @@ export const useGoogleAuth = () => {
   const { loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  // Verificar se o Google Auth está habilitado
   useEffect(() => {
     const checkGoogleAuth = async () => {
       try {
@@ -35,7 +33,6 @@ export const useGoogleAuth = () => {
     
     setIsSubmitting(true);
     
-    // Mostrar feedback visual de carregamento
     const loadingToast = toast.loading('Conectando com Google...', {
       icon: <Loader2 className="h-5 w-5 animate-spin" />
     });
@@ -43,10 +40,8 @@ export const useGoogleAuth = () => {
     try {
       await loginWithGoogle();
       
-      // Fechar o toast de carregamento
       toast.dismiss(loadingToast);
       
-      // Mostrar feedback visual de sucesso
       toast.success('Login bem-sucedido!', {
         duration: 5000,
         icon: <CheckCircle className="h-5 w-5 text-green-500" />
@@ -57,7 +52,6 @@ export const useGoogleAuth = () => {
     } catch (error: any) {
       console.error('Google login error:', error);
       
-      // Fechar o toast de carregamento
       toast.dismiss(loadingToast);
       
       let errorMessage = 'Falha ao fazer login com Google';
@@ -68,7 +62,6 @@ export const useGoogleAuth = () => {
         errorMessage = 'Erro de configuração. Entre em contato com o suporte.';
       }
       
-      // Mostrar feedback visual de erro
       toast.error(errorMessage, {
         duration: 5000,
         icon: <XCircle className="h-5 w-5 text-red-500" />
