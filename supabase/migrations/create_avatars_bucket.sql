@@ -1,4 +1,5 @@
 
+
 -- Criar bucket para avatares
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('avatars', 'avatars', true);
@@ -19,3 +20,4 @@ USING (bucket_id = 'avatars' AND auth.uid() = owner);
 CREATE POLICY "Permitir exclusão de avatares para proprietários"
 ON storage.objects FOR DELETE
 USING (bucket_id = 'avatars' AND auth.uid() = owner);
+

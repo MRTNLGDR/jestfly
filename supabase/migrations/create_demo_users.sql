@@ -1,4 +1,5 @@
 
+
 -- Inserir usuários de demonstração para testes
 -- IMPORTANTE: Em ambiente de produção, remover estes usuários
 
@@ -35,9 +36,21 @@ VALUES
   username = EXCLUDED.username,
   profile_type = EXCLUDED.profile_type,
   updated_at = NOW(),
-  is_verified = TRUE,
+  is_verified = TRUE;
 
 -- Artista
+INSERT INTO public.profiles (
+  id, 
+  email, 
+  display_name, 
+  username, 
+  profile_type, 
+  avatar, 
+  created_at, 
+  updated_at,
+  is_verified
+)
+VALUES 
 (
   '00000000-0000-0000-0000-000000000002', 
   'artist@jestfly.com',
@@ -54,9 +67,21 @@ VALUES
   username = EXCLUDED.username,
   profile_type = EXCLUDED.profile_type,
   updated_at = NOW(),
-  is_verified = TRUE,
+  is_verified = TRUE;
 
 -- Colaborador
+INSERT INTO public.profiles (
+  id, 
+  email, 
+  display_name, 
+  username, 
+  profile_type, 
+  avatar, 
+  created_at, 
+  updated_at,
+  is_verified
+)
+VALUES 
 (
   '00000000-0000-0000-0000-000000000003', 
   'collaborator@jestfly.com',
@@ -73,9 +98,21 @@ VALUES
   username = EXCLUDED.username,
   profile_type = EXCLUDED.profile_type,
   updated_at = NOW(),
-  is_verified = TRUE,
+  is_verified = TRUE;
 
 -- Fã
+INSERT INTO public.profiles (
+  id, 
+  email, 
+  display_name, 
+  username, 
+  profile_type, 
+  avatar, 
+  created_at, 
+  updated_at,
+  is_verified
+)
+VALUES 
 (
   '00000000-0000-0000-0000-000000000004', 
   'fan@jestfly.com',
@@ -99,3 +136,4 @@ VALUES
 -- artist@jestfly.com / artistpassword
 -- collaborator@jestfly.com / collaboratorpassword
 -- fan@jestfly.com / fanpassword
+
