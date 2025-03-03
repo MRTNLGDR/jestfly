@@ -1,108 +1,116 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthFormProps {
-  onSubmit: (data: z.infer<typeof formSchema>) => Promise<void>;
-  submitButtonText: string;
-  title: string;
-  description: string;
+  onSuccess?: () => void;
 }
 
-// Precisamos corrigir a assinatura da função formSchema
-// e adicionar os parâmetros que estão faltando
-const AuthForm: React.FC<AuthFormProps> = ({ onSubmit, submitButtonText, title, description }) => {
-  const formSchema = z.object({
-    email: z.string().email({ message: "Por favor, insira um email válido." }),
-    password: z.string().min(8, { message: "A senha deve ter pelo menos 8 caracteres." }),
-    username: z.string().optional(),
-    display_name: z.string().optional(),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      username: "",
-      display_name: "",
-    },
-  });
-
+const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const { signIn, signUp } = useAuth();
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    
+    try {
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        if (error) throw error;
+      } else {
+        const { error } = await signUp(email, password);
+        if (error) throw error;
+      }
+      
+      if (onSuccess) onSuccess();
+    } catch (err) {
+      console.error('Authentication error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred during authentication');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="text-center mb-4">
-          <h2 className="text-2xl font-semibold">{title}</h2>
-          <p className="text-sm text-white/60">{description}</p>
-        </div>
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="seuemail@exemplo.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Senha</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="********" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {/* Os campos opcionais devem ser renderizados apenas no formulário de registro */}
-        {title === "Criar sua conta" && (
-          <>
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome de usuário</FormLabel>
-                  <FormControl>
-                    <Input placeholder="nome.de.usuario" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="display_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome de exibição</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Seu nome" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </>
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-8">
+        <h2 className="text-2xl font-bold text-white mb-6 text-center">
+          {isLogin ? 'Sign In to JESTFLY' : 'Create a JESTFLY Account'}
+        </h2>
+        
+        {error && (
+          <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
         )}
-        <Button type="submit" className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:opacity-90 transition-opacity">
-          {submitButtonText}
-        </Button>
-      </form>
-    </Form>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-white/80 mb-2" htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+              placeholder="your@email.com"
+              required
+            />
+          </div>
+          
+          <div className="mb-6">
+            <label className="block text-white/80 mb-2" htmlFor="password">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-lg transition-colors ${
+              loading ? 'opacity-70 cursor-not-allowed' : ''
+            }`}
+          >
+            {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
+          </button>
+        </form>
+        
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-purple-400 hover:text-purple-300 transition-colors"
+          >
+            {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+          </button>
+        </div>
+        
+        {isLogin && (
+          <div className="mt-4 text-center">
+            <button className="text-white/60 hover:text-white/80 transition-colors text-sm">
+              Forgot your password?
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

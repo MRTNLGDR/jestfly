@@ -23,7 +23,7 @@ export const useCommunityPosts = (category?: string) => {
       .select(`
         *,
         user:profiles(username, display_name, avatar)
-      `) as any;
+      `);
 
     // Filtrar por categoria se especificada
     if (category && category !== 'all') {
@@ -69,7 +69,7 @@ export const useCommunityPosts = (category?: string) => {
           user_id: newPost.user_id,
           is_pinned: newPost.is_pinned || false,
           is_featured: newPost.is_featured || false
-        } as any)
+        })
         .select();
 
       if (error) {
@@ -100,7 +100,7 @@ export const useCommunityPosts = (category?: string) => {
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', user.id)
-        .maybeSingle() as any;
+        .maybeSingle();
 
       if (checkError) {
         throw new Error(checkError.message);
@@ -112,7 +112,7 @@ export const useCommunityPosts = (category?: string) => {
           .from('post_likes')
           .delete()
           .eq('post_id', postId)
-          .eq('user_id', user.id) as any;
+          .eq('user_id', user.id);
 
         if (deleteError) {
           throw new Error(deleteError.message);
@@ -127,7 +127,7 @@ export const useCommunityPosts = (category?: string) => {
         .insert({
           post_id: postId,
           user_id: user.id
-        } as any);
+        } as any); // Use type assertion to bypass type checking
 
       if (insertError) {
         throw new Error(insertError.message);
@@ -158,7 +158,7 @@ export const useCommunityPosts = (category?: string) => {
         .from('community_posts')
         .delete()
         .eq('id', postId)
-        .eq('user_id', user.id) as any;
+        .eq('user_id', user.id);
 
       if (error) {
         throw new Error(error.message);
@@ -198,7 +198,7 @@ export const usePostComments = (postId: string) => {
         user:profiles(username, display_name, avatar)
       `)
       .eq('post_id', postId)
-      .order('created_at', { ascending: true }) as any;
+      .order('created_at', { ascending: true });
 
     if (error) {
       console.error('Error fetching comments:', error);
@@ -233,8 +233,8 @@ export const usePostComments = (postId: string) => {
 
       const { data, error } = await supabase
         .from('post_comments')
-        .insert(commentData as any)
-        .select() as any;
+        .insert(commentData as any) // Use type assertion to bypass type checking
+        .select();
 
       if (error) {
         console.error('Error creating comment:', error);
@@ -263,7 +263,7 @@ export const usePostComments = (postId: string) => {
         .from('post_comments')
         .delete()
         .eq('id', commentId)
-        .eq('user_id', user.id) as any;
+        .eq('user_id', user.id);
 
       if (error) {
         throw new Error(error.message);
@@ -291,7 +291,7 @@ export const usePostComments = (postId: string) => {
         .select('id')
         .eq('comment_id', commentId)
         .eq('user_id', user.id)
-        .maybeSingle() as any;
+        .maybeSingle();
 
       if (checkError) {
         throw new Error(checkError.message);
@@ -303,7 +303,7 @@ export const usePostComments = (postId: string) => {
           .from('comment_likes')
           .delete()
           .eq('comment_id', commentId)
-          .eq('user_id', user.id) as any;
+          .eq('user_id', user.id);
 
         if (deleteError) {
           throw new Error(deleteError.message);
@@ -318,7 +318,7 @@ export const usePostComments = (postId: string) => {
         .insert({
           comment_id: commentId,
           user_id: user.id
-        } as any);
+        } as any); // Use type assertion to bypass type checking
 
       if (insertError) {
         throw new Error(insertError.message);
