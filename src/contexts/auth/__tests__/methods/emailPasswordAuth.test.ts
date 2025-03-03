@@ -1,32 +1,18 @@
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { auth } from '../../../firebase/config';
-import { supabase } from '../../../integrations/supabase/client';
-import { 
-  login, 
-  loginWithGoogle, 
-  register, 
-  logout, 
-  resetPassword 
-} from '../methods';
+import { supabase } from '../../../../integrations/supabase/client';
+import { login, register, resetPassword } from '../../methods/emailPasswordAuth';
+import { verifyAdminCode } from '../../methods/adminAuth';
 import { toast } from 'sonner';
-import { User } from '../../../models/User';
+import { User } from '../../../../models/User';
 
 // Mock dependencies
-vi.mock('../../../firebase/config', () => ({
-  auth: {
-    signOut: vi.fn(),
-  }
-}));
-
-vi.mock('../../../integrations/supabase/client', () => ({
+vi.mock('../../../../integrations/supabase/client', () => ({
   supabase: {
     auth: {
       signInWithPassword: vi.fn(),
-      signInWithOAuth: vi.fn(),
       signUp: vi.fn(),
-      signOut: vi.fn(),
       resetPasswordForEmail: vi.fn(),
-      getSession: vi.fn(),
     },
     rpc: vi.fn(),
   }
@@ -36,15 +22,17 @@ vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
-    loading: vi.fn(),
-    dismiss: vi.fn(),
   }
+}));
+
+vi.mock('../../methods/adminAuth', () => ({
+  verifyAdminCode: vi.fn()
 }));
 
 // Mock fetch for admin code verification
 global.fetch = vi.fn();
 
-describe('Auth Methods', () => {
+describe('Email Password Auth Methods', () => {
   // Reset mocks before each test
   beforeEach(() => {
     vi.resetAllMocks();
@@ -55,21 +43,12 @@ describe('Auth Methods', () => {
       error: null
     });
     
-    (supabase.auth.signInWithOAuth as any).mockResolvedValue({
-      data: { provider: 'google' },
-      error: null
-    });
-    
     (supabase.auth.signUp as any).mockResolvedValue({
       data: { user: { id: 'test-user-id' } },
       error: null
     });
     
     (supabase.auth.resetPasswordForEmail as any).mockResolvedValue({
-      error: null
-    });
-    
-    (supabase.auth.signOut as any).mockResolvedValue({
       error: null
     });
 
@@ -124,33 +103,6 @@ describe('Auth Methods', () => {
     });
   });
 
-  describe('loginWithGoogle', () => {
-    it('should initiate Google login', async () => {
-      await loginWithGoogle();
-      
-      expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith({
-        provider: 'google',
-        options: {
-          redirectTo: 'http://localhost:3000/profile'
-        }
-      });
-    });
-
-    it('should handle Google login provider not enabled error', async () => {
-      (supabase.auth.signInWithOAuth as any).mockResolvedValue({
-        data: {},
-        error: { message: 'provider is not enabled' }
-      });
-
-      await expect(loginWithGoogle()).rejects.toThrow();
-      
-      expect(console.error).toHaveBeenCalledWith(
-        "Google login error:", 
-        expect.objectContaining({ message: expect.stringContaining('provider is not enabled') })
-      );
-    });
-  });
-
   describe('register', () => {
     it('should register a new user successfully', async () => {
       const userData: Partial<User> = {
@@ -197,20 +149,7 @@ describe('Auth Methods', () => {
         { user_id: 'system', required_role: 'admin' }
       );
       
-      expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:3000/functions/v1/verify-admin-code',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'Authorization': expect.stringContaining('Bearer')
-          }),
-          body: JSON.stringify({
-            userId: 'test-user-id',
-            adminCode: 'SECRET_ADMIN_CODE'
-          })
-        })
-      );
+      expect(verifyAdminCode).toHaveBeenCalledWith('test-user-id', 'SECRET_ADMIN_CODE');
     });
 
     it('should handle registration error for existing user', async () => {
@@ -244,27 +183,6 @@ describe('Auth Methods', () => {
       await expect(register('fakeadmin@example.com', 'password123', userData)).rejects.toThrow();
       
       expect(toast.error).toHaveBeenCalledWith('Código de administrador inválido ou já utilizado');
-    });
-  });
-
-  describe('logout', () => {
-    it('should sign out user from both Supabase and Firebase', async () => {
-      await logout();
-      
-      expect(supabase.auth.signOut).toHaveBeenCalled();
-      expect(auth.signOut).toHaveBeenCalled();
-      expect(toast.success).toHaveBeenCalledWith('Logout realizado com sucesso');
-    });
-
-    it('should handle logout error', async () => {
-      (supabase.auth.signOut as any).mockRejectedValue(new Error('Logout failed'));
-
-      await expect(logout()).rejects.toThrow();
-      
-      expect(console.error).toHaveBeenCalledWith(
-        "Logout error:", 
-        expect.objectContaining({ message: 'Logout failed' })
-      );
     });
   });
 
