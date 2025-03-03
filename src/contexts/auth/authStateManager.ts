@@ -9,14 +9,9 @@ import { supabase } from '../../integrations/supabase/client';
 import { createSupabaseUserData, SupabaseAuthUser } from './userDataTransformer';
 
 /**
- * Custom hook to manage authentication state
+ * Custom hook to handle Supabase authentication state
  */
-export const useAuthState = () => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
+const useSupabaseAuth = (onUserDataChange: (data: User | null) => void) => {
   // Function to fetch user data from Supabase
   const fetchUserData = async (userId: string) => {
     try {
@@ -29,7 +24,7 @@ export const useAuthState = () => {
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
-        return;
+        return null;
       }
 
       // Fetch user roles
@@ -67,10 +62,13 @@ export const useAuthState = () => {
           profileWithRoles
         );
 
-        setUserData(user);
+        return user;
       }
+      
+      return null;
     } catch (err) {
       console.error("Error fetching user data from Supabase:", err);
+      return null;
     }
   };
 
@@ -78,7 +76,11 @@ export const useAuthState = () => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchUserData(session.user.id);
+        fetchUserData(session.user.id).then(userData => {
+          if (userData) {
+            onUserDataChange(userData);
+          }
+        });
       }
     });
 
@@ -88,38 +90,71 @@ export const useAuthState = () => {
         console.log('Supabase auth event:', event);
         
         if (session?.user) {
-          fetchUserData(session.user.id);
+          const userData = await fetchUserData(session.user.id);
+          if (userData) {
+            onUserDataChange(userData);
+          }
         } else {
-          setUserData(null);
+          onUserDataChange(null);
         }
-        
-        setLoading(false);
       }
     );
 
-    // Also handle Firebase auth for backward compatibility
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [onUserDataChange]);
+};
+
+/**
+ * Custom hook to handle Firebase authentication state
+ */
+const useFirebaseAuth = (userData: User | null, onUserChange: (user: FirebaseUser | null) => void, onUserDataChange: (data: User | null) => void) => {
+  useEffect(() => {
     const unsubscribeFirebase = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
+      onUserChange(user);
       
       if (user && !userData) {
         try {
           const userDoc = await getDoc(doc(firestore, 'users', user.uid));
           if (userDoc.exists()) {
-            setUserData(userDoc.data() as User);
+            onUserDataChange(userDoc.data() as User);
           }
         } catch (err) {
           console.error("Error fetching user data from Firebase:", err);
         }
       }
-      
-      setLoading(false);
     });
 
     return () => {
-      subscription.unsubscribe();
       unsubscribeFirebase();
     };
-  }, [userData]);
+  }, [userData, onUserChange, onUserDataChange]);
+};
+
+/**
+ * Main hook to manage authentication state from multiple providers
+ */
+export const useAuthState = () => {
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Use Supabase authentication
+  useSupabaseAuth(setUserData);
+  
+  // Use Firebase authentication as fallback
+  useFirebaseAuth(userData, setCurrentUser, setUserData);
+
+  // Set loading to false when auth state is initialized
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   return { currentUser, userData, setUserData, loading, error, setError };
 };

@@ -360,6 +360,10 @@ describe('useAuthState - Firebase Authentication', () => {
           id: 'supabase-user-123',
           email: 'supabase@example.com',
           email_confirmed_at: '2023-01-01T00:00:00Z',
+          app_metadata: {},
+          user_metadata: {},
+          aud: 'authenticated',
+          created_at: '2023-01-01'
         },
         access_token: 'mock-token',
         refresh_token: 'mock-refresh',
