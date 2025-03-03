@@ -13,6 +13,8 @@ import AdminPage from './pages/AdminPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
 import { defaultModelParams } from './types/modelParameters';
+import { AuthProvider } from './contexts/auth';
+import { LanguageProvider } from './contexts/language';
 
 // Create properly formatted gallery images
 const mockGalleryImages = [
@@ -40,41 +42,45 @@ const mockGalleryImages = [
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage crystalParams={defaultModelParams} galleryImages={mockGalleryImages} />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/unauthorized" element={<UnauthorizedPage />} />
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/notes" 
-          element={
-            <ProtectedRoute>
-              <NotesPage />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/admin" 
-          element={
-            <ProtectedRoute requiredRoles={['admin']}>
-              <AdminPage />
-            </ProtectedRoute>
-          } 
-        />
-      </Routes>
-      <Toaster richColors position="top-right" />
-    </Router>
+    <AuthProvider>
+      <LanguageProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<HomePage crystalParams={defaultModelParams} galleryImages={mockGalleryImages} />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/notes" 
+              element={
+                <ProtectedRoute>
+                  <NotesPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requiredRoles={['admin']}>
+                  <AdminPage />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+          <Toaster richColors position="top-right" />
+        </Router>
+      </LanguageProvider>
+    </AuthProvider>
   );
 }
 
