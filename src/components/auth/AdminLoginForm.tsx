@@ -37,8 +37,9 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
     setSuccess('');
     
     try {
-      console.log('Tentando login como admin');
-      const { error } = await signIn('admin@jestfly.com', 'adminpassword');
+      console.log('Tentando login como admin demo');
+      // Estas são as credenciais do usuário demo admin criado no Supabase
+      const { error } = await signIn('admin_demo@jestfly.com', 'admin123');
       
       if (error) {
         console.error('Erro no login demo admin:', error);

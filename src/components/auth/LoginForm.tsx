@@ -31,6 +31,34 @@ const LoginForm: React.FC = () => {
     }
   };
 
+  const handleDemoFanLogin = async () => {
+    try {
+      setError('');
+      const { error } = await signIn('fan_demo@jestfly.com', 'fan123');
+      
+      if (error) {
+        setError(error.message || 'Erro ao fazer login como fã demo');
+      }
+    } catch (err) {
+      console.error('Erro ao fazer login como fã demo:', err);
+      setError((err as Error).message || 'Ocorreu um erro durante o login demo');
+    }
+  };
+
+  const handleDemoArtistLogin = async () => {
+    try {
+      setError('');
+      const { error } = await signIn('artist_demo@jestfly.com', 'artist123');
+      
+      if (error) {
+        setError(error.message || 'Erro ao fazer login como artista demo');
+      }
+    } catch (err) {
+      console.error('Erro ao fazer login como artista demo:', err);
+      setError((err as Error).message || 'Ocorreu um erro durante o login demo');
+    }
+  };
+
   return (
     <Card className="w-full bg-black/40 backdrop-blur-md border-white/10">
       <CardHeader>
@@ -105,6 +133,36 @@ const LoginForm: React.FC = () => {
             )}
           </Button>
         </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-white/10"></span>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-black px-2 text-white/60">Ou use as contas de demonstração</span>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <Button 
+              variant="outline" 
+              className="w-full border-purple-500/30 hover:bg-purple-900/30 text-sm"
+              onClick={handleDemoFanLogin}
+              disabled={loading}
+            >
+              Demo Fã
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full border-blue-500/30 hover:bg-blue-900/30 text-sm"
+              onClick={handleDemoArtistLogin}
+              disabled={loading}
+            >
+              Demo Artista
+            </Button>
+          </div>
+        </div>
       </CardContent>
       
       <CardFooter className="flex justify-center border-t border-white/10 pt-4">
