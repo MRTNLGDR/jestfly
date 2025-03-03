@@ -1,6 +1,6 @@
 
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
 import Footer from './components/Footer';
@@ -74,55 +74,57 @@ function App() {
     <AuthProvider>
       <LanguageProvider>
         <Router>
-          <div className="app">
+          <div className="app flex flex-col min-h-screen">
             <GlassHeader menuItems={menuItems} />
             <Toaster position="top-right" />
-            <Routes>
-              <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-              <Route path="/store/*" element={<NewStorePage />} />
-              <Route path="/community/*" element={<CommunityPage />} />
-              <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/resources" element={<EcommercePage />} />
-              <Route 
-                path="/notes" 
-                element={
-                  <ProtectedRoute>
-                    <NotesPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <ProfilePage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/demo-submission" 
-                element={
-                  <ProtectedRoute>
-                    <DemoSubmissionPage />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/live-stream" element={<LiveStreamPage />} />
-              <Route path="/press-kit" element={<PressKitPage />} />
-              <Route path="/airdrop" element={<AirdropPage />} />
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute requiredRoles={['admin']}>
-                    <AdminPanel />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            </Routes>
+            <div className="flex-grow">
+              <Routes>
+                <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
+                <Route path="/store/*" element={<NewStorePage />} />
+                <Route path="/community/*" element={<CommunityPage />} />
+                <Route path="/bookings" element={<BookingsPage />} />
+                <Route path="/resources" element={<EcommercePage />} />
+                <Route 
+                  path="/notes" 
+                  element={
+                    <ProtectedRoute>
+                      <NotesPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/profile" 
+                  element={
+                    <ProtectedRoute>
+                      <ProfilePage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/demo-submission" 
+                  element={
+                    <ProtectedRoute>
+                      <DemoSubmissionPage />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/live-stream" element={<LiveStreamPage />} />
+                <Route path="/press-kit" element={<PressKitPage />} />
+                <Route path="/airdrop" element={<AirdropPage />} />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <ProtectedRoute requiredRoles={['admin']}>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              </Routes>
+            </div>
             <Footer />
           </div>
         </Router>
