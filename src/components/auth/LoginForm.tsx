@@ -20,6 +20,7 @@ const LoginForm: React.FC = () => {
     setError('');
     
     try {
+      console.log(`Tentando login com email: ${email}`);
       const { error } = await signIn(email, password);
       
       if (error) {
@@ -34,9 +35,11 @@ const LoginForm: React.FC = () => {
   const handleDemoFanLogin = async () => {
     try {
       setError('');
+      console.log('Tentando login como fã demo');
       const { error } = await signIn('fan_demo@jestfly.com', 'fan123');
       
       if (error) {
+        console.error('Erro no login demo fã:', error);
         setError(error.message || 'Erro ao fazer login como fã demo');
       }
     } catch (err) {
@@ -48,9 +51,11 @@ const LoginForm: React.FC = () => {
   const handleDemoArtistLogin = async () => {
     try {
       setError('');
+      console.log('Tentando login como artista demo');
       const { error } = await signIn('artist_demo@jestfly.com', 'artist123');
       
       if (error) {
+        console.error('Erro no login demo artista:', error);
         setError(error.message || 'Erro ao fazer login como artista demo');
       }
     } catch (err) {
