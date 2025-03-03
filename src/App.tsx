@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/auth';
 import { LanguageProvider } from './contexts/language';
 import { Toaster } from 'sonner';
+import { ModelParameters } from './types/model';
 
 // Create simple placeholder components for temporary use
 const Loading = () => (
@@ -37,6 +38,53 @@ const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const UnauthorizedPage = lazy(() => import('./pages/UnauthorizedPage'));
 
+// Define default values for HomePage props
+const defaultCrystalParams: ModelParameters = {
+  color: "#ffffff",
+  metalness: 0.1,
+  roughness: 0.0,
+  transmission: 0.98,
+  thickness: 0.5,
+  envMapIntensity: 2.5,
+  clearcoat: 1.0,
+  clearcoatRoughness: 0.0,
+  ior: 2.75,
+  reflectivity: 1.0,
+  iridescence: 0.3,
+  iridescenceIOR: 1.3,
+  lightIntensity: 2.0,
+  opacity: 0.9,
+  transparent: true,
+  emissiveIntensity: 0.2,
+  emissiveColor: "#8B5CF6",
+  aoMapIntensity: 1.0,
+  displacementScale: 0.1,
+  wireframe: false,
+  side: 'front',
+  textureMap: "",
+  normalMap: "",
+  roughnessMap: "",
+  metalnessMap: ""
+};
+
+const defaultGalleryImages = [
+  { 
+    src: '/assets/dj-event.jpg', 
+    alt: 'DJ event', 
+    crystalPosition: 'top-right' as const 
+  },
+  { 
+    src: '/assets/studio-session.jpg', 
+    alt: 'Studio session', 
+    crystalPosition: 'bottom-left' as const 
+  },
+  { 
+    src: '/assets/consultation.jpg', 
+    alt: 'Artist consultation', 
+    crystalPosition: 'center' as const 
+  }
+];
+
 function App() {
   return (
     <BrowserRouter>
@@ -46,7 +94,7 @@ function App() {
             <SimpleHeader />
             <Suspense fallback={<Loading />}>
               <Routes>
-                <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<HomePage crystalParams={defaultCrystalParams} galleryImages={defaultGalleryImages} />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
