@@ -2,20 +2,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AuthProvider } from '../AuthProvider';
-import { useAuthState } from '../authStateManager';
-import { login, loginWithGoogle, register, logout, resetPassword } from '../authMethods';
+import { useAuthState } from '../useAuthState';
+import * as authMethods from '../methods';
 
 // Mock auth hooks and methods
-vi.mock('../authStateManager', () => ({
+vi.mock('../useAuthState', () => ({
   useAuthState: vi.fn()
 }));
 
-vi.mock('../authMethods', () => ({
+vi.mock('../methods', () => ({
   login: vi.fn(),
   loginWithGoogle: vi.fn(),
   register: vi.fn(),
   logout: vi.fn(),
-  resetPassword: vi.fn()
+  resetPassword: vi.fn(),
+  verifyAdminCode: vi.fn()
 }));
 
 // Mock React context
@@ -105,11 +106,11 @@ describe('AuthProvider', () => {
     expect(contextValueSpy).toHaveBeenCalledWith(expect.objectContaining({
       currentUser: mockAuthState.currentUser,
       userData: mockAuthState.userData,
-      login: login,
-      loginWithGoogle: loginWithGoogle,
-      register: register,
-      logout: logout,
-      resetPassword: resetPassword,
+      login: authMethods.login,
+      loginWithGoogle: authMethods.loginWithGoogle,
+      register: authMethods.register,
+      logout: authMethods.logout,
+      resetPassword: authMethods.resetPassword,
       loading: false,
       error: null
     }));
