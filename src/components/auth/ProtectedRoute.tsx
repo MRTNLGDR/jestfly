@@ -9,12 +9,14 @@ type AllowedProfileTypes = 'fan' | 'artist' | 'collaborator' | 'admin';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedProfiles?: AllowedProfileTypes[];
+  requiredRole?: AllowedProfileTypes;
   requireAuth?: boolean;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedProfiles = [],
+  requiredRole,
   requireAuth = true,
 }) => {
   const { user, profile, loading } = useAuth();
@@ -38,6 +40,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // redirecionar para a página de login
   if (!user || !profile) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Se há um tipo de perfil específico requerido e o perfil do usuário não é esse tipo,
+  // redirecionar para a página inicial
+  if (requiredRole && profile.profile_type !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   // Se há tipos de perfil permitidos e o perfil do usuário não está entre eles,

@@ -1,151 +1,85 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, InfoIcon, Loader2, Lock } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { AlertCircle, Loader2, Mail, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface LoginFormProps {
-  onSuccess?: () => void;
-}
-
-const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
-  const { signIn } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  });
-  
+const LoginForm: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { signIn, loading } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLoginData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleDemoLogin = async (type: 'artist' | 'fan' | 'collaborator') => {
-    setLoading(true);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
-    setSuccess('');
-    
-    let email, password;
-    
-    switch(type) {
-      case 'artist':
-        email = 'artist@jestfly.com';
-        password = 'artistpassword';
-        break;
-      case 'collaborator':
-        email = 'collaborator@jestfly.com';
-        password = 'collaboratorpassword';
-        break;
-      case 'fan':
-        email = 'fan@jestfly.com';
-        password = 'fanpassword';
-        break;
-    }
     
     try {
-      console.log(`Tentando login de demonstração como ${type}`, { email });
       const { error } = await signIn(email, password);
       
       if (error) {
-        console.error(`Erro no login demo ${type}:`, error);
-        setError(`Erro no login de demonstração (${type}): ${error.message}`);
-      } else {
-        setSuccess(`Login de demonstração como ${type} bem-sucedido!`);
-        if (onSuccess) onSuccess();
+        setError(error.message || 'Erro ao fazer login');
       }
     } catch (err) {
-      console.error(`Exceção no login demo ${type}:`, err);
-      setError(`Erro inesperado no login de demonstração: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
+      console.error('Erro ao fazer login:', err);
+      setError((err as Error).message || 'Ocorreu um erro durante o login');
     }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-    
-    try {
-      console.log('Tentando login normal com:', loginData.email);
-      const { error } = await signIn(loginData.email, loginData.password);
-      
-      if (error) {
-        console.error('Erro no login normal:', error);
-        setError(error.message);
-      } else if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error('Exceção no login normal:', error);
-      setError((error as Error).message || 'Ocorreu um erro durante o login');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResetPassword = () => {
-    navigate('/reset-password');
   };
 
   return (
-    <Card className="bg-black/40 backdrop-blur-md border-white/10">
+    <Card className="w-full bg-black/40 backdrop-blur-md border-white/10">
       <CardHeader>
         <CardTitle className="text-xl text-white">Login</CardTitle>
         <CardDescription className="text-white/60">
-          Entre com sua conta para acessar todos os recursos
+          Faça login na sua conta JESTFLY
         </CardDescription>
       </CardHeader>
       
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="login-email" className="text-white">Email</Label>
-            <Input
-              id="login-email"
-              name="email"
-              type="email"
-              placeholder="seu@email.com"
-              required
-              value={loginData.email}
-              onChange={handleChange}
-              className="bg-black/30 border-white/20 text-white"
-            />
+            <Label htmlFor="email" className="text-white">Email</Label>
+            <div className="relative">
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="bg-black/30 border-white/20 text-white pl-9"
+                placeholder="seu@email.com"
+              />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50" />
+            </div>
           </div>
           
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="login-password" className="text-white">Senha</Label>
-              <Button 
-                type="button" 
-                variant="link" 
-                className="text-purple-400 hover:text-purple-300 p-0 h-auto"
-                onClick={handleResetPassword}
+            <div className="flex justify-between items-center">
+              <Label htmlFor="password" className="text-white">Senha</Label>
+              <Link 
+                to="/reset-password" 
+                className="text-xs text-purple-400 hover:text-purple-300 hover:underline"
               >
-                Esqueceu a senha?
-              </Button>
+                Esqueceu sua senha?
+              </Link>
             </div>
-            <Input
-              id="login-password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              required
-              value={loginData.password}
-              onChange={handleChange}
-              className="bg-black/30 border-white/20 text-white"
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="bg-black/30 border-white/20 text-white pl-9"
+                placeholder="********"
+              />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/50" />
+            </div>
           </div>
           
           {error && (
@@ -153,14 +87,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Erro</AlertTitle>
               <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {success && (
-            <Alert className="bg-green-900/30 border-green-700 text-green-300">
-              <InfoIcon className="h-4 w-4" />
-              <AlertTitle>Sucesso</AlertTitle>
-              <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}
           
@@ -179,61 +105,16 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             )}
           </Button>
         </form>
-        
-        <div className="mt-6 space-y-4">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/10"></span>
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-black px-2 text-white/60">Ou entre com uma conta de demonstração</span>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-2">
-            <Button 
-              type="button" 
-              variant="outline"
-              className="bg-black/50 text-white border-blue-500/50 hover:bg-blue-900/30"
-              onClick={() => handleDemoLogin('artist')}
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Artista'}
-            </Button>
-            
-            <Button 
-              type="button" 
-              variant="outline"
-              className="bg-black/50 text-white border-green-500/50 hover:bg-green-900/30"
-              onClick={() => handleDemoLogin('collaborator')}
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Colaborador'}
-            </Button>
-            
-            <Button 
-              type="button" 
-              variant="outline"
-              className="bg-black/50 text-white border-indigo-500/50 hover:bg-indigo-900/30"
-              onClick={() => handleDemoLogin('fan')}
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Fã'}
-            </Button>
-          </div>
-          
-          <div className="text-center mt-4">
-            <Button 
-              variant="link" 
-              className="text-white/60 hover:text-white flex items-center justify-center gap-1.5"
-              onClick={() => navigate('/admin/login')}
-            >
-              <Lock className="h-3.5 w-3.5" />
-              Área de Administração
-            </Button>
-          </div>
-        </div>
       </CardContent>
+      
+      <CardFooter className="flex justify-center border-t border-white/10 pt-4">
+        <p className="text-white/60 text-sm">
+          Não tem uma conta?{' '}
+          <Link to="/auth?tab=register" className="text-purple-400 hover:text-purple-300 hover:underline">
+            Registre-se
+          </Link>
+        </p>
+      </CardFooter>
     </Card>
   );
 };
