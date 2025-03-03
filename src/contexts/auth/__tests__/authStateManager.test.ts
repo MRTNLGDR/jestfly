@@ -1,5 +1,5 @@
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAuthState } from '../authStateManager';
 import { auth, firestore } from '../../../firebase/config';
@@ -42,11 +42,12 @@ vi.mock('../../../integrations/supabase/client', () => ({
 describe('useAuthState', () => {
   // Global mocks and setup
   beforeEach(() => {
-    // Firebase Auth mocks
+    // Firebase Auth mocks - using a function to simulate the callback rather than directly calling it
     vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-      // Immediately invoke callback with null user
-      callback(null);
-      return vi.fn(); // Return unsubscribe function
+      // Use setTimeout to simulate async callback
+      setTimeout(() => callback(null));
+      // Return unsubscribe function
+      return vi.fn();
     });
     
     // Supabase mocks
@@ -93,7 +94,7 @@ describe('useAuthState', () => {
   });
   
   it('should fetch user data from Supabase when session exists', async () => {
-    // Mock Supabase session
+    // Mock Supabase session with all required properties
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: {
         session: {
@@ -107,6 +108,11 @@ describe('useAuthState', () => {
             created_at: '2023-01-01',
             role: ''
           },
+          // Add required Session properties
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token',
+          expires_in: 3600,
+          token_type: 'bearer'
         },
       },
       error: null,
@@ -196,6 +202,11 @@ describe('useAuthState', () => {
             created_at: '2023-01-01',
             role: ''
           },
+          // Add required Session properties
+          access_token: 'mock-access-token',
+          refresh_token: 'mock-refresh-token',
+          expires_in: 3600,
+          token_type: 'bearer'
         },
       },
       error: null,
@@ -230,14 +241,14 @@ describe('useAuthState', () => {
   });
   
   it('should fetch user data from Firebase if Supabase returns no user', async () => {
-    // Mock Firebase auth state
+    // Mock Firebase auth state - using a function to simulate the callback rather than directly calling it
     const mockFirebaseUser = {
       uid: 'firebase-user-123',
       email: 'firebase@example.com',
     };
     
     vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-      callback(mockFirebaseUser as any);
+      setTimeout(() => callback(mockFirebaseUser as any));
       return vi.fn(); // Return unsubscribe function
     });
     
@@ -285,14 +296,14 @@ describe('useAuthState', () => {
     // Spy on console.error
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     
-    // Mock Firebase auth state
+    // Mock Firebase auth state - using a function to simulate the callback rather than directly calling it
     const mockFirebaseUser = {
       uid: 'firebase-user-error',
       email: 'firebase-error@example.com',
     };
     
     vi.mocked(onAuthStateChanged).mockImplementation((auth, callback) => {
-      callback(mockFirebaseUser as any);
+      setTimeout(() => callback(mockFirebaseUser as any));
       return vi.fn(); // Return unsubscribe function
     });
     

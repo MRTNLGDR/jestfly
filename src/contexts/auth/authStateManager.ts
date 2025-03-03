@@ -60,13 +60,24 @@ export const useAuthState = () => {
           }
         }
         
+        // Transform preferences to match expected structure if it's not an object
+        if (preferences === null || typeof preferences !== 'object' || Array.isArray(preferences)) {
+          preferences = {};
+        }
+        
+        // Ensure social_links is properly typed as Record<string, string>
+        const socialLinks = profile.social_links 
+          ? (typeof profile.social_links === 'string' 
+             ? JSON.parse(profile.social_links) 
+             : profile.social_links) 
+          : {};
+        
         // Create combined profile with roles
         const profileWithRoles = {
           ...profile,
           profile_type: profileType,
-          // Ensure social_links is properly typed as Record<string, string>
-          social_links: profile.social_links ? JSON.parse(JSON.stringify(profile.social_links)) : {},
-          preferences: preferences || {},
+          social_links: socialLinks,
+          preferences: preferences,
           roles: roles?.map(r => r.role) || []
         };
         

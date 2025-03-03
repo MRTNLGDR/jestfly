@@ -60,12 +60,33 @@ export const createSupabaseUserData = (
   };
 
   // Get existing notifications or empty object
-  const existingNotifications = profileData.preferences?.notifications || {};
+  const existingNotifications = 
+    profileData.preferences?.notifications && 
+    typeof profileData.preferences.notifications === 'object' && 
+    !Array.isArray(profileData.preferences.notifications)
+      ? profileData.preferences.notifications 
+      : {};
 
   // Merge profile notifications with defaults to ensure required properties
   const notificationsWithDefaults = {
     ...defaultNotifications,
     ...existingNotifications
+  };
+  
+  // Create default preferences object
+  const defaultPreferences = {
+    theme: 'system' as 'light' | 'dark' | 'system',
+    notifications: defaultNotifications,
+    language: 'en',
+    currency: 'USD'
+  };
+
+  // Use profile preferences or default if not available
+  const preferences = {
+    ...defaultPreferences,
+    ...(profileData.preferences || {}),
+    // Always ensure notifications are properly structured
+    notifications: notificationsWithDefaults
   };
   
   // Create a new User object with data from Supabase
@@ -84,12 +105,7 @@ export const createSupabaseUserData = (
     lastLogin: new Date(),
     isVerified: !!supabaseUser.email_confirmed_at,
     twoFactorEnabled: false,
-    preferences: {
-      theme: profileData.preferences?.theme || 'system',
-      notifications: notificationsWithDefaults,
-      language: profileData.preferences?.language || 'en',
-      currency: profileData.preferences?.currency || 'USD',
-    },
+    preferences: preferences,
     roles: profileData.roles || [],
   };
   
