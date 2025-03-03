@@ -6,7 +6,7 @@ import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
 
 const ProfilePage: React.FC = () => {
-  const { userData, status } = useAuth();
+  const { userData } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState<User | null>(null);
 
@@ -32,10 +32,6 @@ const ProfilePage: React.FC = () => {
       setLoading(false);
     }
   };
-
-  if (status === 'loading') {
-    return <div className="flex justify-center items-center h-screen">Carregando...</div>;
-  }
 
   if (!userData) {
     return <div className="flex justify-center items-center h-screen">Você precisa estar logado para acessar esta página.</div>;

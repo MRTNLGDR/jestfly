@@ -1,35 +1,42 @@
 
 import React from 'react';
-import { Button } from "../ui/button";
-import { LayoutListIcon, NetworkIcon } from "lucide-react";
+import { LayoutGrid, LineChart } from 'lucide-react';
+
+type ViewType = 'list' | 'graph';
 
 interface NoteViewToggleProps {
-  view: 'list' | 'graph';
-  onViewChange: (view: 'list' | 'graph') => void;
+  currentView: ViewType;
+  onViewChange: (view: ViewType) => void;
 }
 
-export const NoteViewToggle: React.FC<NoteViewToggleProps> = ({
-  view,
-  onViewChange
+export const NoteViewToggle: React.FC<NoteViewToggleProps> = ({ 
+  currentView, 
+  onViewChange 
 }) => {
   return (
     <div className="bg-zinc-800 rounded-md p-1 flex">
-      <Button
-        size="sm"
-        variant={view === 'list' ? 'default' : 'ghost'}
+      <button
         onClick={() => onViewChange('list')}
-        className={view === 'list' ? 'bg-zinc-700' : ''}
+        className={`p-1.5 rounded ${
+          currentView === 'list' 
+            ? 'bg-purple-600 text-white' 
+            : 'text-zinc-400 hover:text-zinc-200'
+        }`}
+        aria-label="Visualização em lista"
       >
-        <LayoutListIcon size={18} />
-      </Button>
-      <Button
-        size="sm"
-        variant={view === 'graph' ? 'default' : 'ghost'}
+        <LayoutGrid size={18} />
+      </button>
+      <button
         onClick={() => onViewChange('graph')}
-        className={view === 'graph' ? 'bg-zinc-700' : ''}
+        className={`p-1.5 rounded ${
+          currentView === 'graph' 
+            ? 'bg-purple-600 text-white' 
+            : 'text-zinc-400 hover:text-zinc-200'
+        }`}
+        aria-label="Visualização em grafo"
       >
-        <NetworkIcon size={18} />
-      </Button>
+        <LineChart size={18} />
+      </button>
     </div>
   );
 };

@@ -36,8 +36,11 @@ const NotesPage: React.FC = () => {
     }
   };
 
-  const handleSelectNote = (note: Note) => {
-    setSelectedNote(note);
+  const handleSelectNote = (noteId: string) => {
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      setSelectedNote(note);
+    }
   };
 
   const handleSaveNote = async (note: Note) => {
@@ -98,7 +101,7 @@ const NotesPage: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-white">Notas</h1>
           <div className="flex items-center gap-4">
-            <NoteViewToggle view={view} setView={setView} />
+            <NoteViewToggle currentView={view} onViewChange={setView} />
             <button
               onClick={handleCreateNote}
               className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md"

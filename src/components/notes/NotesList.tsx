@@ -11,13 +11,15 @@ interface NotesListProps {
   selectedNoteId?: string;
   onNoteSelect: (noteId: string) => void;
   isLoading: boolean;
+  view?: 'list' | 'graph';
 }
 
 export const NotesList: React.FC<NotesListProps> = ({
   notes,
   selectedNoteId,
   onNoteSelect,
-  isLoading
+  isLoading,
+  view = 'list'
 }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
   

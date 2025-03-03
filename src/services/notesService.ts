@@ -2,6 +2,20 @@
 import { Note } from '../models/Note';
 import { supabase } from '../integrations/supabase/client';
 
+// Create custom type to handle the database response
+type NotesResponse = {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  links: string[];
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  is_pinned: boolean;
+  is_archived: boolean;
+};
+
 export const notesService = {
   getUserNotes: async (userId: string): Promise<Note[]> => {
     try {
@@ -9,11 +23,11 @@ export const notesService = {
         .from('notes')
         .select('*')
         .eq('user_id', userId)
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false }) as { data: NotesResponse[] | null, error: any };
         
       if (error) throw error;
       
-      return data.map((note: any) => ({
+      return (data || []).map((note: NotesResponse) => ({
         id: note.id,
         title: note.title,
         content: note.content,
@@ -48,9 +62,11 @@ export const notesService = {
           })
           .eq('id', note.id)
           .select()
-          .single();
+          .single() as { data: NotesResponse | null, error: any };
           
         if (error) throw error;
+        
+        if (!data) return null;
         
         return {
           id: data.id,
@@ -80,9 +96,11 @@ export const notesService = {
             updated_at: new Date().toISOString()
           })
           .select()
-          .single();
+          .single() as { data: NotesResponse | null, error: any };
           
         if (error) throw error;
+        
+        if (!data) return null;
         
         return {
           id: data.id,

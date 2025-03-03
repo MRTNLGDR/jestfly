@@ -1,40 +1,24 @@
 
 import React from 'react';
 import { Note } from '../../models/Note';
-import { NotesList } from './NotesList';
-import { GraphView } from './GraphView';
 
 interface NotesContentProps {
-  notes: Note[];
-  selectedNoteId?: string;
-  onNoteSelect: (noteId: string) => void;
-  isLoading: boolean;
-  view: 'list' | 'graph';
+  selectedNote: Note | null;
 }
 
-export const NotesContent: React.FC<NotesContentProps> = ({
-  notes,
-  selectedNoteId,
-  onNoteSelect,
-  isLoading,
-  view
-}) => {
-  if (view === 'list') {
+export const NotesContent: React.FC<NotesContentProps> = ({ selectedNote }) => {
+  if (!selectedNote) {
     return (
-      <NotesList 
-        notes={notes} 
-        selectedNoteId={selectedNoteId}
-        onNoteSelect={onNoteSelect}
-        isLoading={isLoading}
-      />
+      <div className="flex items-center justify-center h-full text-zinc-500">
+        Selecione uma nota para visualizar seu conteúdo
+      </div>
     );
   }
-  
+
   return (
-    <GraphView 
-      notes={notes}
-      selectedNoteId={selectedNoteId}
-      onNoteSelect={onNoteSelect}
-    />
+    <div className="p-4">
+      <h2 className="text-xl font-bold text-white mb-4">{selectedNote.title}</h2>
+      <div className="whitespace-pre-wrap text-zinc-300">{selectedNote.content}</div>
+    </div>
   );
 };
