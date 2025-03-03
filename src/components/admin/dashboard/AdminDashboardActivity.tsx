@@ -3,8 +3,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Loading from '@/components/ui/loading';
-import { ActivityLog } from '@/types/logs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ActivityLog, formatLogDate, getActionColor, getLogEntityDescription } from '@/types/logs';
+import { Card, CardContent } from '@/components/ui/card';
 import { Check, X } from 'lucide-react';
 
 const AdminDashboardActivity: React.FC = () => {
@@ -38,20 +38,6 @@ const AdminDashboardActivity: React.FC = () => {
     }
   });
 
-  // Format date to a readable format
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('pt-BR');
-  };
-
-  // Get action badge color
-  const getActionColor = (action: string) => {
-    if (action.includes('login')) return 'text-blue-400';
-    if (action.includes('create') || action.includes('add')) return 'text-green-400';
-    if (action.includes('delete') || action.includes('remove')) return 'text-red-400';
-    if (action.includes('update') || action.includes('edit')) return 'text-yellow-400';
-    return 'text-white';
-  };
-
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold mb-6 text-white">Atividade Recente</h2>
@@ -83,12 +69,12 @@ const AdminDashboardActivity: React.FC = () => {
                     </div>
                     {log.entity_type && (
                       <div className="text-xs text-white/50 mt-1">
-                        {log.entity_type} {log.entity_id ? `#${log.entity_id.substring(0, 8)}` : ''}
+                        {getLogEntityDescription(log)}
                       </div>
                     )}
                   </div>
                   <div className="text-xs text-white/50">
-                    {formatDate(log.created_at)}
+                    {formatLogDate(log.created_at)}
                   </div>
                 </div>
                 {log.ip_address && (

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ActivityLog, LogsFilterState } from '@/types/logs';
+import { ActivityLog, LogsFilterState, formatLogDate } from '@/types/logs';
 
 export const useLogsData = (isAdminOrCollaborator: boolean) => {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -138,7 +138,7 @@ export const useLogsData = (isAdminOrCollaborator: boolean) => {
         log.profile?.display_name || log.user_id,
         log.action,
         log.entity_type || '',
-        new Date(log.created_at).toLocaleString('pt-BR'),
+        formatLogDate(log.created_at),
         log.ip_address || '',
         log.success ? 'Sim' : 'Não',
         JSON.stringify(log.details || {})
