@@ -231,48 +231,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string
-          full_name: string | null
-          id: string
-          preferences: Json | null
-          profile_type: string | null
-          social_links: Json | null
-          updated_at: string
-          username: string | null
-          wallet_address: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          full_name?: string | null
-          id: string
-          preferences?: Json | null
-          profile_type?: string | null
-          social_links?: Json | null
-          updated_at?: string
-          username?: string | null
-          wallet_address?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          preferences?: Json | null
-          profile_type?: string | null
-          social_links?: Json | null
-          updated_at?: string
-          username?: string | null
-          wallet_address?: string | null
-        }
-        Relationships: []
-      }
       system_config: {
         Row: {
           created_at: string
@@ -375,30 +333,6 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }

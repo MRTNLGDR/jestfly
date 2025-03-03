@@ -19,6 +19,10 @@ import AirdropPage from './pages/AirdropPage';
 import EcommercePage from './pages/EcommercePage';
 import AdminPanel from './pages/AdminPanel';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import { AuthProvider } from './contexts/AuthContext';
+import { LoginForm } from './components/auth/LoginForm';
+import { RegisterForm } from './components/auth/RegisterForm';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -67,30 +71,58 @@ function App() {
   
   return (
     <LanguageProvider>
-      <Router>
-        <div className="flex flex-col min-h-screen bg-black">
-          <GlassHeader menuItems={menuItems} />
-          <Toaster position="top-right" />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
-              <Route path="/store/*" element={<NewStorePage />} />
-              <Route path="/community/*" element={<CommunityPage />} />
-              <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/resources" element={<EcommercePage />} />
-              <Route path="/notes" element={<NotesPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/demo-submission" element={<DemoSubmissionPage />} />
-              <Route path="/live-stream" element={<LiveStreamPage />} />
-              <Route path="/press-kit" element={<PressKitPage />} />
-              <Route path="/airdrop" element={<AirdropPage />} />
-              <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <div className="flex flex-col min-h-screen bg-black">
+            <GlassHeader menuItems={menuItems} />
+            <Toaster position="top-right" />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
+                <Route path="/store/*" element={<NewStorePage />} />
+                <Route path="/community/*" element={<CommunityPage />} />
+                <Route path="/bookings" element={<BookingsPage />} />
+                <Route path="/resources" element={<EcommercePage />} />
+                <Route path="/notes" element={<NotesPage />} />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/demo-submission" element={
+                  <ProtectedRoute>
+                    <DemoSubmissionPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/live-stream" element={<LiveStreamPage />} />
+                <Route path="/press-kit" element={<PressKitPage />} />
+                <Route path="/airdrop" element={<AirdropPage />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRoles={['admin']}>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } />
+                <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                <Route path="/login" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <div className="container mx-auto py-20">
+                      <LoginForm />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/register" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <div className="container mx-auto py-20">
+                      <RegisterForm />
+                    </div>
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </AuthProvider>
     </LanguageProvider>
   );
 }
