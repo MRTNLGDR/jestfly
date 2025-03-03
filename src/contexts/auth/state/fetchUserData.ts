@@ -8,6 +8,8 @@ import { createSupabaseUserData } from '../userDataTransformer';
  */
 export const fetchUserData = async (userId: string): Promise<AppUser | null> => {
   try {
+    console.log('Buscando dados do perfil para o usuário:', userId);
+    
     // Buscar perfil do usuário
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -19,6 +21,8 @@ export const fetchUserData = async (userId: string): Promise<AppUser | null> => 
       console.error('Erro ao buscar perfil:', profileError);
       return null;
     }
+
+    console.log('Perfil encontrado:', profile ? 'Sim' : 'Não');
 
     // Buscar roles do usuário
     const { data: roles, error: rolesError } = await supabase
@@ -34,8 +38,11 @@ export const fetchUserData = async (userId: string): Promise<AppUser | null> => 
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!profile || !session?.user) {
+      console.log('Perfil ou sessão não encontrados, retornando null');
       return null;
     }
+    
+    console.log('Convertendo dados do perfil para o formato da aplicação');
     
     // Converter campos JSON se necessário
     const parsedPreferences = typeof profile.preferences === 'string' 
