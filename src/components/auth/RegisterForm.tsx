@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { RegisterFormData, ProfileType } from './register/types';
 import { RegisterFormContent } from './register/RegisterFormContent';
-import { SocialLoginOptions } from './register/SocialLoginOptions';
 
 export const RegisterForm: React.FC = () => {
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -18,7 +17,7 @@ export const RegisterForm: React.FC = () => {
     profileType: 'fan'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, loginWithGoogle } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,18 +59,6 @@ export const RegisterForm: React.FC = () => {
     }
   };
 
-  const handleGoogleRegister = async () => {
-    setIsSubmitting(true);
-    try {
-      await loginWithGoogle();
-      navigate('/profile');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to register with Google');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <Card className="w-full max-w-md mx-auto bg-black/30 backdrop-blur-md border border-zinc-800">
       <CardHeader>
@@ -89,11 +76,6 @@ export const RegisterForm: React.FC = () => {
             isSubmitting={isSubmitting}
           />
         </form>
-        
-        <SocialLoginOptions 
-          onGoogleLogin={handleGoogleRegister}
-          isSubmitting={isSubmitting}
-        />
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-zinc-400">

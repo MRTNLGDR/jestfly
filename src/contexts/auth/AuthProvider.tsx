@@ -6,7 +6,7 @@ import { auth, firestore } from '../../firebase/config';
 import { User } from '../../models/User';
 import { onAuthStateChanged } from 'firebase/auth';
 import { AuthContextType } from './types';
-import { loginUser, loginWithGoogleProvider, registerUser, logoutUser, resetUserPassword } from './authMethods';
+import { loginUser, registerUser, logoutUser, resetUserPassword } from './authMethods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -50,16 +50,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const loginWithGoogle = async () => {
-    try {
-      setError(null);
-      await loginWithGoogleProvider();
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
   const register = async (email: string, password: string, userData: Partial<User>) => {
     try {
       setError(null);
@@ -93,7 +83,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     currentUser,
     userData,
     login,
-    loginWithGoogle,
     register,
     logout,
     resetPassword,

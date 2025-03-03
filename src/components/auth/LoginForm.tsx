@@ -1,11 +1,10 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/auth'; // Updated path
+import { useAuth } from '../../contexts/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
-import { FcGoogle } from 'react-icons/fc';
 import { Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -13,8 +12,7 @@ export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [googleSubmitting, setGoogleSubmitting] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,20 +39,6 @@ export const LoginForm: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setGoogleSubmitting(true);
-    try {
-      await loginWithGoogle();
-      toast.success('Login realizado com sucesso!');
-      navigate('/profile');
-    } catch (error: any) {
-      console.error('Erro no login com Google:', error);
-      toast.error(error.message || 'Falha ao realizar login com Google');
-    } finally {
-      setGoogleSubmitting(false);
-    }
-  };
-
   return (
     <Card className="w-full max-w-md mx-auto bg-black/30 backdrop-blur-md border border-zinc-800">
       <CardHeader>
@@ -74,7 +58,7 @@ export const LoginForm: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="bg-zinc-900/60 border-zinc-800 text-white"
-              disabled={isSubmitting || googleSubmitting}
+              disabled={isSubmitting}
             />
           </div>
           <div className="space-y-2">
@@ -91,12 +75,12 @@ export const LoginForm: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               className="bg-zinc-900/60 border-zinc-800 text-white"
-              disabled={isSubmitting || googleSubmitting}
+              disabled={isSubmitting}
             />
           </div>
           <Button 
             type="submit" 
-            disabled={isSubmitting || googleSubmitting} 
+            disabled={isSubmitting} 
             className="w-full group bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
           >
             {isSubmitting ? (
@@ -112,34 +96,6 @@ export const LoginForm: React.FC = () => {
             )}
           </Button>
         </form>
-        
-        <div className="mt-4 relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-zinc-700" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-black/30 px-2 text-zinc-400">Ou continue com</span>
-          </div>
-        </div>
-        
-        <Button 
-          onClick={handleGoogleLogin} 
-          disabled={isSubmitting || googleSubmitting}
-          variant="outline" 
-          className="w-full mt-4 text-white bg-zinc-900/60 border-zinc-800 hover:bg-zinc-800/80"
-        >
-          {googleSubmitting ? (
-            <span className="flex items-center justify-center">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Conectando...
-            </span>
-          ) : (
-            <>
-              <FcGoogle className="mr-2 h-5 w-5" />
-              Google
-            </>
-          )}
-        </Button>
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-zinc-400">
