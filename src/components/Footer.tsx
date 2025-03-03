@@ -4,13 +4,13 @@ import { Diamond, Globe, Github, Twitter, Instagram, Settings, Info, Lock } from
 import { useAuth } from '../contexts/auth';
 
 const Footer: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { userData } = useAuth();
   
   React.useEffect(() => {
-    if (currentUser?.email === 'lucas@martynlegrand.com') {
+    if (userData?.email === 'lucas@martynlegrand.com') {
       console.log('Admin user detected');
     }
-  }, [currentUser]);
+  }, [userData]);
   
   return (
     <footer className="bg-black relative overflow-hidden">

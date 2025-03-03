@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useAuthState } from '../authStateManager';
 import { supabase } from '../../../integrations/supabase/client';
+import { AuthChangeEvent, Session, Subscription, User } from '@supabase/supabase-js';
 
 // Mock Supabase client
 vi.mock('../../../integrations/supabase/client', () => ({
@@ -15,8 +16,8 @@ vi.mock('../../../integrations/supabase/client', () => ({
   },
 }));
 
-// Tipo para um usuário Supabase mockado
-type MockSupabaseUser = {
+// Interface for a mock Supabase user that matches the required User type
+interface MockSupabaseUser extends User {
   id: string;
   email?: string | null;
   email_confirmed_at?: string | null;
@@ -24,16 +25,16 @@ type MockSupabaseUser = {
   user_metadata: Record<string, any>;
   aud: string;
   created_at: string;
-};
+}
 
-// Tipo para uma sessão Supabase mockada
-type MockSupabaseSession = {
+// Interface for a mock Supabase session
+interface MockSupabaseSession extends Session {
   user: MockSupabaseUser;
   access_token: string;
   refresh_token: string;
   expires_in: number;
   token_type: string;
-};
+}
 
 describe('useAuthState', () => {
   // Setup global e mocks
@@ -45,11 +46,15 @@ describe('useAuthState', () => {
     });
     
     // Mock para Supabase onAuthStateChange
+    const mockSubscription: Subscription = {
+      id: 'mock-subscription-id',
+      callback: vi.fn(),
+      unsubscribe: vi.fn()
+    };
+    
     vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
       data: { 
-        subscription: { 
-          unsubscribe: vi.fn(),
-        } 
+        subscription: mockSubscription 
       },
     });
     
@@ -100,7 +105,9 @@ describe('useAuthState', () => {
       access_token: 'fake-token',
       refresh_token: 'fake-refresh-token',
       expires_in: 3600,
-      token_type: 'bearer'
+      token_type: 'bearer',
+      provider_token: null,
+      provider_refresh_token: null,
     };
     
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
@@ -198,7 +205,9 @@ describe('useAuthState', () => {
       access_token: 'fake-token',
       refresh_token: 'fake-refresh-token',
       expires_in: 3600,
-      token_type: 'bearer'
+      token_type: 'bearer',
+      provider_token: null,
+      provider_refresh_token: null,
     };
     
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
@@ -246,13 +255,17 @@ describe('useAuthState', () => {
     const authChangeCallback = vi.fn();
     
     // Mock para onAuthStateChange
+    const mockSubscription: Subscription = {
+      id: 'mock-subscription-id',
+      callback: vi.fn(),
+      unsubscribe: vi.fn()
+    };
+    
     vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((callback) => {
       authChangeCallback.mockImplementation(callback);
       return {
         data: {
-          subscription: {
-            unsubscribe: vi.fn(),
-          },
+          subscription: mockSubscription
         },
       };
     });
@@ -281,7 +294,9 @@ describe('useAuthState', () => {
       access_token: 'fake-token',
       refresh_token: 'fake-refresh-token',
       expires_in: 3600,
-      token_type: 'bearer'
+      token_type: 'bearer',
+      provider_token: null,
+      provider_refresh_token: null,
     };
     
     // Chamar o callback de mudança de autenticação manualmente

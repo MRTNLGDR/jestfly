@@ -13,4 +13,7 @@ export interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   loading: boolean;
   error: string | null;
+  
+  // Add this property to maintain compatibility with existing code
+  currentUser: AppUser | null;
 }

@@ -31,7 +31,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     resetPassword,
     loading,
-    error
+    error,
+    // Add currentUser as an alias to userData for backward compatibility
+    currentUser: userData
   };
 
   return (

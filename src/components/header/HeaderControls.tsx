@@ -10,7 +10,7 @@ import { useAuth } from '../../contexts/auth';
 
 const HeaderControls: React.FC = () => {
   const isMobile = useIsMobile();
-  const { currentUser } = useAuth();
+  const { userData } = useAuth();
   
   return (
     <div className="flex items-center space-x-2 md:space-x-4">
@@ -23,7 +23,7 @@ const HeaderControls: React.FC = () => {
       )}
       <PreOrderButton />
       {!isMobile && (
-        !currentUser ? (
+        !userData ? (
           <Link 
             to="/login" 
             className="px-3 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"

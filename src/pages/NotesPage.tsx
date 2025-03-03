@@ -12,19 +12,19 @@ import { NotesContent } from '../components/notes/NotesContent';
 import { NoteEditorContainer } from '../components/notes/NoteEditorContainer';
 
 const NotesPage: React.FC = () => {
-  const { currentUser } = useAuth();
+  const { userData } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<'list' | 'graph'>('list');
   
   useEffect(() => {
-    if (!currentUser) return;
+    if (!userData) return;
     
     const loadNotes = async () => {
       setIsLoading(true);
       try {
-        const fetchedNotes = await fetchUserNotes(currentUser.uid);
+        const fetchedNotes = await fetchUserNotes(userData.id);
         setNotes(fetchedNotes);
       } catch (error) {
         console.error('Erro ao buscar notas:', error);
@@ -34,7 +34,7 @@ const NotesPage: React.FC = () => {
     };
     
     loadNotes();
-  }, [currentUser]);
+  }, [userData]);
   
   const handleNoteSelect = async (noteId: string) => {
     const foundNote = notes.find(note => note.id === noteId);
@@ -45,7 +45,7 @@ const NotesPage: React.FC = () => {
       // Pode ser um link para uma nota que ainda não existe
       const newNote = {
         id: noteId,
-        userId: currentUser?.uid || '',
+        userId: userData?.id || '',
         title: noteId, // Usa o ID como título inicial
         content: '',
         tags: [],
@@ -67,7 +67,7 @@ const NotesPage: React.FC = () => {
   const handleCreateNote = () => {
     const newNote = {
       id: generateUniqueId(),
-      userId: currentUser?.uid || '',
+      userId: userData?.id || '',
       title: 'Nova Nota',
       content: '',
       tags: [],
@@ -85,10 +85,10 @@ const NotesPage: React.FC = () => {
   };
   
   const handleSaveNote = async (noteData: Partial<Note>) => {
-    if (!currentUser) return;
+    if (!userData) return;
     
     try {
-      const savedNote = await saveNote(noteData, currentUser.uid, notes);
+      const savedNote = await saveNote(noteData, userData.id, notes);
       
       // Update local state
       const isNewNote = !notes.some(note => note.id === savedNote.id);
