@@ -17,9 +17,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import AuthPage from './pages/auth/AuthPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { ModelParameters } from './types/model';
 
 // Definindo props padrão para a HomePage
-const defaultCrystalParams = {
+const defaultCrystalParams: ModelParameters = {
   color: '#5D3FD3',
   roughness: 0.2,
   metalness: 0.8,
@@ -41,16 +42,28 @@ const defaultCrystalParams = {
   rotation: [0, 0, 0],
   position: [0, 0, 0],
   scale: [1, 1, 1],
-  segments: 32
+  segments: 32,
+  lightIntensity: 1.0,
+  opacity: 1.0,
+  transparent: true,
+  textureMap: null,
+  normalMap: null,
+  roughnessMap: null,
+  metalnessMap: null,
+  emissiveMap: null,
+  emissiveColor: '#000000',
+  emissiveIntensity: 0,
+  envMap: null,
+  wireframe: false
 };
 
 const defaultGalleryImages = [
-  '/textures/presets/crystal.jpg',
-  '/textures/presets/emissive.jpg',
-  '/textures/presets/frosted-glass.jpg',
-  '/textures/presets/glass.jpg',
-  '/textures/presets/gold.jpg',
-  '/textures/presets/holographic.jpg'
+  { src: '/textures/presets/crystal.jpg', alt: 'Crystal Texture', crystalPosition: 'default' as const },
+  { src: '/textures/presets/emissive.jpg', alt: 'Emissive Texture', crystalPosition: 'bottom-left' as const },
+  { src: '/textures/presets/frosted-glass.jpg', alt: 'Frosted Glass Texture', crystalPosition: 'center' as const },
+  { src: '/textures/presets/glass.jpg', alt: 'Glass Texture', crystalPosition: 'top-right' as const },
+  { src: '/textures/presets/gold.jpg', alt: 'Gold Texture', crystalPosition: 'top-left' as const },
+  { src: '/textures/presets/holographic.jpg', alt: 'Holographic Texture', crystalPosition: 'bottom-right' as const }
 ];
 
 function App() {
