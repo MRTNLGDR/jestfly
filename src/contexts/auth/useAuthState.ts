@@ -64,10 +64,24 @@ export const useAuthState = (): AuthStateHook => {
             // Transformar os dados do Supabase para o formato da aplicação
             const roles = rolesData ? rolesData.map(r => r.role) : [];
             
-            // Convert profile_type to the expected type
+            // Create a properly typed profile data object
             const profileDataWithCorrectType: SupabaseProfileData = {
-              ...profileData,
+              id: profileData.id,
+              username: profileData.username,
+              full_name: profileData.full_name,
               profile_type: profileData.profile_type as "artist" | "fan" | "admin" | "collaborator",
+              avatar_url: profileData.avatar_url,
+              bio: profileData.bio,
+              // Ensure social_links is properly converted to Record<string, string> type
+              social_links: profileData.social_links ? 
+                (typeof profileData.social_links === 'string' ? 
+                  JSON.parse(profileData.social_links) : 
+                  profileData.social_links as Record<string, string>) : 
+                {},
+              preferences: profileData.preferences,
+              wallet_address: profileData.wallet_address,
+              created_at: profileData.created_at,
+              updated_at: profileData.updated_at,
               roles
             };
             
@@ -151,10 +165,24 @@ export const useAuthState = (): AuthStateHook => {
             // Transformar os dados do Supabase para o formato da aplicação
             const roles = rolesData ? rolesData.map(r => r.role) : [];
             
-            // Convert profile_type to the expected type
+            // Create a properly typed profile data object
             const profileDataWithCorrectType: SupabaseProfileData = {
-              ...profileData,
+              id: profileData.id,
+              username: profileData.username,
+              full_name: profileData.full_name,
               profile_type: profileData.profile_type as "artist" | "fan" | "admin" | "collaborator",
+              avatar_url: profileData.avatar_url,
+              bio: profileData.bio,
+              // Ensure social_links is properly converted to Record<string, string> type
+              social_links: profileData.social_links ? 
+                (typeof profileData.social_links === 'string' ? 
+                  JSON.parse(profileData.social_links) : 
+                  profileData.social_links as Record<string, string>) : 
+                {},
+              preferences: profileData.preferences,
+              wallet_address: profileData.wallet_address,
+              created_at: profileData.created_at,
+              updated_at: profileData.updated_at,
               roles
             };
             
