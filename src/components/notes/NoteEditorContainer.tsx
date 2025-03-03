@@ -6,7 +6,7 @@ import { EmptyNoteState } from './EmptyNoteState';
 
 interface NoteEditorContainerProps {
   selectedNote: Note | null;
-  onSaveNote: (noteData: Partial<Note>) => Promise<void>;
+  onSaveNote: (noteData: Partial<Note>) => Promise<Note | void>;
   onNoteSelect: (noteId: string) => void;
   onCreateNote: () => void;
 }

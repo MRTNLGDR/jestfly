@@ -12,7 +12,7 @@ import { EditorHeader } from './EditorHeader';
 
 interface NoteEditorProps {
   initialNote?: Note;
-  onSave: (note: Partial<Note>) => Promise<void>;
+  onSave: (note: Partial<Note>) => Promise<Note | void>;
   onLinkClick?: (noteId: string) => void;
 }
 
