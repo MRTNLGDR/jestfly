@@ -6,23 +6,23 @@ import { EmptyNoteState } from './EmptyNoteState';
 
 interface NoteEditorContainerProps {
   selectedNote: Note | null;
-  onSaveNote: (note: Note) => Promise<void>;
-  onDeleteNote: (noteId: string) => Promise<void>;
+  onSaveNote: (noteData: Partial<Note>) => Promise<void>;
+  onNoteSelect: (noteId: string) => void;
   onCreateNote: () => void;
 }
 
 export const NoteEditorContainer: React.FC<NoteEditorContainerProps> = ({
   selectedNote,
   onSaveNote,
-  onDeleteNote,
+  onNoteSelect,
   onCreateNote
 }) => {
   if (selectedNote) {
     return (
       <NoteEditor 
-        note={selectedNote}
+        initialNote={selectedNote}
         onSave={onSaveNote}
-        onDelete={onDeleteNote}
+        onLinkClick={onNoteSelect}
       />
     );
   }
