@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { UserIcon, PencilIcon, ShieldIcon } from 'lucide-react';
+import { UserIcon, PencilIcon, ShieldIcon, HeartHandshakeIcon } from 'lucide-react';
 
 interface DemoLoginButtonsProps {
   onFanLogin: () => Promise<void>;
   onArtistLogin: () => Promise<void>;
+  onCollaboratorLogin?: () => Promise<void>;
   onAdminLogin?: () => Promise<void>;
   disabled: boolean;
 }
@@ -13,6 +14,7 @@ interface DemoLoginButtonsProps {
 const DemoLoginButtons: React.FC<DemoLoginButtonsProps> = ({ 
   onFanLogin, 
   onArtistLogin,
+  onCollaboratorLogin,
   onAdminLogin,
   disabled 
 }) => {
@@ -48,8 +50,20 @@ const DemoLoginButtons: React.FC<DemoLoginButtonsProps> = ({
         </Button>
       </div>
       
-      {onAdminLogin && (
-        <div className="mt-2">
+      <div className="grid grid-cols-2 gap-3 mt-2">
+        {onCollaboratorLogin && (
+          <Button 
+            variant="outline" 
+            className="w-full border-green-500/30 hover:bg-green-900/30 text-sm"
+            onClick={onCollaboratorLogin}
+            disabled={disabled}
+          >
+            <HeartHandshakeIcon className="mr-1 h-3 w-3" />
+            Demo Colaborador
+          </Button>
+        )}
+        
+        {onAdminLogin && (
           <Button 
             variant="outline" 
             className="w-full border-red-500/30 hover:bg-red-900/30 text-sm"
@@ -59,8 +73,8 @@ const DemoLoginButtons: React.FC<DemoLoginButtonsProps> = ({
             <ShieldIcon className="mr-1 h-3 w-3" />
             Demo Admin
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

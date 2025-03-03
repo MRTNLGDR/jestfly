@@ -21,13 +21,41 @@ const AdminLoginForm = () => {
     setError('');
     
     try {
-      const { error } = await signIn(email, password);
+      const { error, data } = await signIn(email, password);
       
       if (error) {
         setError(error.message);
+        toast({
+          title: "Erro de autenticação",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else if (data) {
+        // Verificar se o usuário é realmente um admin
+        if (data.profile_type === 'admin') {
+          toast({
+            title: "Login de administrador bem-sucedido",
+            description: `Bem-vindo, ${data.display_name}!`,
+            variant: "default",
+          });
+          navigate('/admin');
+        } else {
+          toast({
+            title: "Acesso negado",
+            description: "Esta conta não tem permissões de administrador",
+            variant: "destructive",
+          });
+          // Fazer logout se não for admin
+          await signOut();
+        }
       }
     } catch (err) {
       setError((err as Error).message);
+      toast({
+        title: "Erro no sistema",
+        description: (err as Error).message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -38,7 +66,7 @@ const AdminLoginForm = () => {
       const demoPassword = 'admin123';
       
       console.log('Tentando login como admin demo');
-      const { error } = await signIn(demoEmail, demoPassword);
+      const { error, data } = await signIn(demoEmail, demoPassword);
       
       if (error) {
         console.error('Erro no login admin demo:', error);
@@ -48,7 +76,7 @@ const AdminLoginForm = () => {
           description: "Não foi possível fazer login como admin demo",
           variant: "destructive",
         });
-      } else {
+      } else if (data) {
         toast({
           title: "Login admin bem-sucedido",
           description: "Você está logado como admin demo",
@@ -59,6 +87,11 @@ const AdminLoginForm = () => {
     } catch (err) {
       console.error('Erro ao fazer login como admin demo:', err);
       setError((err as Error).message || 'Ocorreu um erro durante o login demo');
+      toast({
+        title: "Erro no sistema",
+        description: (err as Error).message || "Ocorreu um erro inesperado",
+        variant: "destructive",
+      });
     }
   };
 

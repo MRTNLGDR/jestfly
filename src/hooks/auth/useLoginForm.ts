@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export const useLoginForm = () => {
   const [error, setError] = useState('');
   const { signIn, loading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,23 +18,47 @@ export const useLoginForm = () => {
     
     try {
       console.log(`Tentando login com email: ${email}`);
-      const { error } = await signIn(email, password);
+      const { error, data } = await signIn(email, password);
       
       if (error) {
         setError(error.message || 'Erro ao fazer login');
+        toast({
+          title: "Falha no login",
+          description: error.message || "Credenciais inválidas",
+          variant: "destructive",
+        });
+      } else if (data) {
+        // Sucesso no login
+        toast({
+          title: "Login bem-sucedido",
+          description: "Bem-vindo ao JESTFLY",
+          variant: "default",
+        });
+        
+        // Redirecionamento baseado no tipo de perfil
+        if (data.profile_type === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
     } catch (err) {
       console.error('Erro ao fazer login:', err);
       setError((err as Error).message || 'Ocorreu um erro durante o login');
+      toast({
+        title: "Erro no sistema",
+        description: (err as Error).message || "Ocorreu um erro inesperado",
+        variant: "destructive",
+      });
     }
   };
 
-  const handleDemoLogin = async (type: 'fan' | 'artist' | 'admin') => {
+  const handleDemoLogin = async (type: 'fan' | 'artist' | 'collaborator' | 'admin') => {
     try {
       setError('');
       let demoEmail, demoPassword;
       
-      // Usar os IDs atualizados para os usuários demo
+      // Usar emails e senhas dos usuários demo atualizados
       switch (type) {
         case 'fan':
           demoEmail = 'fan_demo@jestfly.com';
@@ -42,6 +68,10 @@ export const useLoginForm = () => {
           demoEmail = 'artist_demo@jestfly.com';
           demoPassword = 'artist123';
           break;
+        case 'collaborator':
+          demoEmail = 'collaborator@jestfly.com';
+          demoPassword = 'collaborator123';
+          break;
         case 'admin':
           demoEmail = 'admin_demo@jestfly.com';
           demoPassword = 'admin123';
@@ -49,7 +79,7 @@ export const useLoginForm = () => {
       }
       
       console.log(`Tentando login como ${type} demo`);
-      const { error } = await signIn(demoEmail, demoPassword);
+      const { error, data } = await signIn(demoEmail, demoPassword);
       
       if (error) {
         console.error(`Erro no login demo ${type}:`, error);
@@ -59,12 +89,22 @@ export const useLoginForm = () => {
           variant: "destructive",
         });
         setError(error.message || `Erro ao fazer login como ${type} demo`);
-      } else {
+      } else if (data) {
         toast({
           title: "Login demo bem-sucedido",
           description: `Você está logado como ${type} demo`,
           variant: "default",
         });
+        
+        // Redirecionamento baseado no tipo de perfil
+        if (type === 'admin') {
+          navigate('/admin');
+        } else if (type === 'artist') {
+          // Artistas podem ser direcionados para uma página específica
+          navigate('/');
+        } else {
+          navigate('/');
+        }
       }
     } catch (err) {
       console.error(`Erro ao fazer login como ${type} demo:`, err);

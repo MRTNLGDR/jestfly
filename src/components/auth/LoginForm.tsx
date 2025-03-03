@@ -91,6 +91,7 @@ const LoginForm: React.FC = () => {
         <DemoLoginButtons 
           onFanLogin={() => handleDemoLogin('fan')}
           onArtistLogin={() => handleDemoLogin('artist')}
+          onCollaboratorLogin={() => handleDemoLogin('collaborator')}
           onAdminLogin={() => handleDemoLogin('admin')}
           disabled={loading}
         />
