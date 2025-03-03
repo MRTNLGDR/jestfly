@@ -1,4 +1,3 @@
-
 import React, { createContext } from 'react';
 import { AuthContextType } from './types';
 import { useAuthState } from './authStateManager';
@@ -8,7 +7,7 @@ import {
   register, 
   logout, 
   resetPassword 
-} from './authMethods';
+} from './methods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
