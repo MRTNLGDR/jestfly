@@ -20,7 +20,7 @@ import EcommercePage from './pages/EcommercePage';
 import AdminPanel from './pages/AdminPanel';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/auth'; // Updated path
 import { LoginForm } from './components/auth/LoginForm';
 import { RegisterForm } from './components/auth/RegisterForm';
 import { ProtectedRoute } from './components/ProtectedRoute';

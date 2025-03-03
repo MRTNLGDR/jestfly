@@ -1,13 +1,17 @@
-// ATENÇÃO: Este arquivo é um placeholder para manter a compatibilidade de build
-// A aplicação migrou para Firebase e não usa mais os serviços Supabase
-console.warn('[Deprecated] statusService.ts foi carregado, mas não está mais em uso ativo. A aplicação migrou para Firebase.');
+/**
+ * @deprecated This service is deprecated as the app now uses Firebase instead of Supabase for authentication.
+ */
 
-export const getAuthStatus = async () => {
-  console.warn('getAuthStatus chamado, mas não está mais em uso ativo.');
-  return { isAuthenticated: false, user: null };
+// Placeholder exports to fix import errors
+export const statusService = {
+  // Placeholder methods
+  getStatus: async () => {
+    console.warn('statusService is deprecated. The app now uses Firebase.');
+    return null;
+  },
 };
 
-export const watchAuthStatus = (callback: (status: any) => void) => {
-  console.warn('watchAuthStatus chamado, mas não está mais em uso ativo.');
-  return { unsubscribe: () => {} };
+export const checkGoogleAuthEnabled = async () => {
+  console.warn('checkGoogleAuthEnabled is deprecated. The app now uses Firebase.');
+  return false;
 };
