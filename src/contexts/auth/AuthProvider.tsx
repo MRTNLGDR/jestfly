@@ -1,6 +1,7 @@
+
 import React, { createContext } from 'react';
 import { AuthContextType } from './types';
-import { useAuthState } from './authStateManager';
+import { useAuthState } from './state/useAuthState';
 import { 
   login, 
   loginWithGoogle, 

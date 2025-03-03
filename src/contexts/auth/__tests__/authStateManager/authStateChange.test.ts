@@ -1,7 +1,7 @@
 
 import { describe, it, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { useAuthState } from '../../authStateManager';
+import { useAuthState } from '../../state/useAuthState';
 import { supabase } from '../../../../integrations/supabase/client';
 import { 
   createMockSupabaseUser, 
