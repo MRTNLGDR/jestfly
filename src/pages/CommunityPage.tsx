@@ -12,19 +12,19 @@ const CommunityPage: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   
   useEffect(() => {
-    // Mark as loaded as soon as the component mounts
+    // Marcar como carregado assim que o componente montar
     setIsLoaded(true);
     
-    // Log for diagnostics
-    console.log("CommunityPage mounted successfully");
+    // Log para diagnóstico
+    console.log("CommunityPage montada com sucesso");
     
     return () => {
-      console.log("CommunityPage unmounted");
+      console.log("CommunityPage desmontada");
     };
   }, []);
 
-  // If we have rendering problems, we can see in the console
-  console.log("Rendering CommunityPage, loaded:", isLoaded);
+  // Se tivermos problemas de renderização, podemos ver no console
+  console.log("Renderizando CommunityPage, carregada:", isLoaded);
 
   return (
     <div className="min-h-screen bg-black text-white pt-20">
