@@ -15,6 +15,7 @@ import PressKitPage from '@/pages/PressKitPage';
 import LiveStreamPage from '@/pages/LiveStreamPage';
 import AirdropPage from '@/pages/AirdropPage';
 import DemoSubmissionPage from '@/pages/DemoSubmissionPage';
+import NotesPage from '@/pages/NotesPage';
 import NotFound from '@/pages/NotFound';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ResetPasswordPage from '@/pages/ResetPasswordPage';
@@ -87,6 +88,12 @@ function App() {
             <Route path="/profile" element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/notes" element={
+              <ProtectedRoute>
+                <NotesPage />
               </ProtectedRoute>
             } />
             
