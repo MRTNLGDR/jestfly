@@ -1,95 +1,75 @@
 
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
-interface LogActivityParams {
-  action: string;
-  entityType?: string;
-  entityId?: string;
-  details?: Record<string, any>;
-  success?: boolean;
-}
-
+// Versão modificada que não depende do useAuth inicialmente
 export const useActivityLogger = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const logActivity = async ({
-    action,
-    entityType,
-    entityId,
-    details = {},
-    success = true
-  }: LogActivityParams) => {
-    if (!user) return null;
-
+  const logActivity = useCallback(async (
+    action: string, 
+    userId?: string, 
+    entityType?: string, 
+    entityId?: string, 
+    success: boolean = true,
+    details?: Record<string, any>
+  ) => {
+    if (!userId) return; // Não registra se não houver ID de usuário
+    
+    setLoading(true);
     try {
-      // Chamar a função RPC para registrar a atividade
-      const { data, error } = await supabase.rpc('log_user_activity', {
-        action: action,
-        entity_type: entityType,
-        entity_id: entityId,
-        details: details,
-        success: success
+      // Log para o console durante o desenvolvimento
+      console.log('Activity Log:', { 
+        action, 
+        userId, 
+        entityType, 
+        entityId, 
+        success, 
+        details 
       });
-
-      if (error) {
-        console.error('Erro ao registrar atividade:', error);
-        return null;
-      }
-
-      return data;
+      
+      // Em produção, enviar para o Supabase
+      const { error } = await supabase
+        .from('activity_logs')
+        .insert({
+          user_id: userId,
+          action,
+          entity_type: entityType,
+          entity_id: entityId,
+          success,
+          ip_address: null, // Seria coletado no servidor
+          details
+        });
+        
+      if (error) throw error;
     } catch (error) {
-      console.error('Exceção ao registrar atividade:', error);
-      return null;
+      console.error('Error logging activity:', error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  // Função para registrar tentativas de login
-  const logLogin = async (success: boolean, email?: string) => {
-    return logActivity({
-      action: 'user.login',
-      entityType: 'auth.users',
-      details: { email },
-      success
-    });
-  };
-
-  // Função para registrar logout
-  const logLogout = async () => {
-    return logActivity({
-      action: 'user.logout',
-      entityType: 'auth.users'
-    });
-  };
-
-  // Função para registrar alterações de perfil
-  const logProfileUpdate = async (success: boolean, fields?: string[]) => {
-    return logActivity({
-      action: 'profile.update',
-      entityType: 'profiles',
-      entityId: user?.id,
-      details: { fields },
-      success
-    });
-  };
-
-  // Função para registrar tentativas de acesso não autorizado
-  const logAccessAttempt = async (resource: string, allowed: boolean) => {
-    return logActivity({
-      action: 'access.attempt',
-      entityType: 'resource',
-      details: { resource, allowed },
-      success: allowed
-    });
-  };
+  const logAccessAttempt = useCallback((
+    resource: string,
+    success: boolean,
+    userId?: string
+  ) => {
+    if (!userId) return; // Não registra se não houver ID de usuário
+    
+    logActivity(
+      `Tentativa de acesso a ${resource}`,
+      userId,
+      'resource',
+      resource,
+      success,
+      { resourcePath: resource }
+    );
+  }, [logActivity]);
 
   return {
+    loading,
     logActivity,
-    logLogin,
-    logLogout,
-    logProfileUpdate,
     logAccessAttempt
   };
 };

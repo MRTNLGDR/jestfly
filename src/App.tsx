@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
 import LogsPage from '@/pages/LogsPage';
 import HomePage from '@/pages/HomePage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
@@ -29,65 +28,63 @@ function App() {
   };
   
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-gradient-to-br from-black to-purple-900">
-        <Routes>
-          <Route path="/" element={<HomePage {...homePageProps} />} />
-          
-          {/* Rotas públicas */}
-          
-          {/* Rotas protegidas */}
-          <Route 
-            path="/dashboard" 
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedRoute>
-                <SettingsPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Rotas administrativas */}
-          <Route 
-            path="/system/logs" 
-            element={
-              <ProtectedRoute allowedProfiles={['admin', 'collaborator']}>
-                <LogsPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/admin/logs" 
-            element={
-              <ProtectedRoute allowedProfiles={['admin', 'collaborator']}>
-                <LogsPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute allowedProfiles={['admin']}>
-                <AdminDashboardPage />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Adicionar outras rotas aqui conforme necessário */}
-        </Routes>
-        <Toaster />
-      </div>
-    </AuthProvider>
+    <div className="min-h-screen bg-gradient-to-br from-black to-purple-900">
+      <Routes>
+        <Route path="/" element={<HomePage {...homePageProps} />} />
+        
+        {/* Rotas públicas */}
+        
+        {/* Rotas protegidas */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rotas administrativas */}
+        <Route 
+          path="/system/logs" 
+          element={
+            <ProtectedRoute allowedProfiles={['admin', 'collaborator']}>
+              <LogsPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/admin/logs" 
+          element={
+            <ProtectedRoute allowedProfiles={['admin', 'collaborator']}>
+              <LogsPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedRoute allowedProfiles={['admin']}>
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Adicionar outras rotas aqui conforme necessário */}
+      </Routes>
+      <Toaster />
+    </div>
   );
 }
 
