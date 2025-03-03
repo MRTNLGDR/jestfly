@@ -86,13 +86,13 @@ function App() {
             
             {/* Rotas protegidas por autenticação (qualquer usuário logado) */}
             <Route path="/profile" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireAuth={true}>
                 <ProfilePage />
               </ProtectedRoute>
             } />
             
             <Route path="/notes" element={
-              <ProtectedRoute>
+              <ProtectedRoute requireAuth={true}>
                 <NotesPage />
               </ProtectedRoute>
             } />
@@ -104,20 +104,44 @@ function App() {
             <Route path="/store" element={<StorePage />} />
             
             {/* Bookings (todos podem ver, artistas podem gerenciar) */}
-            <Route path="/bookings" element={<BookingsPage />} />
+            <Route path="/bookings" element={
+              <ProtectedRoute 
+                requireAuth={false} 
+                allowedProfiles={['artist', 'admin']}
+              >
+                <BookingsPage />
+              </ProtectedRoute>
+            } />
             
             {/* Press Kit (todos podem ver, mas apenas usuários autenticados podem baixar recursos) */}
             <Route path="/press-kit" element={<PressKitPage />} />
             
             {/* Live Stream (todos podem assistir, artistas podem transmitir) */}
-            <Route path="/live" element={<LiveStreamPage />} />
+            <Route path="/live" element={
+              <ProtectedRoute 
+                requireAuth={false}
+                allowedProfiles={['artist', 'admin']}
+              >
+                <LiveStreamPage />
+              </ProtectedRoute>
+            } />
             
             {/* Airdrop (todos podem ver, usuários autenticados podem participar) */}
-            <Route path="/airdrop" element={<AirdropPage />} />
+            <Route path="/airdrop" element={
+              <ProtectedRoute 
+                requireAuth={false}
+              >
+                <AirdropPage />
+              </ProtectedRoute>
+            } />
             
             {/* Demo Submission (apenas artistas podem enviar) */}
             <Route path="/submit-demo" element={
-              <ProtectedRoute requiredRole="artist" redirectPath="/">
+              <ProtectedRoute 
+                requiredRole="artist" 
+                allowedProfiles={['artist', 'admin']}
+                redirectPath="/"
+              >
                 <DemoSubmissionPage />
               </ProtectedRoute>
             } />

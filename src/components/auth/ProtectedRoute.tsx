@@ -53,34 +53,56 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return true;
   };
 
+  // Determinar o caminho de redirecionamento com base no tipo de perfil
+  const getRedirectPath = () => {
+    // Se o usuário não está autenticado, redirecionar para a página de login
+    if (!user || !profile) {
+      return redirectPath;
+    }
+    
+    // Se está na rota principal de admin mas não é admin, redirecionar para a home
+    if (location.pathname.startsWith('/admin') && profile.profile_type !== 'admin') {
+      return '/';
+    }
+    
+    // Se está em rota de artista mas não é artista nem admin
+    if (location.pathname.startsWith('/submit-demo') && 
+        !['artist', 'admin'].includes(profile.profile_type)) {
+      return '/';
+    }
+    
+    // Para outros casos, redirecionar para a home
+    return '/';
+  };
+
   // Mostrar mensagem de acesso negado quando necessário
   useEffect(() => {
-    if (!loading) {
-      if (requireAuth && !user) {
+    if (!loading && requireAuth) {
+      if (!user) {
         toast({
           title: "Acesso restrito",
           description: "Faça login para acessar esta página",
           variant: "destructive",
         });
-      } else if (requiredRole && profile && profile.profile_type !== requiredRole) {
-        toast({
-          title: "Acesso negado",
-          description: `Esta página é restrita para perfis do tipo ${requiredRole}`,
-          variant: "destructive",
-        });
-      } else if (
-        allowedProfiles.length > 0 && 
-        profile && 
-        !allowedProfiles.includes(profile.profile_type as AllowedProfileTypes)
-      ) {
-        toast({
-          title: "Acesso negado",
-          description: "Você não tem permissão para acessar esta página",
-          variant: "destructive",
-        });
+      } else if (!hasPermission()) {
+        // Mensagem específica baseada no motivo da restrição
+        if (requiredRole) {
+          toast({
+            title: "Acesso negado",
+            description: `Esta página é restrita para perfis do tipo ${requiredRole}`,
+            variant: "destructive",
+          });
+        } else if (allowedProfiles.length > 0) {
+          const allowedTypes = allowedProfiles.join(', ');
+          toast({
+            title: "Acesso negado",
+            description: `Esta página é restrita para os seguintes tipos de perfil: ${allowedTypes}`,
+            variant: "destructive",
+          });
+        }
       }
     }
-  }, [loading, user, profile, requiredRole, requireAuth, allowedProfiles, toast]);
+  }, [loading, user, profile, requiredRole, requireAuth, allowedProfiles, toast, location]);
 
   // Enquanto a autenticação está carregando, mostrar um spinner
   if (loading) {
@@ -96,15 +118,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <>{children}</>;
   }
 
-  // Se não tem permissão, redirecionar para o caminho especificado
+  // Se não tem permissão, redirecionar para o caminho determinado
   if (!hasPermission()) {
-    // Se o usuário não está autenticado, redirecionar para a página de login
-    if (!user || !profile) {
-      return <Navigate to={redirectPath} state={{ from: location }} replace />;
-    }
-    
-    // Se o usuário está autenticado mas não tem o papel requerido, redirecionar para a home
-    return <Navigate to="/" replace />;
+    return <Navigate to={getRedirectPath()} state={{ from: location }} replace />;
   }
 
   // Se tudo estiver ok, renderizar o conteúdo protegido
