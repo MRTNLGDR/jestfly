@@ -5,28 +5,75 @@ import { AuthProvider } from './contexts/auth';
 import { LanguageProvider } from './contexts/language';
 import { Toaster } from 'sonner';
 import { ModelParameters } from './types/model';
+import { Diamond } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-// Create simple placeholder components for temporary use
-const Loading = () => (
-  <div className="flex items-center justify-center h-screen">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-  </div>
-);
-
-const SimpleHeader = () => (
-  <header className="bg-black/70 backdrop-blur-xl border-b border-white/20 shadow-lg p-4">
-    <div className="container mx-auto">
-      <h1 className="text-xl font-bold text-white">JESTFLY</h1>
+// Navigation Components
+const MainHeader = () => (
+  <header className="fixed top-0 left-0 right-0 bg-black/70 backdrop-blur-xl border-b border-white/10 z-50">
+    <div className="container mx-auto flex items-center justify-between py-4 px-4">
+      {/* Logo and welcome message */}
+      <div className="flex items-center space-x-6">
+        <Link to="/" className="flex items-center text-white">
+          <Diamond className="h-6 w-6 text-white" />
+        </Link>
+        <div className="hidden md:block">
+          <div className="text-xs text-white/60 uppercase">h1.welcome to the</div>
+          <div className="text-sm text-white uppercase font-semibold">FUTURE</div>
+        </div>
+      </div>
+      
+      {/* Main Navigation */}
+      <nav className="hidden md:flex items-center space-x-6">
+        <Link to="/" className="text-white/80 hover:text-white text-sm uppercase">Início</Link>
+        <Link to="/store" className="text-white/80 hover:text-white text-sm uppercase">Store</Link>
+        <Link to="/community" className="text-white/80 hover:text-white text-sm uppercase">Community</Link>
+        <Link to="/bookings" className="text-white/80 hover:text-white text-sm uppercase">Bookings</Link>
+        <Link to="/resources" className="text-white/80 hover:text-white text-sm uppercase">Resources</Link>
+        <Link to="/notes" className="text-white/80 hover:text-white text-sm uppercase">Notes</Link>
+        <Link to="/demo-submission" className="text-white/80 hover:text-white text-sm uppercase">Demo Submission</Link>
+        <Link to="/press-kit" className="text-white/80 hover:text-white text-sm uppercase">Press Kit</Link>
+      </nav>
+      
+      {/* User Controls */}
+      <div className="flex items-center space-x-4">
+        <Link to="/profile" className="text-white/80 hover:text-white text-sm uppercase hidden md:block">Profile</Link>
+        <Link to="/live-stream" className="text-white/80 hover:text-white text-sm uppercase hidden md:block">Live Stream</Link>
+        <Link to="/airdrop" className="text-white/80 hover:text-white text-sm uppercase hidden md:block">Airdrop</Link>
+        
+        {/* Authentication Links */}
+        <Link to="/login" className="bg-purple-600 text-white text-sm font-medium px-4 py-1.5 rounded-md hover:bg-purple-700 transition-colors">
+          LOGIN
+        </Link>
+        
+        {/* Currency Controls */}
+        <div className="flex items-center space-x-2 text-white">
+          <span>[PR</span>
+          <span className="text-sm">@</span>
+          <span>$</span>
+          <span>+</span>
+          <span>-</span>
+        </div>
+        
+        {/* Pre-Order Button */}
+        <div className="bg-black border border-white/20 rounded-full flex items-center">
+          <div className="bg-black px-2 py-1 text-xs text-white">
+            PRE-ORDER
+          </div>
+          <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-black">
+            7
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 );
 
-const SimpleFooter = () => (
-  <footer className="bg-black/70 backdrop-blur-xl border-t border-white/20 shadow-lg p-4 mt-auto">
-    <div className="container mx-auto">
-      <p className="text-center text-white/70 text-sm">© {new Date().getFullYear()} JESTFLY. All rights reserved.</p>
-    </div>
-  </footer>
+// Loading component
+const Loading = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  </div>
 );
 
 // Lazy load pages
@@ -91,19 +138,20 @@ function App() {
       <LanguageProvider>
         <AuthProvider>
           <div className="App min-h-screen flex flex-col">
-            <SimpleHeader />
-            <Suspense fallback={<Loading />}>
-              <Routes>
-                <Route path="/" element={<HomePage crystalParams={defaultCrystalParams} galleryImages={defaultGalleryImages} />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              </Routes>
-            </Suspense>
-            <SimpleFooter />
+            <MainHeader />
+            <main className="flex-1 pt-16"> {/* Add padding top to account for fixed header */}
+              <Suspense fallback={<Loading />}>
+                <Routes>
+                  <Route path="/" element={<HomePage crystalParams={defaultCrystalParams} galleryImages={defaultGalleryImages} />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/reset-password" element={<ResetPasswordPage />} />
+                  <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                </Routes>
+              </Suspense>
+            </main>
             <Toaster position="top-right" />
           </div>
         </AuthProvider>
