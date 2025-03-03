@@ -15,7 +15,7 @@ export type AuthStateHook = {
   session: Session | null;
   loading: boolean;
   error: string | null;
-} & SupabaseClient;
+} & SupabaseClient<any, "public", any>;
 
 /**
  * Hook para gerenciar o estado de autenticação com Firebase e Supabase
@@ -222,13 +222,13 @@ export const useAuthState = (): AuthStateHook => {
     };
   }, []);
   
-  // Combina o estado de autenticação com o cliente Supabase - spread the entire supabase client object
+  // Create a combined return value that properly includes all SupabaseClient properties
   return {
-    ...supabase, // This spreads all properties from the supabase client
     currentUser,
     userData,
     session,
     loading,
-    error
-  };
+    error,
+    ...supabase, // This properly extends with all the Supabase client properties
+  } as AuthStateHook;
 };
