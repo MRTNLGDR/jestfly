@@ -13,6 +13,7 @@ interface FormFieldProps {
   required?: boolean;
   minLength?: number;
   className?: string;
+  disabled?: boolean; // Adicionando a propriedade disabled
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -24,7 +25,8 @@ const FormField: React.FC<FormFieldProps> = ({
   onChange,
   required = false,
   minLength,
-  className = ''
+  className = '',
+  disabled = false // Definindo um valor padrão como false
 }) => {
   return (
     <div className="space-y-2">
@@ -38,6 +40,7 @@ const FormField: React.FC<FormFieldProps> = ({
         minLength={minLength}
         value={value}
         onChange={onChange}
+        disabled={disabled}
         className={`bg-black/30 border-white/20 text-white ${className}`}
       />
     </div>
