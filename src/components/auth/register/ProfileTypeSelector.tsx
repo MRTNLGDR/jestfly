@@ -36,10 +36,9 @@ export const ProfileTypeSelector: React.FC<ProfileTypeSelectorProps> = ({
           <RadioGroupItem value="collaborator" id="collaborator" className="border-zinc-600" />
           <Label htmlFor="collaborator" className="text-zinc-300">Colaborador</Label>
         </div>
-        {/* Admin option could be hidden by default and only shown with a special code */}
-        <div className="flex items-center space-x-2">
-          <RadioGroupItem value="admin" id="admin" className="border-zinc-600" />
-          <Label htmlFor="admin" className="text-zinc-300">Administrador</Label>
+        <div className="flex items-center space-x-2 bg-purple-900/30 p-2 rounded-md border border-purple-500/50">
+          <RadioGroupItem value="admin" id="admin" className="border-purple-400" />
+          <Label htmlFor="admin" className="text-purple-300 font-medium">Administrador</Label>
         </div>
       </RadioGroup>
     </div>
