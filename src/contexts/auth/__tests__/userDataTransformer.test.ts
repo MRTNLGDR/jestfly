@@ -16,7 +16,7 @@ describe('userDataTransformer', () => {
         id: 'user-123',
         username: 'testuser',
         full_name: 'Test User',
-        profile_type: 'fan' as const,
+        profile_type: 'fan' as 'fan' | 'artist' | 'admin' | 'collaborator',
         avatar_url: 'https://example.com/avatar.jpg',
         social_links: {
           instagram: 'test_instagram',
@@ -25,10 +25,11 @@ describe('userDataTransformer', () => {
         created_at: '2023-01-01T00:00:00Z',
         updated_at: '2023-01-02T00:00:00Z',
         preferences: {
-          theme: 'dark' as const,
+          theme: 'dark' as 'light' | 'dark' | 'system',
           notifications: {
             email: true,
-            push: false
+            push: false,
+            sms: false
           }
         },
         roles: ['user', 'member']

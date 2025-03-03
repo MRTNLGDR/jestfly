@@ -48,6 +48,8 @@ export const useAuthState = () => {
       // Create combined profile with roles
       const profileWithRoles = {
         ...profile,
+        // Make sure profile_type is properly typed as expected by SupabaseProfileData
+        profile_type: (profile?.profile_type || 'fan') as 'artist' | 'fan' | 'admin' | 'collaborator',
         roles: roles?.map(r => r.role) || []
       };
       

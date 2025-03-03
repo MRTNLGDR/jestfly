@@ -52,6 +52,19 @@ export const createSupabaseUserData = (
   // Extract the username from email if not provided
   const usernameFromEmail = supabaseUser.email?.split('@')[0] || '';
   
+  // Create default notifications object that meets the expected type
+  const defaultNotifications = {
+    email: true,
+    push: true,
+    sms: false
+  };
+
+  // Merge profile notifications with defaults to ensure required properties
+  const notificationsWithDefaults = {
+    ...defaultNotifications,
+    ...(profileData.preferences?.notifications || {})
+  };
+  
   // Create a new User object with data from Supabase
   const user: User = {
     id: profileData.id,
@@ -70,14 +83,9 @@ export const createSupabaseUserData = (
     twoFactorEnabled: false,
     preferences: {
       theme: profileData.preferences?.theme || 'system',
-      notifications: {
-        email: profileData.preferences?.notifications?.email ?? true,
-        push: profileData.preferences?.notifications?.push ?? true,
-        sms: profileData.preferences?.notifications?.sms ?? false,
-      },
+      notifications: notificationsWithDefaults,
       language: profileData.preferences?.language || 'en',
       currency: profileData.preferences?.currency || 'USD',
-      ...profileData.preferences,
     },
     roles: profileData.roles || [],
   };

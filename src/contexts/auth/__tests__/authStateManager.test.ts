@@ -207,7 +207,7 @@ describe('useAuthState hook', () => {
     
     await waitFor(() => {
       expect(console.error).toHaveBeenCalledWith(
-        "Error fetching user data from Supabase:", 
+        "Error fetching profile:", 
         expect.any(Error)
       );
     });
