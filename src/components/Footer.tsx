@@ -123,15 +123,15 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
             
-            {/* Botão de acesso admin menos discreto */}
+            {/* Botão de acesso admin com aparência mais profissional */}
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => setIsAdminDialogOpen(true)}
-              className="ml-2 text-xs bg-purple-900/30 hover:bg-purple-900/50 border-purple-700/50 text-white flex items-center gap-1 h-7 px-2"
+              className="ml-2 text-xs bg-gray-900/30 hover:bg-gray-900/50 border-gray-700/50 text-white/70 flex items-center gap-1 h-7 px-2"
             >
-              <Lock className="h-3.5 w-3.5" />
-              <span>Demo</span>
+              <Lock className="h-3 w-3 opacity-70" />
+              <span>Admin</span>
             </Button>
           </div>
         </div>
@@ -139,11 +139,11 @@ const Footer: React.FC = () => {
       
       {/* Admin Login Dialog */}
       <Dialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen}>
-        <DialogContent className="bg-black/90 border-purple-900/50 text-white">
+        <DialogContent className="bg-black/90 border-gray-800 text-white">
           <DialogHeader>
-            <DialogTitle className="text-xl text-center mb-2">Acesso Demo</DialogTitle>
+            <DialogTitle className="text-xl text-center mb-2">Acesso Rápido</DialogTitle>
             <DialogDescription className="text-center text-white/60">
-              Escolha um tipo de conta para demonstração
+              Selecione uma conta para login automático
             </DialogDescription>
           </DialogHeader>
           
@@ -156,7 +156,7 @@ const Footer: React.FC = () => {
           <div className="grid grid-cols-2 gap-3">
             <Button
               variant="outline"
-              className="bg-purple-900/20 hover:bg-purple-900/40 border-purple-700/50 text-white"
+              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
               onClick={() => handleAdminLogin('admin')}
               disabled={isLoading}
             >
@@ -164,7 +164,7 @@ const Footer: React.FC = () => {
             </Button>
             <Button
               variant="outline"
-              className="bg-blue-900/20 hover:bg-blue-900/40 border-blue-700/50 text-white"
+              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
               onClick={() => handleAdminLogin('artist')}
               disabled={isLoading}
             >
@@ -172,7 +172,7 @@ const Footer: React.FC = () => {
             </Button>
             <Button
               variant="outline"
-              className="bg-indigo-900/20 hover:bg-indigo-900/40 border-indigo-700/50 text-white"
+              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
               onClick={() => handleAdminLogin('collaborator')}
               disabled={isLoading}
             >
@@ -180,7 +180,7 @@ const Footer: React.FC = () => {
             </Button>
             <Button
               variant="outline"
-              className="bg-teal-900/20 hover:bg-teal-900/40 border-teal-700/50 text-white"
+              className="bg-gray-900/20 hover:bg-gray-900/40 border-gray-700/50 text-white"
               onClick={() => handleAdminLogin('fan')}
               disabled={isLoading}
             >
@@ -189,7 +189,7 @@ const Footer: React.FC = () => {
           </div>
           
           <div className="mt-2 text-center text-xs text-white/40">
-            Estas são contas de demonstração pré-configuradas para testes
+            Acesso temporário para fins de demonstração
           </div>
         </DialogContent>
       </Dialog>
