@@ -1,77 +1,41 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useCommunityPosts } from '@/hooks/community';
-import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, MessageSquare } from 'lucide-react';
-import CategoryTabs from './CategoryTabs';
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { PenLine } from 'lucide-react';
 import PostsList from './PostsList';
+import CommunityNav from './CommunityNav';
+import GlassHeader from '@/components/GlassHeader';
+import { mainMenuItems } from '@/constants/menuItems';
 
 const CommunityHome: React.FC = () => {
-  const { user } = useAuth();
-  const [activeCategory, setActiveCategory] = useState<string>('all');
-  const { 
-    posts, 
-    isLoading, 
-    error, 
-    likePost 
-  } = useCommunityPosts(activeCategory !== 'all' ? activeCategory : undefined);
-
-  const handleLikePost = async (postId: string) => {
-    if (!user) {
-      return;
-    }
-    
-    try {
-      await likePost.mutateAsync(postId);
-    } catch (error) {
-      console.error('Erro ao curtir post:', error);
-    }
-  };
-
-  const featuredPosts = posts.filter(post => post.is_featured);
-  const normalPosts = posts.filter(post => !post.is_featured);
+  const navigate = useNavigate();
 
   return (
-    <div className="pt-24 px-6">
-      <h1 className="text-4xl md:text-6xl font-bold text-white mb-8">JESTFLY Community</h1>
+    <div className="min-h-screen bg-gradient-to-b from-black to-purple-950">
+      <GlassHeader menuItems={mainMenuItems} />
       
-      <CategoryTabs 
-        activeCategory={activeCategory} 
-        onCategoryChange={setActiveCategory} 
-      />
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-40">
-          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+      <div className="pt-16"> {/* Adicionado padding-top para compensar o header fixo */}
+        <CommunityNav />
+        
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
+              Comunidade JESTFLY
+            </h1>
+            
+            <Button 
+              onClick={() => navigate('/community/new-post')}
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              <PenLine className="mr-2 h-4 w-4" />
+              Nova Publicação
+            </Button>
+          </div>
+          
+          <PostsList />
         </div>
-      ) : error ? (
-        <div className="text-center p-8 bg-red-900/20 rounded-lg">
-          <p className="text-red-400">Erro ao carregar posts da comunidade</p>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {featuredPosts.length > 0 && (
-            <PostsList 
-              title="Destacados"
-              posts={featuredPosts}
-              onLike={handleLikePost}
-              layout="grid"
-            />
-          )}
-
-          <PostsList 
-            title="Todas as publicações"
-            posts={normalPosts}
-            onLike={handleLikePost}
-          />
-        </div>
-      )}
-      
-      {user && (
-        <Link to="/community/new-post" className="fixed bottom-24 right-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full p-4 shadow-lg">
-          <MessageSquare className="h-6 w-6" />
-        </Link>
-      )}
+      </div>
     </div>
   );
 };

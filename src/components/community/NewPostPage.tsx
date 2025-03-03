@@ -1,148 +1,86 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCommunityPosts } from '@/hooks/community';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { PostCategory } from '@/types/community';
+import { Textarea } from '@/components/ui/textarea';
+import CommunityNav from './CommunityNav';
+import GlassHeader from '@/components/GlassHeader';
+
+const menuItems = [
+  { label: "Home", href: "/" },
+  { label: "Comunidade", href: "/community" },
+  { label: "Loja", href: "/store" },
+  { label: "Bookings", href: "/bookings" },
+  { label: "Demo", href: "/submit-demo" },
+  { label: "Transmissão", href: "/live" },
+  { label: "Press Kit", href: "/press-kit" },
+  { label: "Airdrop", href: "/airdrop" }
+];
 
 const NewPostPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { createPost } = useCommunityPosts();
   
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState<PostCategory>('discussion');
-  
-  React.useEffect(() => {
-    if (!user) {
-      navigate('/auth', { state: { from: '/community/new-post' } });
-    }
-  }, [user, navigate]);
-  
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!title.trim() || !content.trim() || !category || !user) {
-      return;
-    }
-    
-    try {
-      await createPost.mutateAsync({
-        title,
-        content,
-        category,
-        is_pinned: false,
-        is_featured: false,
-        user_id: user.id
-      });
-      
-      navigate('/community');
-    } catch (error) {
-      console.error('Error creating post:', error);
-    }
+    // Aqui viria a lógica para criar um novo post
+    // Por enquanto, apenas redirecionamos de volta para a comunidade
+    navigate('/community');
   };
   
-  if (!user) {
-    return (
-      <div className="flex justify-center items-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-        <span className="ml-2 text-white">Redirecionando para login...</span>
-      </div>
-    );
-  }
-  
   return (
-    <div className="max-w-3xl mx-auto pt-24 px-6 pb-24">
-      <Button variant="ghost" className="mb-6" onClick={() => navigate(-1)}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar
-      </Button>
+    <div className="min-h-screen bg-gradient-to-b from-black to-purple-950">
+      <GlassHeader menuItems={menuItems} />
       
-      <Card className="bg-black/40 backdrop-blur-md border-white/10">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-white">Criar Nova Publicação</CardTitle>
-        </CardHeader>
+      <div className="pt-16">
+        <CommunityNav />
         
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium text-white">Categoria</label>
-              <Select
-                value={category}
-                onValueChange={(value) => setCategory(value as PostCategory)}
-              >
-                <SelectTrigger className="bg-black/30 border-white/10 text-white">
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent className="bg-black border-white/10 text-white">
-                  <SelectItem value="announcement">Anúncio</SelectItem>
-                  <SelectItem value="event">Evento</SelectItem>
-                  <SelectItem value="discussion">Discussão</SelectItem>
-                  <SelectItem value="collaboration">Colaboração</SelectItem>
-                  <SelectItem value="question">Pergunta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 mb-8">
+              Nova Publicação
+            </h1>
             
-            <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium text-white">Título</label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Digite um título para sua publicação"
-                className="bg-black/30 border-white/10 text-white"
-                required
-                maxLength={100}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label htmlFor="content" className="text-sm font-medium text-white">Conteúdo</label>
-              <Textarea
-                id="content"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Escreva o conteúdo da sua publicação..."
-                className="bg-black/30 border-white/10 text-white resize-none min-h-[200px]"
-                required
-              />
-            </div>
-          </CardContent>
-          
-          <CardFooter className="flex justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate('/community')}
-              className="border-white/10 text-white hover:bg-white/10"
-            >
-              Cancelar
-            </Button>
-            
-            <Button
-              type="submit"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              disabled={!title.trim() || !content.trim() || createPost.isPending}
-            >
-              {createPost.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Publicando...
-                </>
-              ) : (
-                'Publicar'
-              )}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="title" className="text-white font-medium">Título</label>
+                <Input 
+                  id="title" 
+                  placeholder="Título da sua publicação" 
+                  className="bg-black/20 border-purple-500/30"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="content" className="text-white font-medium">Conteúdo</label>
+                <Textarea 
+                  id="content" 
+                  placeholder="Escreva o conteúdo da sua publicação aqui..." 
+                  rows={8}
+                  className="bg-black/20 border-purple-500/30"
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate('/community')}
+                  className="border-purple-500/50 text-white"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit"
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Publicar
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
