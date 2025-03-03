@@ -41,27 +41,69 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
     }));
   };
 
+  const validateForm = () => {
+    // Validar email
+    if (!registerData.email) {
+      setError('O email é obrigatório');
+      return false;
+    }
+    
+    if (!registerData.email.includes('@')) {
+      setError('Email inválido');
+      return false;
+    }
+
+    // Validar senha
+    if (registerData.password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
+      return false;
+    }
+
+    // Validar confirmação de senha
+    if (registerData.password !== registerData.confirmPassword) {
+      setError('As senhas não coincidem');
+      return false;
+    }
+
+    // Validar nome de usuário
+    if (!registerData.username) {
+      setError('Nome de usuário é obrigatório');
+      return false;
+    }
+    
+    if (registerData.username.length < 3) {
+      setError('Nome de usuário deve ter pelo menos 3 caracteres');
+      return false;
+    }
+
+    // Validar nome de exibição
+    if (!registerData.display_name) {
+      setError('Nome de exibição é obrigatório');
+      return false;
+    }
+
+    // Validar tipo de perfil
+    if (registerData.profile_type === 'admin') {
+      setError('Não é permitido criar contas de administrador');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setSuccess('');
     
-    if (registerData.password !== registerData.confirmPassword) {
-      setError('As senhas não coincidem');
-      setLoading(false);
-      return;
-    }
-    
-    if (registerData.profile_type === 'admin') {
-      setError('Não é permitido criar contas de administrador');
+    if (!validateForm()) {
       setLoading(false);
       return;
     }
     
     try {
       console.log('Tentando registro com:', registerData.email);
-      console.log('Iniciando registro com email:', registerData.email, 'e dados:', registerData);
       
       const { error } = await signUp(
         registerData.email, 

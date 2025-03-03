@@ -38,7 +38,7 @@ const AdminLoginForm: React.FC<AdminLoginFormProps> = ({ onSuccess }) => {
     
     try {
       console.log('Tentando login como admin demo');
-      // Usamos a credencial do admin que criamos via SQL
+      // Usar a credencial correta do admin demo
       const { error } = await signIn('admin_demo@jestfly.com', 'admin123');
       
       if (error) {

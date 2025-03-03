@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { SignUpUserData } from '@/types/auth';
@@ -35,18 +34,26 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
   };
 
   const refreshProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      console.log('Atualizando dados do perfil para usuário:', user.id);
-      const profileData = await fetchProfile(user.id);
-      if (profileData) {
-        console.log('Perfil atualizado com sucesso:', profileData);
-        setProfile(profileData);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        console.log('Atualizando dados do perfil para usuário:', user.id);
+        const profileData = await fetchProfile(user.id);
+        if (profileData) {
+          console.log('Perfil atualizado com sucesso:', profileData);
+          setProfile(profileData);
+          return true;
+        } else {
+          console.warn('Não foi possível atualizar o perfil do usuário:', user.id);
+          return false;
+        }
       } else {
-        console.warn('Não foi possível atualizar o perfil do usuário:', user.id);
+        console.log('Tentativa de atualizar perfil sem usuário autenticado');
+        return false;
       }
-    } else {
-      console.log('Tentativa de atualizar perfil sem usuário autenticado');
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+      return false;
     }
   };
 
@@ -58,19 +65,39 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
       // Garantir que o email e senha não estejam vazios
       if (!email || !password) {
         console.error('Email ou senha vazios');
+        toast({
+          title: "Campos obrigatórios",
+          description: "Email e senha são obrigatórios",
+          variant: "destructive",
+        });
         setLoading(false);
         return { data: null, error: new Error('Email e senha são obrigatórios') };
       }
       
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // Tenta fazer login com o Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
       
       if (error) {
-        console.error('Erro de autenticação:', error.message, error);
+        console.error('Erro de autenticação:', error.message);
+        
+        // Mensagem de erro específica
+        let errorMessage = 'Erro ao fazer login';
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Email ou senha incorretos';
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Email não confirmado. Verifique sua caixa de entrada';
+        }
+        
         toast({
           title: "Erro ao fazer login",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
+        
         setLoading(false);
         return { data: null, error };
       }
@@ -110,6 +137,11 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
         }
       } else {
         console.error('Login bem-sucedido mas não retornou dados do usuário');
+        toast({
+          title: "Erro no sistema",
+          description: "Ocorreu um erro no sistema durante o login.",
+          variant: "destructive",
+        });
       }
       
       setLoading(false);
@@ -132,6 +164,37 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
       setLoading(true);
       console.log('Iniciando registro com email:', email, 'e dados:', userData);
       
+      // Validação adicional de campos
+      if (!email || !password) {
+        toast({
+          title: "Campos obrigatórios",
+          description: "Email e senha são obrigatórios",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return { data: null, error: new Error('Email e senha são obrigatórios') };
+      }
+      
+      if (!userData.display_name || !userData.username) {
+        toast({
+          title: "Campos obrigatórios",
+          description: "Nome de exibição e nome de usuário são obrigatórios",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return { data: null, error: new Error('Campos de perfil são obrigatórios') };
+      }
+      
+      if (userData.profile_type === 'admin') {
+        toast({
+          title: "Tipo de perfil inválido",
+          description: "Não é permitido criar contas de administrador",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return { data: null, error: new Error('Não é permitido criar contas de administrador') };
+      }
+      
       // Registrar o usuário
       const { data, error } = await supabase.auth.signUp({ 
         email, 
@@ -147,9 +210,19 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
       
       if (error) {
         console.error('Erro no registro:', error);
+        
+        // Melhorar mensagens de erro específicas
+        let errorMessage = error.message;
+        
+        if (error.message.includes('already registered')) {
+          errorMessage = 'Este email já está registrado. Tente fazer login ou recuperar sua senha.';
+        } else if (error.message.includes('stronger password')) {
+          errorMessage = 'Por favor, use uma senha mais forte (mínimo 6 caracteres).';
+        }
+        
         toast({
           title: "Erro ao criar conta",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
         setLoading(false);
@@ -165,8 +238,20 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
           if (profileData) {
             console.log('Perfil encontrado após registro:', profileData);
             setProfile(profileData);
+            
+            // Redirecionar após encontrar perfil
+            navigate('/');
           } else {
             console.warn('Perfil não encontrado após registro, pode haver um atraso na criação');
+            // Tenta novamente após um tempo maior
+            setTimeout(async () => {
+              const retryProfile = await fetchProfile(data.user!.id);
+              if (retryProfile) {
+                console.log('Perfil encontrado na segunda tentativa:', retryProfile);
+                setProfile(retryProfile);
+                navigate('/');
+              }
+            }, 2000);
           }
         }, 1000); // Pequeno atraso para dar tempo ao trigger
         
@@ -175,8 +260,6 @@ export const useAuthActions = (setProfile: (profile: any) => void) => {
           description: "Verifique seu e-mail para confirmar o cadastro.",
           variant: "default",
         });
-        
-        navigate('/');
       }
       
       setLoading(false);
