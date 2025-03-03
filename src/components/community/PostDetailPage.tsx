@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useCommunityPosts, usePostComments } from '@/hooks/useCommunity';
+import { useCommunityPosts, usePostComments } from '@/hooks/community';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Loader2, ArrowLeft } from 'lucide-react';
@@ -20,7 +19,6 @@ const PostDetailPage: React.FC = () => {
   const { comments, isLoading: commentsLoading, createComment, deleteComment, likeComment } = usePostComments(postId || '');
   const { likePost, deletePost } = useCommunityPosts();
   
-  // Fetch post details
   const fetchPostDetails = async (): Promise<CommunityPost> => {
     if (!postId) throw new Error('Post ID não fornecido');
 
@@ -51,7 +49,6 @@ const PostDetailPage: React.FC = () => {
     enabled: !!postId
   });
 
-  // Handler functions
   const handleCreateComment = async (content: string) => {
     try {
       await createComment.mutateAsync(content);
@@ -96,7 +93,6 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  // Loading state
   if (postLoading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -105,7 +101,6 @@ const PostDetailPage: React.FC = () => {
     );
   }
 
-  // Error state
   if (postError || !post) {
     return (
       <div className="max-w-4xl mx-auto pt-24 px-6">
@@ -127,7 +122,6 @@ const PostDetailPage: React.FC = () => {
         Voltar para a Comunidade
       </Button>
       
-      {/* Post Details */}
       <PostDetail 
         post={post} 
         isOwner={user?.id === post.user_id}
@@ -135,18 +129,15 @@ const PostDetailPage: React.FC = () => {
         onDelete={handleDeletePost}
       />
       
-      {/* Comments Section */}
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-white">Comentários</h2>
         
-        {/* Comment Form */}
         <CommentForm 
           isLoggedIn={!!user}
           onSubmit={handleCreateComment}
           isPending={createComment.isPending}
         />
         
-        {/* Comments List */}
         <CommentsList 
           comments={comments}
           isLoading={commentsLoading}

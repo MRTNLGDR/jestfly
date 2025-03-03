@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCommunityPosts } from '@/hooks/useCommunity';
+import { useCommunityPosts } from '@/hooks/community';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, MessageSquare } from 'lucide-react';
 import CategoryTabs from './CategoryTabs';
@@ -17,7 +16,6 @@ const CommunityHome: React.FC = () => {
     likePost 
   } = useCommunityPosts(activeCategory !== 'all' ? activeCategory : undefined);
 
-  // Função para lidar com o clique no botão de curtir
   const handleLikePost = async (postId: string) => {
     if (!user) {
       return;
@@ -30,7 +28,6 @@ const CommunityHome: React.FC = () => {
     }
   };
 
-  // Filtrar posts destacados e normais
   const featuredPosts = posts.filter(post => post.is_featured);
   const normalPosts = posts.filter(post => !post.is_featured);
 
@@ -38,7 +35,6 @@ const CommunityHome: React.FC = () => {
     <div className="pt-24 px-6">
       <h1 className="text-4xl md:text-6xl font-bold text-white mb-8">JESTFLY Community</h1>
       
-      {/* Filtro de categorias */}
       <CategoryTabs 
         activeCategory={activeCategory} 
         onCategoryChange={setActiveCategory} 
@@ -54,7 +50,6 @@ const CommunityHome: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Posts destacados */}
           {featuredPosts.length > 0 && (
             <PostsList 
               title="Destacados"
@@ -64,7 +59,6 @@ const CommunityHome: React.FC = () => {
             />
           )}
 
-          {/* Posts normais */}
           <PostsList 
             title="Todas as publicações"
             posts={normalPosts}
@@ -73,7 +67,6 @@ const CommunityHome: React.FC = () => {
         </div>
       )}
       
-      {/* Botão flutuante para criar novo post */}
       {user && (
         <Link to="/community/new-post" className="fixed bottom-24 right-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full p-4 shadow-lg">
           <MessageSquare className="h-6 w-6" />
