@@ -620,6 +620,26 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin_or_artist: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_admin_or_collaborator: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_artist: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_collaborator: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "creator" | "user"
