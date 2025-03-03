@@ -9,12 +9,11 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
   sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
+import { supabase } from '../../integrations/supabase/client';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -67,46 +66,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async (): Promise<void> => {
     try {
       setError(null);
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
       
-      // Check if this is a new user
-      const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-      if (!userDoc.exists()) {
-        // Create user data for new Google sign-ins
-        await setDoc(doc(firestore, 'users', user.uid), {
-          id: user.uid,
-          email: user.email,
-          displayName: user.displayName || user.email?.split('@')[0],
-          username: (user.email?.split('@')[0] || '') + '-' + Math.floor(Math.random() * 1000),
-          profileType: 'fan', // Default profile type
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          lastLogin: new Date(),
-          isVerified: user.emailVerified,
-          twoFactorEnabled: false,
-          preferences: {
-            theme: 'system',
-            language: 'pt',
-            currency: 'BRL',
-            notifications: {
-              email: true,
-              push: true,
-              sms: false
-            }
-          },
-          socialLinks: {},
-          collectionItems: [],
-          transactions: []
-        });
-      } else {
-        // Update last login time for existing users
-        await setDoc(doc(firestore, 'users', user.uid), 
-          { lastLogin: new Date() }, 
-          { merge: true }
-        );
+      // Use Supabase for Google login instead of Firebase
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      
+      if (error) {
+        console.error("Supabase Google login error:", error);
+        throw error;
       }
+      
+      // Note: The auth state will be handled by Supabase's auth listener 
+      // and the user will be redirected back to the app after authentication
+      console.log("Supabase Google login initiated:", data);
+      
     } catch (err: any) {
       console.error("Google login error:", err);
       setError(err.message);
@@ -155,6 +132,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async (): Promise<void> => {
     try {
+      // Also sign out from Supabase if we're using it
+      await supabase.auth.signOut();
       await signOut(auth);
     } catch (err: any) {
       console.error("Logout error:", err);

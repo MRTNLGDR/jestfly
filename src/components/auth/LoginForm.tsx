@@ -52,11 +52,20 @@ export const LoginForm: React.FC = () => {
   const handleGoogleLogin = async () => {
     setIsSubmitting(true);
     try {
+      const loadingToast = toast.loading('Conectando com Google...');
       await loginWithGoogle();
-      toast.success('Login bem-sucedido!');
-      navigate('/profile');
+      toast.dismiss(loadingToast);
+      toast.success('Login com Google iniciado!');
+      // Nota: O usuário será redirecionado automaticamente pelo Supabase OAuth
     } catch (error: any) {
-      toast.error('Falha ao fazer login com Google: ' + error.message);
+      console.error('Google login error:', error);
+      let errorMessage = 'Falha ao fazer login com Google';
+      
+      if (error.message?.includes('provider is not enabled')) {
+        errorMessage = 'Login com Google não está habilitado. Entre em contato com o administrador.';
+      } 
+      
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
