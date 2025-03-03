@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/auth';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { Textarea } from "../components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
@@ -219,12 +219,11 @@ const ProfilePage: React.FC = () => {
                   
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-zinc-300">Bio</label>
-                    <Input
-                      as="textarea"
+                    <Textarea
                       name="bio"
                       value={formData.bio}
                       onChange={handleInputChange}
-                      className="bg-zinc-900/60 border-zinc-800 text-white min-h-[100px]"
+                      className="bg-zinc-900/60 border-zinc-800 text-white min-h-[100px] resize-none"
                     />
                   </div>
                   
