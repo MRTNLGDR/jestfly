@@ -1,12 +1,15 @@
 
 import { supabase } from "../../../integrations/supabase/client";
 import { User } from "../../../models/User";
-import { statusService } from "./statusService";
+import { statusService, checkGoogleAuthEnabled } from "./statusService";
 import { profileService } from "./profileService";
-import { checkGoogleAuthEnabled } from "./statusService";
 
 /**
  * Supabase authentication service
+ * 
+ * Note: This service is no longer in active use as the application
+ * has migrated to Firebase for authentication. This file is maintained
+ * to prevent build errors.
  */
 export const supabaseAuthService = {
   // Re-export services from other modules
@@ -20,22 +23,9 @@ export const supabaseAuthService = {
    */
   async loginAndCheckAdmin(email: string, password: string): Promise<{ isAdmin: boolean, user: any }> {
     try {
-      // Perform login
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) throw error;
-
-      if (!data.user) {
-        throw new Error('User not found');
-      }
-
-      // Check if admin
-      const isAdmin = await statusService.checkAdminStatus(data.user.id);
-
-      return { isAdmin, user: data.user };
+      console.warn('Using supabaseAuthService.loginAndCheckAdmin, but app has migrated to Firebase');
+      // Dummy implementation to avoid build errors
+      throw new Error('Application uses Firebase authentication instead of Supabase');
     } catch (error: any) {
       console.error('Error logging in and checking admin:', error);
       throw error;
@@ -47,27 +37,9 @@ export const supabaseAuthService = {
    */
   async registerUser(email: string, password: string, userData: Partial<User>): Promise<any> {
     try {
-      // Register user
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username: userData.username,
-            full_name: userData.displayName, 
-            profile_type: userData.profileType
-          }
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Sync profile
-        await profileService.syncUserProfile(data.user.id, userData);
-      }
-
-      return data.user;
+      console.warn('Using supabaseAuthService.registerUser, but app has migrated to Firebase');
+      // Dummy implementation to avoid build errors
+      throw new Error('Application uses Firebase authentication instead of Supabase');
     } catch (error) {
       console.error('Error registering user:', error);
       throw error;
@@ -79,27 +51,9 @@ export const supabaseAuthService = {
    */
   async loginWithGoogle(): Promise<any> {
     try {
-      // First check if Google Auth is enabled
-      const isEnabled = await checkGoogleAuthEnabled();
-      if (!isEnabled) {
-        throw new Error('Google Auth is not enabled in Supabase');
-      }
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-
-      if (error) {
-        if (error.message.includes('provider is not enabled')) {
-          throw new Error('Google login is not enabled. Contact the administrator.');
-        }
-        throw error;
-      }
-
-      return data;
+      console.warn('Using supabaseAuthService.loginWithGoogle, but app has migrated to Firebase');
+      // Dummy implementation to avoid build errors
+      throw new Error('Application uses Firebase authentication instead of Supabase');
     } catch (error) {
       console.error('Error logging in with Google:', error);
       throw error;
@@ -111,11 +65,9 @@ export const supabaseAuthService = {
    */
   async resetPassword(email: string): Promise<void> {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
-
-      if (error) throw error;
+      console.warn('Using supabaseAuthService.resetPassword, but app has migrated to Firebase');
+      // Dummy implementation to avoid build errors
+      throw new Error('Application uses Firebase authentication instead of Supabase');
     } catch (error) {
       console.error('Error requesting password reset:', error);
       throw error;
@@ -127,8 +79,9 @@ export const supabaseAuthService = {
    */
   async logout(): Promise<void> {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      console.warn('Using supabaseAuthService.logout, but app has migrated to Firebase');
+      // Dummy implementation to avoid build errors
+      throw new Error('Application uses Firebase authentication instead of Supabase');
     } catch (error) {
       console.error('Error logging out:', error);
       throw error;
@@ -140,9 +93,8 @@ export const supabaseAuthService = {
    */
   async getCurrentUser() {
     try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      return data.session?.user || null;
+      console.warn('Using supabaseAuthService.getCurrentUser, but app has migrated to Firebase');
+      return null;
     } catch (error) {
       console.error('Error getting current user:', error);
       return null;
