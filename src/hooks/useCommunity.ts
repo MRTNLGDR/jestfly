@@ -3,6 +3,6 @@
 // for backward compatibility during the refactoring process
 
 import { useCommunityPosts } from './community/usePosts';
-import { usePostComments } from './community/useComments';
+import { useComments } from './community/useComments';
 
-export { useCommunityPosts, usePostComments };
+export { useCommunityPosts, useComments };
