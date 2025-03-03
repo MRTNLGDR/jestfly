@@ -1,9 +1,16 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useState } from 'react';
 import { toast } from 'sonner';
-import { CommunityPost, PostComment, PostCategory, TablesInsert } from '@/types/community';
+import { 
+  CommunityPost, 
+  PostComment, 
+  PostCategory, 
+  CreatePostInput,
+  CreateCommentInput,
+  CreatePostLikeInput,
+  CreateCommentLikeInput
+} from '@/types/community';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useCommunityPosts = (category?: string) => {
@@ -11,11 +18,12 @@ export const useCommunityPosts = (category?: string) => {
   const { user } = useAuth();
 
   const fetchPosts = async (): Promise<CommunityPost[]> => {
-    // Usar uma abordagem mais direta para evitar problemas de tipagem
-    let query = supabase.from('community_posts').select(`
-      *,
-      user:profiles(username, display_name, avatar)
-    `);
+    let query = supabase
+      .from('community_posts')
+      .select(`
+        *,
+        user:profiles(username, display_name, avatar)
+      `);
 
     // Filtrar por categoria se especificada
     if (category && category !== 'all') {
@@ -32,8 +40,7 @@ export const useCommunityPosts = (category?: string) => {
       throw new Error(error.message);
     }
 
-    // Converter explicitamente para nosso tipo
-    return (data || []) as unknown as CommunityPost[];
+    return data as unknown as CommunityPost[];
   };
 
   const {
@@ -47,14 +54,21 @@ export const useCommunityPosts = (category?: string) => {
   });
 
   const createPost = useMutation({
-    mutationFn: async (newPost: TablesInsert['community_posts']) => {
+    mutationFn: async (newPost: CreatePostInput) => {
       if (!user) {
         throw new Error('Você precisa estar logado para criar um post');
       }
 
       const { data, error } = await supabase
         .from('community_posts')
-        .insert(newPost)
+        .insert({
+          title: newPost.title,
+          content: newPost.content,
+          category: newPost.category,
+          user_id: newPost.user_id,
+          is_pinned: newPost.is_pinned || false,
+          is_featured: newPost.is_featured || false
+        })
         .select();
 
       if (error) {
@@ -62,7 +76,7 @@ export const useCommunityPosts = (category?: string) => {
         throw new Error(error.message);
       }
 
-      return (data?.[0] || null) as unknown as CommunityPost;
+      return data?.[0] as unknown as CommunityPost;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['communityPosts'] });
@@ -103,7 +117,7 @@ export const useCommunityPosts = (category?: string) => {
       }
 
       // Se não curtiu, adiciona a curtida
-      const likeData: TablesInsert['post_likes'] = {
+      const likeData: CreatePostLikeInput = {
         post_id: postId,
         user_id: user.id
       };
@@ -188,7 +202,7 @@ export const usePostComments = (postId: string) => {
       throw new Error(error.message);
     }
 
-    return (data || []) as unknown as PostComment[];
+    return data as unknown as PostComment[];
   };
 
   const {
@@ -208,7 +222,7 @@ export const usePostComments = (postId: string) => {
         throw new Error('Você precisa estar logado para comentar');
       }
 
-      const commentData: TablesInsert['post_comments'] = {
+      const commentData: CreateCommentInput = {
         post_id: postId,
         user_id: user.id,
         content
@@ -224,7 +238,7 @@ export const usePostComments = (postId: string) => {
         throw new Error(error.message);
       }
 
-      return (data?.[0] || null) as unknown as PostComment;
+      return data?.[0] as unknown as PostComment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['postComments', postId] });
@@ -292,7 +306,7 @@ export const usePostComments = (postId: string) => {
       }
 
       // Se não curtiu, adiciona a curtida
-      const likeData: TablesInsert['comment_likes'] = {
+      const likeData: CreateCommentLikeInput = {
         comment_id: commentId,
         user_id: user.id
       };

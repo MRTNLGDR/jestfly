@@ -52,27 +52,34 @@ export type CommentLike = {
   created_at: string;
 };
 
-// Tipos relacionados às tabelas do Supabase para uso com tipagem genérica
-export type TablesInsert = {
-  community_posts: {
-    title: string;
-    content: string;
-    category: PostCategory;
-    user_id: string;
-    is_pinned?: boolean;
-    is_featured?: boolean;
-  };
-  post_comments: {
-    post_id: string;
-    user_id: string;
-    content: string;
-  };
-  post_likes: {
-    post_id: string;
-    user_id: string;
-  };
-  comment_likes: {
-    comment_id: string;
-    user_id: string;
-  };
+// Work around TypeScript issues by declaring our table types explicitly
+export type CommunityPostsTable = Omit<CommunityPost, "user">;
+export type PostCommentsTable = Omit<PostComment, "user">;
+export type PostLikesTable = PostLike;
+export type CommentLikesTable = CommentLike;
+
+// Input types for creating new records
+export type CreatePostInput = {
+  title: string;
+  content: string;
+  category: PostCategory;
+  user_id: string;
+  is_pinned?: boolean;
+  is_featured?: boolean;
+};
+
+export type CreateCommentInput = {
+  post_id: string;
+  user_id: string;
+  content: string;
+};
+
+export type CreatePostLikeInput = {
+  post_id: string;
+  user_id: string;
+};
+
+export type CreateCommentLikeInput = {
+  comment_id: string;
+  user_id: string;
 };
