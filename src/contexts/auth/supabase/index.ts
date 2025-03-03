@@ -1,10 +1,14 @@
 
-/**
- * @deprecated These exports are deprecated as the app now uses Firebase instead of Supabase for authentication.
- */
+// This file is a placeholder for Supabase auth services index
+// which has been deprecated in favor of Firebase auth
 
-import { authService } from './authService';
-import { profileService } from './profileService';
-import { statusService } from './statusService';
+import { fetchUserProfile, updateUserProfile } from './profileService';
+import { checkSessionStatus, subscribeToAuthChanges } from './statusService';
 
-export { authService, profileService, statusService };
+// Export placeholders to prevent import errors
+export const supabaseAuthService = {
+  fetchUserProfile,
+  updateUserProfile,
+  checkSessionStatus,
+  subscribeToAuthChanges
+};

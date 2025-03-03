@@ -1,17 +1,16 @@
 
-/**
- * @deprecated This service is deprecated as the app now uses Firebase instead of Supabase for authentication.
- */
+// This file is a placeholder for the Supabase profile service
+// which has been deprecated in favor of Firebase auth
+// It's kept to prevent import errors in existing code
 
-// Placeholder export to fix import errors
-export const profileService = {
-  // Placeholder methods
-  getProfile: async () => {
-    console.warn('profileService is deprecated. The app now uses Firebase.');
-    return null;
-  },
-  updateProfile: async () => {
-    console.warn('profileService is deprecated. The app now uses Firebase.');
-    return null;
-  },
+console.warn('The Supabase profile service is deprecated and will be removed in a future version');
+
+export const fetchUserProfile = async () => {
+  console.warn('Using deprecated Supabase profile service');
+  return null;
+};
+
+export const updateUserProfile = async () => {
+  console.warn('Using deprecated Supabase profile service');
+  return null;
 };

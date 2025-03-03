@@ -1,6 +1,6 @@
 
 import { User as FirebaseUser } from 'firebase/auth';
-import { User } from '../models/User';
+import { User } from '../../models/User';
 
 export interface AuthContextType {
   currentUser: FirebaseUser | null;

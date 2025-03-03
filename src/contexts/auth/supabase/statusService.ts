@@ -1,17 +1,16 @@
-/**
- * @deprecated This service is deprecated as the app now uses Firebase instead of Supabase for authentication.
- */
 
-// Placeholder exports to fix import errors
-export const statusService = {
-  // Placeholder methods
-  getStatus: async () => {
-    console.warn('statusService is deprecated. The app now uses Firebase.');
-    return null;
-  },
+// This file is a placeholder for the Supabase status service
+// which has been deprecated in favor of Firebase auth
+// It's kept to prevent import errors in existing code
+
+console.warn('The Supabase auth service is deprecated and will be removed in a future version');
+
+export const checkSessionStatus = async () => {
+  console.warn('Using deprecated Supabase auth service');
+  return null;
 };
 
-export const checkGoogleAuthEnabled = async () => {
-  console.warn('checkGoogleAuthEnabled is deprecated. The app now uses Firebase.');
-  return false;
+export const subscribeToAuthChanges = () => {
+  console.warn('Using deprecated Supabase auth service');
+  return () => {}; // return empty cleanup function
 };
