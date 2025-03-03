@@ -14,6 +14,7 @@ export interface ProfileData {
   is_verified: boolean | null;
   social_links: Record<string, string> | null;
   preferences: Record<string, any> | null;
+  two_factor_enabled?: boolean;
 }
 
 export interface SignUpUserData {

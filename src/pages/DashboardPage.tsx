@@ -1,17 +1,15 @@
-
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
-import { User, Music, Calendar, ShoppingBag, MessageSquare, Users, Headphones, Diamond } from 'lucide-react';
+import { User, Music, Calendar, ShoppingBag, MessageSquare, Users, Headphones, Diamond, Settings } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // Verifica se a página deve redirecionar para uma seção específica com base no tipo de perfil
   useEffect(() => {
     if (profile?.profile_type === 'admin') {
       setActiveTab('admin');
@@ -22,12 +20,10 @@ const DashboardPage: React.FC = () => {
     }
   }, [profile]);
 
-  // Função para navegar para outras páginas
   const navigateTo = (path: string) => {
     navigate(path);
   };
 
-  // Renderiza widgets diferentes com base no tipo de perfil
   const renderProfileSpecificWidgets = () => {
     switch (profile?.profile_type) {
       case 'admin':
@@ -117,7 +113,6 @@ const DashboardPage: React.FC = () => {
           </div>
         );
       
-      // Fan é o caso padrão
       default:
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -175,7 +170,6 @@ const DashboardPage: React.FC = () => {
           <TabsContent value="overview">
             <div className="space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Widgets comuns a todos os usuários */}
                 <GlassCard className="p-6 hover:bg-blue-950/30 transition-all cursor-pointer" onClick={() => navigateTo('/profile')}>
                   <div className="flex items-center space-x-4">
                     <div className="bg-blue-900/50 p-3 rounded-lg">
@@ -213,7 +207,6 @@ const DashboardPage: React.FC = () => {
                 </GlassCard>
               </div>
               
-              {/* Widgets específicos por tipo de perfil */}
               <div className="mt-8">
                 <h2 className="text-2xl font-semibold mb-4 text-white">
                   {profile?.profile_type === 'admin' 

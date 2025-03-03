@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -67,14 +66,14 @@ const AnalyticsPage: React.FC = () => {
   const isArtistOrAdmin = profile?.profile_type === 'artist' || profile?.profile_type === 'admin';
 
   // Função para formatar números grandes
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M';
     }
     if (num >= 1000) {
       return (num / 1000).toFixed(1) + 'K';
     }
-    return num;
+    return num.toString();
   };
 
   // Função para formatar tooltips

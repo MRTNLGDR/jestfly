@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -95,7 +94,13 @@ const SettingsPage: React.FC = () => {
       // Atualiza o perfil com o status de 2FA
       if (profile?.two_factor_enabled !== securitySettings.twoFactorEnabled) {
         const updatedProfile: Partial<ProfileData> = {
-          two_factor_enabled: securitySettings.twoFactorEnabled
+          preferences: {
+            ...profile?.preferences,
+            security: {
+              ...profile?.preferences?.security,
+              two_factor_enabled: securitySettings.twoFactorEnabled
+            }
+          }
         };
         
         const { data, error } = await updateProfile(updatedProfile);
