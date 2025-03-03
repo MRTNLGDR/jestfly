@@ -3,7 +3,33 @@ import { supabase } from "../../integrations/supabase/client";
 import { User } from "../../models/User";
 import { toast } from "sonner";
 
+// Função para verificar se o Google Auth está habilitado
+const checkGoogleAuthEnabled = async (): Promise<boolean> => {
+  try {
+    // Esta é uma requisição leve para verificar a configuração de autenticação
+    const { data, error } = await supabase.auth.getSession();
+    
+    // Se houver erro, provavelmente a configuração está errada
+    if (error) {
+      console.error("Erro ao verificar sessão Supabase:", error);
+      return false;
+    }
+    
+    // Se supabase estiver funcionando, podemos assumir que a autenticação básica está ok
+    // Mas o Google auth precisa ser verificado de outra forma ou assumido com base na configuração
+    return true; // Por enquanto, retornamos true e tratamos erros específicos ao tentar login
+  } catch (error) {
+    console.error("Erro ao verificar configuração de autenticação:", error);
+    return false;
+  }
+};
+
 export const supabaseAuthService = {
+  // Nova função para verificar se o Google Auth está habilitado
+  isGoogleAuthEnabled: async (): Promise<boolean> => {
+    return await checkGoogleAuthEnabled();
+  },
+
   // Função para verificar se o usuário atual é um admin no Supabase
   async checkAdminStatus(userId: string): Promise<boolean> {
     try {
@@ -105,7 +131,8 @@ export const supabaseAuthService = {
         options: {
           data: {
             username: userData.username,
-            full_name: userData.displayName
+            full_name: userData.displayName, 
+            profile_type: userData.profileType
           }
         }
       });
@@ -127,6 +154,12 @@ export const supabaseAuthService = {
   // Login com Google
   async loginWithGoogle(): Promise<any> {
     try {
+      // Primeiro tentamos verificar se o Google Auth está habilitado
+      const isEnabled = await checkGoogleAuthEnabled();
+      if (!isEnabled) {
+        throw new Error('Google Auth não está habilitado no Supabase');
+      }
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -134,7 +167,12 @@ export const supabaseAuthService = {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('provider is not enabled')) {
+          throw new Error('Login com Google não está habilitado. Entre em contato com o administrador.');
+        }
+        throw error;
+      }
 
       return data;
     } catch (error) {

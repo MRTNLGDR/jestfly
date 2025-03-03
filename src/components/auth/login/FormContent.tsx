@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { Button } from "../../ui/button";
@@ -9,6 +9,7 @@ import { Mail, LockKeyhole, ArrowRight, CheckCircle, XCircle, Loader2, ShieldAle
 import { FormField } from './FormField';
 import { SocialLoginOptions } from './SocialLoginOptions';
 import { LoginFormData } from './types';
+import { supabaseAuthService } from '../../../contexts/auth/supabaseAuthService';
 
 export const FormContent: React.FC = () => {
   const [formData, setFormData] = useState<LoginFormData>({
@@ -17,8 +18,24 @@ export const FormContent: React.FC = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  // Verificar se o Google Auth está habilitado
+  useEffect(() => {
+    const checkGoogleAuth = async () => {
+      try {
+        const enabled = await supabaseAuthService.isGoogleAuthEnabled();
+        setIsGoogleEnabled(enabled);
+      } catch (error) {
+        console.error("Erro ao verificar status do Google Auth:", error);
+        setIsGoogleEnabled(false);
+      }
+    };
+    
+    checkGoogleAuth();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -66,7 +83,7 @@ export const FormContent: React.FC = () => {
       let errorMessage = 'Falha ao fazer login';
       
       if (error.message?.includes('user-not-found') || error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Usuário não encontrado';
+        errorMessage = 'Usuário não encontrado ou senha incorreta';
       } else if (error.message?.includes('wrong-password') || error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Senha incorreta';
       } else if (error.message?.includes('invalid-email')) {
@@ -74,7 +91,7 @@ export const FormContent: React.FC = () => {
       } else if (error.message?.includes('too-many-requests')) {
         errorMessage = 'Muitas tentativas de login. Tente novamente mais tarde';
       } else if (error.message?.includes('api-key-not-valid')) {
-        errorMessage = 'Erro de configuração. Entre em contato com o suporte.';
+        errorMessage = 'Erro de configuração do Firebase. Entre em contato com o suporte.';
       }
       
       // Mostrar feedback visual de erro
@@ -88,6 +105,11 @@ export const FormContent: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (!isGoogleEnabled) {
+      toast.error('Login com Google não está configurado. Entre em contato com o administrador.');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Mostrar feedback visual de carregamento
@@ -116,7 +138,9 @@ export const FormContent: React.FC = () => {
       
       let errorMessage = 'Falha ao fazer login com Google';
       
-      if (error.message?.includes('api-key-not-valid')) {
+      if (error.message?.includes('provider is not enabled')) {
+        errorMessage = 'Login com Google não está habilitado. Entre em contato com o administrador.';
+      } else if (error.message?.includes('api-key-not-valid')) {
         errorMessage = 'Erro de configuração. Entre em contato com o suporte.';
       }
       
@@ -204,6 +228,7 @@ export const FormContent: React.FC = () => {
           <SocialLoginOptions
             onGoogleLogin={handleGoogleLogin}
             isSubmitting={isSubmitting}
+            isGoogleEnabled={isGoogleEnabled}
           />
         )}
       </CardContent>

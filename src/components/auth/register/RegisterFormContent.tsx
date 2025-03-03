@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "../../ui/button";
 import { Mail, User, Lock, AtSign } from 'lucide-react';
 import { FormField } from './FormField';
@@ -7,6 +7,7 @@ import { ProfileTypeSelector } from './ProfileTypeSelector';
 import { AdminCodeField } from './AdminCodeField';
 import { SocialLoginOptions } from './SocialLoginOptions';
 import { RegisterFormData } from './types';
+import { supabaseAuthService } from '../../../contexts/auth/supabaseAuthService';
 
 interface RegisterFormContentProps {
   formData: RegisterFormData;
@@ -27,6 +28,23 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
   isSubmitting,
   showAdminField
 }) => {
+  const [isGoogleEnabled, setIsGoogleEnabled] = useState(false);
+
+  // Verificar se o Google Auth está habilitado
+  useEffect(() => {
+    const checkGoogleAuth = async () => {
+      try {
+        const enabled = await supabaseAuthService.isGoogleAuthEnabled();
+        setIsGoogleEnabled(enabled);
+      } catch (error) {
+        console.error("Erro ao verificar status do Google Auth:", error);
+        setIsGoogleEnabled(false);
+      }
+    };
+    
+    checkGoogleAuth();
+  }, []);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <FormField
@@ -101,6 +119,7 @@ export const RegisterFormContent: React.FC<RegisterFormContentProps> = ({
       <SocialLoginOptions
         onGoogleLogin={handleGoogleRegister}
         isSubmitting={isSubmitting}
+        isGoogleEnabled={isGoogleEnabled}
       />
     </form>
   );
