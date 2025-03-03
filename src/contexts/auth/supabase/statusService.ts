@@ -7,8 +7,3 @@ export const statusService = {
     return { isAuthenticated: false };
   },
 };
-
-export const checkGoogleAuthEnabled = async (): Promise<boolean> => {
-  console.warn('checkGoogleAuthEnabled is a stub');
-  return false;
-};
