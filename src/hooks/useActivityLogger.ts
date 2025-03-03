@@ -27,11 +27,11 @@ export const useActivityLogger = () => {
     try {
       // Chamar a função RPC para registrar a atividade
       const { data, error } = await supabase.rpc('log_user_activity', {
-        action,
+        action: action,
         entity_type: entityType,
         entity_id: entityId,
-        details,
-        success
+        details: details,
+        success: success
       });
 
       if (error) {

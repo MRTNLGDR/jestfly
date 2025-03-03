@@ -17,11 +17,11 @@ interface ActivityLog {
   id: string;
   user_id: string;
   action: string;
-  entity_type: string;
+  entity_type: string | null;
   entity_id: string | null;
-  details: Record<string, any>;
-  ip_address: string;
-  user_agent: string;
+  details: Record<string, any> | null;
+  ip_address: string | null;
+  user_agent: string | null;
   created_at: string;
   success: boolean;
   profile?: {
@@ -50,6 +50,7 @@ const LogsPage: React.FC = () => {
     
     setLoading(true);
     try {
+      // Aqui usamos uma query "raw" para acessar a tabela que não está nos tipos gerados
       let query = supabase
         .from('user_activity_logs')
         .select(`
@@ -90,7 +91,7 @@ const LogsPage: React.FC = () => {
       }
       
       // Filtrar por termo de busca (client-side)
-      let filteredData = data as ActivityLog[];
+      let filteredData = data || [];
       if (searchTerm) {
         const lowerSearchTerm = searchTerm.toLowerCase();
         filteredData = filteredData.filter(log => 
@@ -102,7 +103,8 @@ const LogsPage: React.FC = () => {
         );
       }
       
-      setLogs(filteredData);
+      // TypeScript não sabe o formato exato, então fazemos um cast seguro
+      setLogs(filteredData as ActivityLog[]);
     } catch (error) {
       console.error('Erro ao buscar logs:', error);
     } finally {

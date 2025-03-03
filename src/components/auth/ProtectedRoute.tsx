@@ -89,6 +89,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return '/';
     }
     
+    // Se está em rota de logs do sistema mas não é colaborador nem admin
+    if (location.pathname.startsWith('/system/logs') && 
+        !['collaborator', 'admin'].includes(profile.profile_type)) {
+      return '/';
+    }
+    
     // Para outros casos, redirecionar para a home
     return '/';
   };

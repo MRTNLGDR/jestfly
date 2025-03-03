@@ -147,7 +147,27 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
       
       if (data) {
         console.log('Perfil atualizado:', data);
-        setProfile(data);
+        // Convertendo explicitamente o objeto data para ProfileData
+        const profileData: ProfileData = {
+          id: data.id,
+          email: data.email,
+          display_name: data.display_name,
+          username: data.username,
+          profile_type: data.profile_type,
+          avatar: data.avatar,
+          bio: data.bio,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          last_login: data.last_login,
+          wallet_address: data.wallet_address,
+          roles: data.roles,
+          permissions: data.permissions,
+          is_verified: data.is_verified,
+          social_links: data.social_links as Record<string, string> | null,
+          preferences: data.preferences,
+          two_factor_enabled: data.two_factor_enabled
+        };
+        setProfile(profileData);
         return true;
       }
       
