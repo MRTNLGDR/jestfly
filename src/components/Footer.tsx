@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Diamond, Globe, Github, Twitter, Instagram, Settings, Info, Lock } from 'lucide-react';
+import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/auth';
 
 const Footer: React.FC = () => {

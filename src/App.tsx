@@ -74,10 +74,10 @@ function App() {
     <AuthProvider>
       <LanguageProvider>
         <Router>
-          <div className="app flex flex-col min-h-screen">
+          <div className="flex flex-col min-h-screen bg-black">
             <GlassHeader menuItems={menuItems} />
             <Toaster position="top-right" />
-            <div className="flex-grow">
+            <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
                 <Route path="/store/*" element={<NewStorePage />} />
@@ -124,7 +124,7 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
               </Routes>
-            </div>
+            </main>
             <Footer />
           </div>
         </Router>
