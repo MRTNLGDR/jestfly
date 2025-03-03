@@ -67,14 +67,16 @@ describe('useAuthState - Supabase Authentication', () => {
       error: null,
     });
     
-    vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
-      data: { 
-        subscription: { 
-          unsubscribe: vi.fn(),
-          id: 'test-id'
-        } 
-      },
-    } as any);
+    vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((callback) => {
+      return {
+        data: { 
+          subscription: { 
+            unsubscribe: vi.fn(),
+            id: 'test-id'
+          } 
+        },
+      } as any;
+    });
     
     vi.mocked(supabase.from).mockReturnValue({
       select: vi.fn().mockReturnThis(),
@@ -422,7 +424,7 @@ describe('useAuthState - Supabase Authentication', () => {
       
       // Arrange - mock auth state change callback
       let authChangeCallback: any;
-      vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((event, callback) => {
+      vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((callback) => {
         authChangeCallback = callback;
         return {
           data: { 
@@ -538,7 +540,7 @@ describe('useAuthState - Supabase Authentication', () => {
       
       // Arrange - mock auth state change callback
       let authChangeCallback: any;
-      vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((event, callback) => {
+      vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((callback) => {
         authChangeCallback = callback;
         return {
           data: { 
@@ -570,3 +572,4 @@ describe('useAuthState - Supabase Authentication', () => {
     });
   });
 });
+
