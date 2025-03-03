@@ -2,22 +2,13 @@
 import React from 'react';
 import CommunityNav from './CommunityNav';
 import GlassHeader from '@/components/GlassHeader';
-
-const menuItems = [
-  { label: "Home", href: "/" },
-  { label: "Comunidade", href: "/community" },
-  { label: "Loja", href: "/store" },
-  { label: "Bookings", href: "/bookings" },
-  { label: "Demo", href: "/submit-demo" },
-  { label: "Transmissão", href: "/live" },
-  { label: "Press Kit", href: "/press-kit" },
-  { label: "Airdrop", href: "/airdrop" }
-];
+import { mainMenuItems } from '@/constants/menuItems';
+import { Gift, ArrowRight } from 'lucide-react';
 
 const GiveawaysPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-950">
-      <GlassHeader menuItems={menuItems} />
+      <GlassHeader menuItems={mainMenuItems} />
       
       <div className="pt-16">
         <CommunityNav />
@@ -28,12 +19,34 @@ const GiveawaysPage: React.FC = () => {
           </h1>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-black/40 backdrop-blur-md border border-purple-500/20 rounded-lg p-6">
-              <h3 className="text-xl font-bold text-white mb-2">Próximos sorteios</h3>
-              <p className="text-white/70">
+            <div className="bg-black/40 backdrop-blur-md border border-purple-500/20 rounded-lg p-6 transition-all hover:border-purple-500/40 hover:transform hover:translate-y-[-5px]">
+              <div className="flex items-center gap-3 mb-4">
+                <Gift className="h-5 w-5 text-purple-400" />
+                <h3 className="text-xl font-bold text-white">Próximos sorteios</h3>
+              </div>
+              <p className="text-white/70 mb-4">
                 Em breve anunciaremos sorteios exclusivos para a comunidade JESTFLY.
                 Fique de olho para não perder nenhuma oportunidade!
               </p>
+              <div className="flex items-center text-purple-400 text-sm font-medium mt-2 group cursor-pointer">
+                <span>Notificar-me</span>
+                <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
+              </div>
+            </div>
+            
+            <div className="bg-black/40 backdrop-blur-md border border-purple-500/20 rounded-lg p-6 transition-all hover:border-purple-500/40 hover:transform hover:translate-y-[-5px]">
+              <div className="flex items-center gap-3 mb-4">
+                <Gift className="h-5 w-5 text-purple-400" />
+                <h3 className="text-xl font-bold text-white">NFT Exclusivo</h3>
+              </div>
+              <p className="text-white/70 mb-4">
+                Sorteio de um NFT exclusivo para membros premium da comunidade.
+                Inscreva-se para concorrer a esta peça digital única.
+              </p>
+              <div className="flex items-center text-purple-400 text-sm font-medium mt-2 group cursor-pointer">
+                <span>Em breve</span>
+                <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
+              </div>
             </div>
           </div>
         </div>

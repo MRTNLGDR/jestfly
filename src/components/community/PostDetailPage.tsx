@@ -10,16 +10,18 @@ import CommunityNav from './CommunityNav';
 import GlassHeader from '@/components/GlassHeader';
 import { mainMenuItems } from '@/constants/menuItems';
 import { supabase } from '@/integrations/supabase/client';
-import { CommunityPost, Comment } from '@/types/community';
+import { Post, Comment } from '@/types/community';
+import { useToast } from '@/components/ui/use-toast';
 
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState<CommunityPost | null>(null);
+  const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCommentLoading, setIsCommentLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
+  const { toast } = useToast();
   
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -44,19 +46,14 @@ const PostDetailPage: React.FC = () => {
           
         if (error) throw error;
         
-        // Transform to match CommunityPost type
-        const postData = {
-          ...data,
-          user: {
-            username: data.profiles?.username || 'unknown',
-            display_name: data.profiles?.username || 'Usuário',
-            avatar: data.profiles?.avatar || null
-          }
-        };
-        
-        setPost(postData as unknown as CommunityPost);
+        setPost(data as unknown as Post);
       } catch (error) {
         console.error('Erro ao buscar post:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar publicação",
+          description: "Não foi possível carregar a publicação solicitada."
+        });
         navigate('/community');
       } finally {
         setIsLoading(false);
@@ -78,6 +75,11 @@ const PostDetailPage: React.FC = () => {
         setComments(data as unknown as Comment[]);
       } catch (error) {
         console.error('Erro ao buscar comentários:', error);
+        toast({
+          variant: "destructive",
+          title: "Erro ao carregar comentários",
+          description: "Não foi possível carregar os comentários desta publicação."
+        });
       } finally {
         setIsCommentLoading(false);
       }
@@ -85,7 +87,7 @@ const PostDetailPage: React.FC = () => {
 
     fetchPost();
     fetchComments();
-  }, [postId, navigate]);
+  }, [postId, navigate, toast]);
 
   const handleLikePost = async () => {
     if (!post) return;
@@ -98,7 +100,10 @@ const PostDetailPage: React.FC = () => {
       }
 
       // Toggle like logic
-      console.log('Like post:', post.id);
+      toast({
+        title: "Funcionalidade em desenvolvimento",
+        description: "A função de curtir posts estará disponível em breve."
+      });
     } catch (error) {
       console.error('Erro ao curtir post:', error);
     }
@@ -114,9 +119,20 @@ const PostDetailPage: React.FC = () => {
         .eq('id', post.id);
         
       if (error) throw error;
+      
+      toast({
+        title: "Publicação excluída",
+        description: "Sua publicação foi excluída com sucesso."
+      });
+      
       navigate('/community');
     } catch (error) {
       console.error('Erro ao deletar post:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir publicação",
+        description: "Não foi possível excluir a publicação. Tente novamente."
+      });
     }
   };
 
@@ -128,8 +144,10 @@ const PostDetailPage: React.FC = () => {
         return;
       }
       
-      // Like comment logic would go here
-      console.log('Like comment:', commentId);
+      toast({
+        title: "Funcionalidade em desenvolvimento",
+        description: "A função de curtir comentários estará disponível em breve."
+      });
     } catch (error) {
       console.error('Erro ao curtir comentário:', error);
     }
@@ -146,8 +164,18 @@ const PostDetailPage: React.FC = () => {
       
       // Refresh comments
       setComments(comments.filter(comment => comment.id !== commentId));
+      
+      toast({
+        title: "Comentário excluído",
+        description: "Seu comentário foi excluído com sucesso."
+      });
     } catch (error) {
       console.error('Erro ao deletar comentário:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir comentário",
+        description: "Não foi possível excluir o comentário. Tente novamente."
+      });
     }
   };
 
@@ -169,8 +197,18 @@ const PostDetailPage: React.FC = () => {
       
       // Add new comment to list
       setComments([...comments, data as unknown as Comment]);
+      
+      toast({
+        title: "Comentário adicionado",
+        description: "Seu comentário foi publicado com sucesso."
+      });
     } catch (error) {
       console.error('Erro ao criar comentário:', error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao publicar comentário",
+        description: "Não foi possível publicar seu comentário. Tente novamente."
+      });
     }
   };
   
