@@ -4,6 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from '@/components/ui/loading';
 import { useToast } from '@/hooks/use-toast';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 // Definindo os tipos de perfil permitidos
 type AllowedProfileTypes = 'fan' | 'artist' | 'collaborator' | 'admin';
@@ -14,6 +15,7 @@ interface ProtectedRouteProps {
   requiredRole?: AllowedProfileTypes;
   requireAuth?: boolean;
   redirectPath?: string;
+  resourceName?: string; // Nome do recurso para logging
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
@@ -22,10 +24,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   requireAuth = true,
   redirectPath = "/auth",
+  resourceName
 }) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
   const { toast } = useToast();
+  const { logAccessAttempt } = useActivityLogger();
 
   // Função para verificar permissões baseadas no tipo de perfil
   const hasPermission = () => {
@@ -57,6 +61,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const getRedirectPath = () => {
     // Se o usuário não está autenticado, redirecionar para a página de login
     if (!user || !profile) {
+      // Salvar a localização atual para redirecionar de volta após o login
+      localStorage.setItem('redirectAfterLogin', location.pathname + location.search);
       return redirectPath;
     }
     
@@ -71,20 +77,41 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return '/';
     }
     
+    // Se está em rota de analytics mas não é artista nem admin
+    if (location.pathname.startsWith('/analytics') && 
+        !['artist', 'admin'].includes(profile.profile_type)) {
+      return '/';
+    }
+    
+    // Se está em rota de moderação mas não é colaborador nem admin
+    if (location.pathname.startsWith('/moderation') && 
+        !['collaborator', 'admin'].includes(profile.profile_type)) {
+      return '/';
+    }
+    
     // Para outros casos, redirecionar para a home
     return '/';
   };
 
-  // Mostrar mensagem de acesso negado quando necessário
+  // Registrar tentativas de acesso e mostrar mensagem de acesso negado quando necessário
   useEffect(() => {
     if (!loading && requireAuth) {
+      const hasAccess = hasPermission();
+      const resource = resourceName || location.pathname;
+      
+      // Registrar a tentativa de acesso no log
+      if (user) {
+        logAccessAttempt(resource, hasAccess);
+      }
+      
+      // Mostrar mensagens apropriadas
       if (!user) {
         toast({
           title: "Acesso restrito",
           description: "Faça login para acessar esta página",
           variant: "destructive",
         });
-      } else if (!hasPermission()) {
+      } else if (!hasAccess) {
         // Mensagem específica baseada no motivo da restrição
         if (requiredRole) {
           toast({
@@ -102,7 +129,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         }
       }
     }
-  }, [loading, user, profile, requiredRole, requireAuth, allowedProfiles, toast, location]);
+  }, [loading, user, profile, requiredRole, requireAuth, allowedProfiles, toast, location, logAccessAttempt, resourceName]);
 
   // Enquanto a autenticação está carregando, mostrar um spinner
   if (loading) {

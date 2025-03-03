@@ -26,6 +26,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import NotificationsPage from '@/pages/NotificationsPage';
 import AnalyticsPage from '@/pages/AnalyticsPage';
 import ModerationPage from '@/pages/ModerationPage';
+import LogsPage from '@/pages/LogsPage';
 import './App.css';
 
 // Dados de amostra para homepage
@@ -91,19 +92,19 @@ function App() {
             
             {/* Novas páginas do sistema */}
             <Route path="/dashboard" element={
-              <ProtectedRoute requireAuth={true}>
+              <ProtectedRoute requireAuth={true} resourceName="Dashboard">
                 <DashboardPage />
               </ProtectedRoute>
             } />
             
             <Route path="/settings" element={
-              <ProtectedRoute requireAuth={true}>
+              <ProtectedRoute requireAuth={true} resourceName="Configurações">
                 <SettingsPage />
               </ProtectedRoute>
             } />
             
             <Route path="/notifications" element={
-              <ProtectedRoute requireAuth={true}>
+              <ProtectedRoute requireAuth={true} resourceName="Notificações">
                 <NotificationsPage />
               </ProtectedRoute>
             } />
@@ -112,6 +113,7 @@ function App() {
               <ProtectedRoute 
                 requireAuth={true}
                 allowedProfiles={['artist', 'admin']}
+                resourceName="Analytics"
               >
                 <AnalyticsPage />
               </ProtectedRoute>
@@ -121,20 +123,32 @@ function App() {
               <ProtectedRoute 
                 requireAuth={true}
                 allowedProfiles={['admin', 'collaborator']}
+                resourceName="Moderação"
               >
                 <ModerationPage />
               </ProtectedRoute>
             } />
             
+            {/* Nova página de logs */}
+            <Route path="/system/logs" element={
+              <ProtectedRoute 
+                requireAuth={true}
+                allowedProfiles={['admin', 'collaborator']}
+                resourceName="Logs do Sistema"
+              >
+                <LogsPage />
+              </ProtectedRoute>
+            } />
+            
             {/* Rotas protegidas por autenticação (qualquer usuário logado) */}
             <Route path="/profile" element={
-              <ProtectedRoute requireAuth={true}>
+              <ProtectedRoute requireAuth={true} resourceName="Perfil">
                 <ProfilePage />
               </ProtectedRoute>
             } />
             
             <Route path="/notes" element={
-              <ProtectedRoute requireAuth={true}>
+              <ProtectedRoute requireAuth={true} resourceName="Notas">
                 <NotesPage />
               </ProtectedRoute>
             } />
@@ -150,6 +164,7 @@ function App() {
               <ProtectedRoute 
                 requireAuth={false} 
                 allowedProfiles={['artist', 'admin']}
+                resourceName="Reservas"
               >
                 <BookingsPage />
               </ProtectedRoute>
@@ -163,6 +178,7 @@ function App() {
               <ProtectedRoute 
                 requireAuth={false}
                 allowedProfiles={['artist', 'admin']}
+                resourceName="Live Stream"
               >
                 <LiveStreamPage />
               </ProtectedRoute>
@@ -172,6 +188,7 @@ function App() {
             <Route path="/airdrop" element={
               <ProtectedRoute 
                 requireAuth={false}
+                resourceName="Airdrop"
               >
                 <AirdropPage />
               </ProtectedRoute>
@@ -183,6 +200,7 @@ function App() {
                 requiredRole="artist" 
                 allowedProfiles={['artist', 'admin']}
                 redirectPath="/"
+                resourceName="Envio de Demo"
               >
                 <DemoSubmissionPage />
               </ProtectedRoute>
@@ -205,6 +223,7 @@ function App() {
             <ProtectedRoute 
               requiredRole="admin" 
               redirectPath="/auth"
+              resourceName="Painel Admin"
             >
               <AdminPanel />
             </ProtectedRoute>

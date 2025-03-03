@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
-import { User, Music, Calendar, ShoppingBag, MessageSquare, Users, Headphones, Diamond, Settings } from 'lucide-react';
+import { User, Music, Calendar, ShoppingBag, MessageSquare, Users, Headphones, Diamond, Settings, FileText } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const { user, profile } = useAuth();
@@ -28,7 +28,7 @@ const DashboardPage: React.FC = () => {
     switch (profile?.profile_type) {
       case 'admin':
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <GlassCard className="p-6 hover:bg-purple-950/30 transition-all cursor-pointer" onClick={() => navigateTo('/admin')}>
               <div className="flex items-center space-x-4">
                 <div className="bg-purple-900/50 p-3 rounded-lg">
@@ -49,6 +49,18 @@ const DashboardPage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-medium text-white">Moderação</h3>
                   <p className="text-white/70">Gerencie conteúdo e interações dos usuários</p>
+                </div>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6 hover:bg-yellow-950/30 transition-all cursor-pointer" onClick={() => navigateTo('/system/logs')}>
+              <div className="flex items-center space-x-4">
+                <div className="bg-yellow-900/50 p-3 rounded-lg">
+                  <FileText className="h-6 w-6 text-yellow-300" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium text-white">Logs do Sistema</h3>
+                  <p className="text-white/70">Monitore atividades e segurança</p>
                 </div>
               </div>
             </GlassCard>
@@ -86,7 +98,7 @@ const DashboardPage: React.FC = () => {
       
       case 'collaborator':
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <GlassCard className="p-6 hover:bg-blue-950/30 transition-all cursor-pointer" onClick={() => navigateTo('/moderation')}>
               <div className="flex items-center space-x-4">
                 <div className="bg-blue-900/50 p-3 rounded-lg">
@@ -107,6 +119,18 @@ const DashboardPage: React.FC = () => {
                 <div>
                   <h3 className="text-xl font-medium text-white">Reservas</h3>
                   <p className="text-white/70">Gerencie agendamentos e eventos</p>
+                </div>
+              </div>
+            </GlassCard>
+
+            <GlassCard className="p-6 hover:bg-yellow-950/30 transition-all cursor-pointer" onClick={() => navigateTo('/system/logs')}>
+              <div className="flex items-center space-x-4">
+                <div className="bg-yellow-900/50 p-3 rounded-lg">
+                  <FileText className="h-6 w-6 text-yellow-300" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-medium text-white">Logs do Sistema</h3>
+                  <p className="text-white/70">Monitore atividades e segurança</p>
                 </div>
               </div>
             </GlassCard>
