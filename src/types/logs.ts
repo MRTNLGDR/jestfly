@@ -1,15 +1,30 @@
+// ActivityLog interface used in admin dashboard
+export interface ActivityLog {
+  id: string;
+  user_id: string;
+  action: string;
+  entity_type?: string;
+  entity_id?: string;
+  timestamp: string;
+  success: boolean;
+  ip_address?: string;
+  details?: Record<string, any>;
+  user_email?: string;
+  user_display_name?: string;
+}
 
+// Log interface used in LogsPage
 export interface Log {
   id: string;
   timestamp: string;
   level: 'info' | 'warning' | 'error' | 'debug';
   module: string;
   message: string;
-  details?: string;
-  user_id?: string;
+  details?: string | Record<string, any>;
   user_email?: string;
 }
 
+// Filter interface for the logs page
 export interface LogsFilter {
   search: string;
   dateRange: string;
@@ -18,70 +33,47 @@ export interface LogsFilter {
   activeTab: string;
 }
 
-export interface ActivityLog {
-  id: string;
-  user_id: string;
-  action: string;
-  entity_type?: string;
-  entity_id?: string;
-  success: boolean;
-  ip_address?: string;
-  created_at: string;
-  profile?: {
-    username?: string;
-    display_name?: string;
-    profile_type?: string;
-  } | null;
-  details?: Record<string, any> | null;
-}
-
-// Utility functions for activity logs
-export const formatLogDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.round(diffMs / 60000);
-  
-  if (diffMins < 1) return 'agora';
-  if (diffMins < 60) return `${diffMins}m atrás`;
-  
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h atrás`;
-  
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d atrás`;
-  
-  return date.toLocaleDateString('pt-BR', { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: '2-digit',
+// Helper functions
+export const formatLogDate = (timestamp: string): string => {
+  const date = new Date(timestamp);
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
-  });
+    minute: '2-digit',
+    second: '2-digit'
+  }).format(date);
 };
 
 export const getActionColor = (action: string): string => {
-  const actionLower = action.toLowerCase();
-  
-  if (actionLower.includes('login') || actionLower.includes('entrar')) return 'text-blue-400';
-  if (actionLower.includes('criar') || actionLower.includes('novo') || actionLower.includes('adicionar')) return 'text-green-400';
-  if (actionLower.includes('atualizar') || actionLower.includes('editar') || actionLower.includes('modificar')) return 'text-yellow-400';
-  if (actionLower.includes('excluir') || actionLower.includes('remover') || actionLower.includes('deletar')) return 'text-red-400';
-  if (actionLower.includes('erro') || actionLower.includes('falha')) return 'text-red-400';
-  
-  return 'text-purple-400';
+  if (action.includes('Login') || action.includes('criado') || action.includes('sucesso')) {
+    return 'text-green-400';
+  }
+  if (action.includes('Falha') || action.includes('erro') || action.includes('falhou')) {
+    return 'text-red-400';
+  }
+  if (action.includes('Tentativa') || action.includes('tentou')) {
+    return 'text-amber-400';
+  }
+  return 'text-blue-400';
 };
 
-export const getLogEntityDescription = (log: ActivityLog): string => {
-  if (!log.entity_type) return '';
+export const getLogEntityDescription = (entityType?: string, entityId?: string): string => {
+  if (!entityType) return 'Sistema';
   
-  let description = `${log.entity_type}`;
-  if (log.entity_id) description += ` #${log.entity_id}`;
-  
-  // Add more specific descriptions based on entity_type if needed
-  if (log.entity_type === 'post' && log.details?.title) {
-    description += `: "${log.details.title}"`;
+  switch (entityType) {
+    case 'auth':
+      return 'Autenticação';
+    case 'profile':
+      return `Perfil ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'resource':
+      return `Recurso: ${entityId || 'desconhecido'}`;
+    case 'post':
+      return `Post ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'product':
+      return `Produto ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    default:
+      return entityType.charAt(0).toUpperCase() + entityType.slice(1);
   }
-  
-  return description;
 };
