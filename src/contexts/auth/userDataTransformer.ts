@@ -24,7 +24,7 @@ export interface SupabaseProfileData {
   profile_type?: 'artist' | 'fan' | 'admin' | 'collaborator';
   avatar_url?: string;
   bio?: string;
-  social_links?: Record<string, string> | string;
+  social_links?: Record<string, string> | string | any;
   wallet_address?: string;
   created_at?: string;
   updated_at?: string;
@@ -112,7 +112,7 @@ export const createSupabaseUserData = (
       } catch (e) {
         console.error('Error parsing social links:', e);
       }
-    } else if (typeof profileData.social_links === 'object') {
+    } else if (typeof profileData.social_links === 'object' && !Array.isArray(profileData.social_links)) {
       socialLinks = profileData.social_links;
     }
   }

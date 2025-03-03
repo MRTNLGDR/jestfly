@@ -46,43 +46,14 @@ export const useAuthState = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (profile && session?.user) {
-        // Cast profile_type to the expected union type
-        const profileType = profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator';
-        
-        // Prepare preferences - handle different possible types
-        let preferences = profile.preferences;
-        if (typeof preferences === 'string') {
-          try {
-            preferences = JSON.parse(preferences);
-          } catch (e) {
-            console.error('Error parsing preferences JSON:', e);
-            preferences = {};
-          }
-        }
-        
-        // Ensure preferences is an object
-        if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) {
-          preferences = {};
-        }
-        
-        // Handle social_links - ensure it's an object
-        let socialLinks = profile.social_links || {};
-        if (typeof socialLinks === 'string') {
-          try {
-            socialLinks = JSON.parse(socialLinks);
-          } catch (e) {
-            console.error('Error parsing social_links JSON:', socialLinks);
-            socialLinks = {};
-          }
-        }
-        
-        // Create combined profile with roles
+        // Prepare roles array
+        const userRoles = roles?.map(r => r.role) || [];
+
+        // Create combined profile data with proper type handling
         const profileWithRoles = {
           ...profile,
-          profile_type: profileType,
-          social_links: socialLinks,
-          preferences: preferences,
-          roles: roles?.map(r => r.role) || []
+          profile_type: profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator',
+          roles: userRoles
         };
         
         // Transform data to User model
