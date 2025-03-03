@@ -19,8 +19,8 @@ const AuthPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-10 px-4 flex flex-col items-center justify-center bg-gradient-to-b from-black to-purple-950">
-      <div className="w-full max-w-md">
+    <div className="container mx-auto py-16 px-4">
+      <div className="w-full max-w-md mx-auto">
         <GlassCard variant="purple" className="backdrop-blur-lg">
           <h1 className="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
             JESTFLY

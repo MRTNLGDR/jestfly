@@ -47,13 +47,7 @@ function App() {
     <AuthProvider>
       <LanguageProvider>
         <Routes>
-          {/* Rotas de autenticação (fora do layout principal) */}
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/admin/login" element={<AdminAuthPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
-          
-          {/* Rotas com layout principal */}
+          {/* Todas as rotas dentro do layout principal */}
           <Route element={<MainLayout />}>
             {/* Página inicial */}
             <Route path="/" element={<HomePage crystalParams={{
@@ -83,6 +77,12 @@ function App() {
               roughnessMap: "",
               metalnessMap: "",
             }} galleryImages={sampleGalleryImages} />} />
+            
+            {/* Rotas de autenticação (agora dentro do layout principal) */}
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/admin/login" element={<AdminAuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
             
             {/* Rotas protegidas (requerem autenticação) */}
             <Route path="/profile" element={
