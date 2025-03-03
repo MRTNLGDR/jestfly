@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +60,6 @@ const ModelTab = ({
     return savedParams ? JSON.parse(savedParams) : null;
   });
 
-  // Carregar modelos salvos do banco de dados
   useEffect(() => {
     const fetchSavedModels = async () => {
       try {
@@ -92,16 +90,13 @@ const ModelTab = ({
     fetchSavedModels();
   }, [toast]);
 
-  // Ativar um modelo (definir como modelo ativo)
   const activateModel = async (id: string, modelType: string) => {
     try {
-      // Primeiro, desativar todos os modelos
       await supabase
         .from('models')
         .update({ is_active: false })
         .not('id', 'is', null);
       
-      // Depois, ativar o modelo selecionado
       const { error } = await supabase
         .from('models')
         .update({ is_active: true })
@@ -109,7 +104,6 @@ const ModelTab = ({
       
       if (error) throw error;
       
-      // Atualizar a interface
       const updatedModels = savedModels.map(model => ({
         ...model,
         is_active: model.id === id
@@ -117,7 +111,6 @@ const ModelTab = ({
       
       setSavedModels(updatedModels);
       
-      // Chamar a função para mudar o modelo ativo na página inicial
       changeActiveModel(modelType);
       
       toast({
@@ -125,7 +118,6 @@ const ModelTab = ({
         description: "Este modelo agora é exibido na página inicial"
       });
       
-      // Se for um modelo do Sketchfab, também salvar a URL no localStorage
       const model = savedModels.find(m => m.id === id);
       if (model && model.model_type === 'sketchfab' && model.url) {
         localStorage.setItem("sketchfabUrl", model.url);
@@ -141,17 +133,15 @@ const ModelTab = ({
     }
   };
 
-  // Função para adicionar um novo modelo
   const handleModelUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       
-      // Verificar se o arquivo é um GLTF ou GLB
       if (file.name.endsWith('.gltf') || file.name.endsWith('.glb')) {
         const newModel = {
           name: newModelName || file.name,
           file: file,
-          preview: "/lovable-uploads/69507f0d-bbb9-4e5d-b648-984848675b22.png" // Usando a imagem de exemplo como preview
+          preview: "/lovable-uploads/69507f0d-bbb9-4e5d-b648-984848675b22.png"
         };
         
         setUploadedModels([...uploadedModels, newModel]);
@@ -171,7 +161,6 @@ const ModelTab = ({
     }
   };
 
-  // Função para remover um modelo
   const removeModel = (index: number) => {
     const newModels = [...uploadedModels];
     newModels.splice(index, 1);
@@ -183,20 +172,16 @@ const ModelTab = ({
     });
   };
 
-  // UseEffect para renderizar o modelo 3D de prévia
   useEffect(() => {
     if (!previewRef.current || !modelParams) return;
 
-    // Limpar qualquer canvas existente
     while (previewRef.current.firstChild) {
       previewRef.current.removeChild(previewRef.current.firstChild);
     }
 
-    // Configurar scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x111111);
 
-    // Configurar camera
     const camera = new THREE.PerspectiveCamera(
       75,
       previewRef.current.clientWidth / previewRef.current.clientHeight,
@@ -205,21 +190,18 @@ const ModelTab = ({
     );
     camera.position.z = 5;
 
-    // Configurar renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(previewRef.current.clientWidth, previewRef.current.clientHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = modelParams.lightIntensity;
     previewRef.current.appendChild(renderer.domElement);
 
-    // Configurar controls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.autoRotate = true;
     controls.autoRotateSpeed = 1.5;
 
-    // Material configurável baseado nos parâmetros atuais
     const material = new THREE.MeshPhysicalMaterial({
       color: new THREE.Color(modelParams.color),
       metalness: modelParams.metalness,
@@ -235,11 +217,9 @@ const ModelTab = ({
       iridescenceIOR: modelParams.iridescenceIOR
     });
 
-    // Criar o modelo conforme o tipo selecionado
     let modelObject: THREE.Object3D;
 
     if (activeModel === 'diamond') {
-      // Criar geometria do diamante
       const vertices = [
         0, 2, 0,
         ...Array.from({ length: 18 }, (_, i) => {
@@ -252,11 +232,9 @@ const ModelTab = ({
       ];
       
       const indices = [];
-      // Top faces
       for (let i = 1; i < 19; i++) {
         indices.push(0, i, i === 18 ? 1 : i + 1);
       }
-      // Middle faces
       for (let i = 1; i < 19; i++) {
         indices.push(i, 19, i === 18 ? 1 : i + 1);
       }
@@ -264,15 +242,12 @@ const ModelTab = ({
       const geometry = new THREE.PolyhedronGeometry(vertices, indices, 2, 2);
       modelObject = new THREE.Mesh(geometry, material);
     } else if (activeModel === 'sphere') {
-      // Criar geometria da esfera
       const geometry = new THREE.SphereGeometry(2, 32, 32);
       modelObject = new THREE.Mesh(geometry, material);
     } else if (activeModel === 'torus') {
-      // Criar geometria do torus
       const geometry = new THREE.TorusGeometry(1.5, 0.5, 16, 64);
       modelObject = new THREE.Mesh(geometry, material);
     } else {
-      // Modelo padrão - cristal distorcido
       const geometry = new THREE.IcosahedronGeometry(2, 1);
       const positionAttribute = geometry.getAttribute('position');
       const vertex = new THREE.Vector3();
@@ -280,7 +255,6 @@ const ModelTab = ({
       for (let i = 0; i < positionAttribute.count; i++) {
         vertex.fromBufferAttribute(positionAttribute, i);
         
-        // Aplicar distorção
         const distortionFactor = 0.2;
         const noise = Math.sin(vertex.x * 5) * Math.sin(vertex.y * 3) * Math.sin(vertex.z * 7);
         
@@ -299,7 +273,6 @@ const ModelTab = ({
     modelObject.scale.set(0.7, 0.7, 0.7);
     scene.add(modelObject);
 
-    // Adicionar luzes
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
@@ -307,7 +280,6 @@ const ModelTab = ({
     directionalLight.position.set(5, 10, 7.5);
     scene.add(directionalLight);
 
-    // Criar ambiente simples
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     pmremGenerator.compileCubemapShader();
     
@@ -322,7 +294,6 @@ const ModelTab = ({
     scene.environment = envMap;
     pmremGenerator.dispose();
 
-    // Animation loop
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
@@ -330,7 +301,6 @@ const ModelTab = ({
     };
     animate();
 
-    // Função para redimensionar o canvas quando a janela é redimensionada
     const handleResize = () => {
       if (!previewRef.current) return;
       
@@ -344,7 +314,6 @@ const ModelTab = ({
     
     window.addEventListener('resize', handleResize);
 
-    // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
       
@@ -357,7 +326,6 @@ const ModelTab = ({
     };
   }, [activeModel, modelParams]);
 
-  // Atualizar os parâmetros do modelo quando mudarem
   useEffect(() => {
     const checkForUpdates = () => {
       const savedParams = localStorage.getItem("modelParameters");
@@ -400,7 +368,6 @@ const ModelTab = ({
         </label>
       </div>
 
-      {/* Prévia do modelo selecionado */}
       <Card className="border-gray-700 bg-black/20 overflow-hidden">
         <CardContent className="p-0">
           <div className="w-full h-64 sm:h-80 bg-gray-800/80 rounded-lg overflow-hidden">
@@ -409,7 +376,6 @@ const ModelTab = ({
         </CardContent>
       </Card>
       
-      {/* Seleção de modelo para a página inicial */}
       <Card className="bg-gray-800/30 border-gray-700">
         <CardContent className="p-5">
           <h3 className="text-lg font-medium mb-4">Modelo da Página Inicial</h3>
@@ -452,9 +418,6 @@ const ModelTab = ({
               {activeModel === 'crystal' && <Check size={16} className="mt-1" />}
             </div>
           </div>
-          
-          {/* Modelos salvos no banco de dados */}
-          <h3 className="text-lg font-medium mb-4">Modelos do Banco de Dados</h3>
           
           {loadingModels ? (
             <div className="flex justify-center p-8">

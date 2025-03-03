@@ -1,10 +1,17 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import * as z from 'zod';
 
 interface AuthFormProps {
   onSuccess?: () => void;
 }
+
+// Define a schema for form validation
+const formSchema = z.object({
+  email: z.string().email({ message: "Por favor, forneça um email válido." }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." })
+});
 
 const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,6 +28,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     setLoading(true);
     
     try {
+      // Validate form data
+      const result = formSchema.safeParse({ email, password });
+      
+      if (!result.success) {
+        // Show the first validation error
+        const formattedErrors = result.error.format();
+        const firstError = 
+          formattedErrors.email?._errors[0] || 
+          formattedErrors.password?._errors[0] || 
+          "Dados de formulário inválidos";
+        
+        throw new Error(firstError);
+      }
+      
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
