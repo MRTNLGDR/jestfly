@@ -10,13 +10,13 @@ import CommunityNav from './CommunityNav';
 import GlassHeader from '@/components/GlassHeader';
 import { mainMenuItems } from '@/constants/menuItems';
 import { supabase } from '@/integrations/supabase/client';
-import { Post, Comment } from '@/types/community';
+import { Comment, CommunityPost } from '@/types/community';
 import { useToast } from '@/components/ui/use-toast';
 
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState<Post | null>(null);
+  const [post, setPost] = useState<CommunityPost | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCommentLoading, setIsCommentLoading] = useState(true);
@@ -40,13 +40,23 @@ const PostDetailPage: React.FC = () => {
         setIsLoading(true);
         const { data, error } = await supabase
           .from('community_posts')
-          .select('*, profiles(username, avatar)')
+          .select('*, profiles(username, avatar, display_name)')
           .eq('id', postId)
           .single();
           
         if (error) throw error;
         
-        setPost(data as unknown as Post);
+        // Transform the data to match CommunityPost type
+        const communityPost: CommunityPost = {
+          ...data,
+          user: {
+            username: data.profiles?.username || '',
+            display_name: data.profiles?.display_name || '',
+            avatar: data.profiles?.avatar || null
+          }
+        };
+        
+        setPost(communityPost);
       } catch (error) {
         console.error('Erro ao buscar post:', error);
         toast({
@@ -67,12 +77,22 @@ const PostDetailPage: React.FC = () => {
         setIsCommentLoading(true);
         const { data, error } = await supabase
           .from('post_comments')
-          .select('*, profiles(username, avatar)')
+          .select('*, profiles(username, avatar, display_name)')
           .eq('post_id', postId)
           .order('created_at', { ascending: true });
           
         if (error) throw error;
-        setComments(data as unknown as Comment[]);
+        
+        // Transform comments to include user property
+        const formattedComments = data.map(comment => ({
+          ...comment,
+          user: {
+            display_name: comment.profiles?.display_name || '',
+            avatar: comment.profiles?.avatar || null
+          }
+        }));
+        
+        setComments(formattedComments);
       } catch (error) {
         console.error('Erro ao buscar comentários:', error);
         toast({
@@ -190,13 +210,21 @@ const PostDetailPage: React.FC = () => {
           post_id: postId,
           user_id: currentUserId
         }])
-        .select('*, profiles(username, avatar)')
+        .select('*, profiles(username, avatar, display_name)')
         .single();
         
       if (error) throw error;
       
       // Add new comment to list
-      setComments([...comments, data as unknown as Comment]);
+      const newComment: Comment = {
+        ...data,
+        user: {
+          display_name: data.profiles?.display_name || '',
+          avatar: data.profiles?.avatar || null
+        }
+      };
+      
+      setComments([...comments, newComment]);
       
       toast({
         title: "Comentário adicionado",

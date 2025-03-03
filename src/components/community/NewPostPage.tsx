@@ -5,17 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, ChevronLeft } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CommunityNav from './CommunityNav';
 import GlassHeader from '@/components/GlassHeader';
 import { mainMenuItems } from '@/constants/menuItems';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { PostCategory } from '@/types/community';
 
 const NewPostPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [category, setCategory] = useState<PostCategory>('discussion');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -41,11 +44,12 @@ const NewPostPage: React.FC = () => {
       
       const { error } = await supabase
         .from('community_posts')
-        .insert([{
+        .insert({
           title,
           content,
+          category,
           user_id: userData.user.id
-        }]);
+        });
         
       if (error) throw error;
       
@@ -101,6 +105,26 @@ const NewPostPage: React.FC = () => {
                   disabled={isSubmitting}
                   required
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="category" className="text-white font-medium">Categoria</label>
+                <Select
+                  value={category}
+                  onValueChange={(value) => setCategory(value as PostCategory)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger className="bg-black/20 border-purple-500/30 text-white">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black/90 border-purple-500/30">
+                    <SelectItem value="announcement" className="text-white hover:bg-purple-900/50">Anúncio</SelectItem>
+                    <SelectItem value="event" className="text-white hover:bg-purple-900/50">Evento</SelectItem>
+                    <SelectItem value="discussion" className="text-white hover:bg-purple-900/50">Discussão</SelectItem>
+                    <SelectItem value="collaboration" className="text-white hover:bg-purple-900/50">Colaboração</SelectItem>
+                    <SelectItem value="question" className="text-white hover:bg-purple-900/50">Pergunta</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <div className="space-y-2">
