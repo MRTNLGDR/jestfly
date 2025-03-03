@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Footer from '../components/Footer';
 import CommunityNav from '../components/community/CommunityNav';
@@ -9,6 +9,23 @@ import GiveawaysPage from '../components/community/GiveawaysPage';
 import JestFlyersHubPage from '../components/community/JestFlyersHubPage';
 
 const CommunityPage: React.FC = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  useEffect(() => {
+    // Marcar como carregado assim que o componente montar
+    setIsLoaded(true);
+    
+    // Log para diagnóstico
+    console.log("CommunityPage montada com sucesso");
+    
+    return () => {
+      console.log("CommunityPage desmontada");
+    };
+  }, []);
+
+  // Se tivermos problemas de renderização, podemos ver no console
+  console.log("Renderizando CommunityPage, carregada:", isLoaded);
+
   return (
     <div className="min-h-screen bg-black text-white pt-20">
       {/* Community Nav */}
