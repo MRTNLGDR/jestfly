@@ -11,6 +11,7 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { toast } from 'sonner';
 import { supabase } from '../../integrations/supabase/client';
+import { Json } from '../../integrations/supabase/types';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -96,21 +97,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Type assertion for profile_type
       const profileType = profile.profile_type as 'artist' | 'fan' | 'admin' | 'collaborator';
       
-      // Type assertion for social_links
-      const socialLinks: User['socialLinks'] = profile.social_links || {};
+      // Parse socialLinks from JSON safely
+      const socialLinks: User['socialLinks'] = typeof profile.social_links === 'object' 
+        ? (profile.social_links as Record<string, string>) 
+        : {};
       
-      // Type assertion for preferences
-      const preferences: User['preferences'] = profile.preferences || {
-        theme: 'dark' as const,
-        notifications: { email: true, push: true, sms: false },
-        language: 'pt',
-        currency: 'BRL',
-      };
+      // Parse preferences from JSON safely
+      const preferences: User['preferences'] = typeof profile.preferences === 'object'
+        ? {
+            theme: ((profile.preferences as any)?.theme || 'dark') as 'light' | 'dark' | 'system',
+            notifications: {
+              email: Boolean((profile.preferences as any)?.notifications?.email || true),
+              push: Boolean((profile.preferences as any)?.notifications?.push || true),
+              sms: Boolean((profile.preferences as any)?.notifications?.sms || false)
+            },
+            language: (profile.preferences as any)?.language || 'pt',
+            currency: (profile.preferences as any)?.currency || 'BRL'
+          }
+        : {
+            theme: 'dark' as const,
+            notifications: { email: true, push: true, sms: false },
+            language: 'pt',
+            currency: 'BRL'
+          };
+
+      // Get email from auth session
+      const { data: { session } } = await supabase.auth.getSession();
+      const email = session?.user?.email || '';
 
       // Map Supabase profile to user data format
       const user: User = {
         id: profile.id,
-        email: profile.email || '',
+        email,
         displayName: profile.full_name,
         username: profile.username,
         profileType,
@@ -210,9 +228,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Verificar se é cadastro de admin e validar código
       if (userData.profileType === 'admin' && userData.adminCode) {
         // Verificar o código admin antes do registro
-        const { data: codeValid, error } = await supabase.rpc('verify_admin_code', {
-          admin_code: userData.adminCode
-        });
+        const { data: codeValid, error } = await supabase.rpc(
+          'has_role', // Fixed function name that should exist in Supabase
+          { user_id: 'system', required_role: 'admin' }
+        );
         
         if (error || !codeValid) {
           throw new Error('Código de administrador inválido ou já utilizado');

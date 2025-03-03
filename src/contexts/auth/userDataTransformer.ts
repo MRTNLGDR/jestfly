@@ -5,6 +5,23 @@ export const createSupabaseUserData = (
   authUser: any, 
   profile: any
 ): User => {
+  // Process socialLinks
+  const socialLinks: User['socialLinks'] = typeof profile.social_links === 'object' 
+    ? profile.social_links 
+    : {};
+
+  // Process preferences
+  const preferences: User['preferences'] = profile.preferences || {
+    theme: 'system' as const,
+    language: 'pt',
+    currency: 'BRL',
+    notifications: {
+      email: true,
+      push: true,
+      sms: false
+    }
+  };
+
   return {
     id: profile.id,
     email: authUser.email || '',
@@ -16,18 +33,11 @@ export const createSupabaseUserData = (
     lastLogin: new Date(),
     isVerified: authUser.email_confirmed_at !== null,
     twoFactorEnabled: false,
-    socialLinks: profile.social_links || {},
-    preferences: profile.preferences || {
-      theme: 'system',
-      language: 'pt',
-      currency: 'BRL',
-      notifications: {
-        email: true,
-        push: true,
-        sms: false
-      }
-    },
-    collectionItems: [],
-    transactions: []
+    socialLinks,
+    preferences,
+    avatar: profile.avatar_url,
+    bio: profile.bio,
+    walletAddress: profile.wallet_address,
+    roles: [] // Default empty roles array
   };
 };
