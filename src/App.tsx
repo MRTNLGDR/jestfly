@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -12,11 +13,28 @@ import AdminPage from './pages/AdminPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Toaster } from 'sonner';
 
+// Temporary mock data for HomePage
+const mockCrystalParams = {
+  color: '#4a00e0',
+  size: 1.5,
+  rotation: 0.01,
+  roughness: 0.2,
+  metalness: 0.8,
+  environment: 'studio',
+};
+
+const mockGalleryImages = [
+  '/textures/presets/crystal.jpg',
+  '/textures/presets/glass.jpg',
+  '/textures/presets/gold.jpg',
+  '/textures/presets/holographic.jpg',
+];
+
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage crystalParams={mockCrystalParams} galleryImages={mockGalleryImages} />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
