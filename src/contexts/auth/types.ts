@@ -1,11 +1,11 @@
 
-import { User as FirebaseUser } from 'firebase/auth';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { User } from '../../models/User';
 
 export type PermissionType = 'admin' | 'artist' | 'fan' | 'collaborator';
 
 export interface AuthContextType {
-  currentUser: FirebaseUser | null;
+  currentUser: SupabaseUser | null;
   userData: User | null;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, userData: Partial<User>) => Promise<void>;

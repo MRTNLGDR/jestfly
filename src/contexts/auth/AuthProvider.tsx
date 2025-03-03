@@ -1,9 +1,6 @@
+
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, firestore } from '../../firebase/config';
 import { User } from '../../models/User';
-import { onAuthStateChanged } from 'firebase/auth';
 import { AuthContextType, PermissionType } from './types';
 import { 
   loginUser, 
@@ -13,11 +10,14 @@ import {
   updateUserProfile,
   fetchUserData
 } from './authMethods';
+import { supabase } from '../../integrations/supabase/client';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [userData, setUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!currentUser) return;
     
     try {
-      const refreshedData = await fetchUserData(currentUser.uid);
+      const refreshedData = await fetchUserData(currentUser.id);
       if (refreshedData) {
         setUserData(refreshedData);
       }
@@ -54,26 +54,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
+    const fetchInitialSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
       
-      if (user) {
-        try {
-          const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-          if (userDoc.exists()) {
-            setUserData(userDoc.data() as User);
-          }
-        } catch (err) {
-          console.error("Error fetching user data:", err);
-        }
+      if (error) {
+        console.error("Error fetching session:", error);
+        setLoading(false);
+        return;
+      }
+      
+      setSession(data.session);
+      setCurrentUser(data.session?.user || null);
+      
+      if (data.session?.user) {
+        const userData = await fetchUserData(data.session.user.id);
+        setUserData(userData);
+      }
+      
+      setLoading(false);
+    };
+    
+    fetchInitialSession();
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      setCurrentUser(session?.user || null);
+      
+      if (session?.user) {
+        const userData = await fetchUserData(session.user.id);
+        setUserData(userData);
       } else {
         setUserData(null);
       }
       
       setLoading(false);
     });
-
-    return unsubscribe;
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -121,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      await updateUserProfile(currentUser.uid, data);
+      await updateUserProfile(currentUser.id, data);
       setUserData(prev => prev ? { ...prev, ...data } : null);
     } catch (err: any) {
       setError(err.message);
