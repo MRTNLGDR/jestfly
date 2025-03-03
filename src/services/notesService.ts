@@ -79,7 +79,7 @@ export const fetchNote = async (noteId: string): Promise<Note | null> => {
 };
 
 // Function to create a new note
-export const createNote = async (userId: string, note: Partial<Note>): Promise<Note | null> => {
+export const createNote = async (userId: string, note: Partial<Note>): Promise<Note> => {
   try {
     const { data, error } = await supabase
       .from('notes')
@@ -96,12 +96,12 @@ export const createNote = async (userId: string, note: Partial<Note>): Promise<N
     return transformDBNoteToAppNote(data);
   } catch (error) {
     console.error('Error creating note:', error);
-    return null;
+    throw error;
   }
 };
 
 // Function to update an existing note
-export const updateNote = async (noteId: string, updates: Partial<Note>): Promise<Note | null> => {
+export const updateNote = async (noteId: string, updates: Partial<Note>): Promise<Note> => {
   try {
     const { data, error } = await supabase
       .from('notes')
@@ -115,7 +115,7 @@ export const updateNote = async (noteId: string, updates: Partial<Note>): Promis
     return transformDBNoteToAppNote(data);
   } catch (error) {
     console.error('Error updating note:', error);
-    return null;
+    throw error;
   }
 };
 

@@ -85,7 +85,7 @@ const NotesPage: React.FC = () => {
     setSelectedNote(newNote);
   };
   
-  const handleSaveNote = async (noteData: Partial<Note>) => {
+  const handleSaveNote = async (noteData: Partial<Note>): Promise<Note | void> => {
     if (!userData) return;
     
     try {
