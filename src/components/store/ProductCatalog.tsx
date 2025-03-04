@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -28,66 +27,53 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Process products when original array, search, or sort criteria change
   useEffect(() => {
-    // Avoid complex operations that can cause deep type instantiation
-    filterAndSortProducts();
+    applyFiltersAndSort();
   }, [products, search, sortBy, limit]);
 
-  // Separated logic to avoid complex type inference chains
-  const filterAndSortProducts = () => {
-    // Create a new copy of products array
-    const results: Product[] = [];
+  const applyFiltersAndSort = () => {
+    let result: Product[] = [...products];
     
-    // First copy all products to our results array
-    for (let i = 0; i < products.length; i++) {
-      results.push(products[i]);
+    if (search && search.trim() !== '') {
+      const searchTerm = search.toLowerCase().trim();
+      result = result.filter(product => {
+        const titleMatch = product.title.toLowerCase().includes(searchTerm);
+        const descMatch = product.description ? 
+          product.description.toLowerCase().includes(searchTerm) : false;
+        return titleMatch || descMatch;
+      });
     }
     
-    // Then filter by search if needed
-    const filtered: Product[] = [];
+    const sortedResult = sortProducts(result, sortBy);
     
-    if (search.trim() !== '') {
-      const searchLower = search.toLowerCase().trim();
-      
-      for (let i = 0; i < results.length; i++) {
-        const product = results[i];
-        const titleMatch = product.title.toLowerCase().includes(searchLower);
-        const descriptionMatch = product.description ? 
-          product.description.toLowerCase().includes(searchLower) : false;
-        
-        if (titleMatch || descriptionMatch) {
-          filtered.push(product);
-        }
-      }
+    if (limit && limit > 0 && sortedResult.length > limit) {
+      setFilteredProducts(sortedResult.slice(0, limit));
     } else {
-      // If no search, use all products
-      for (let i = 0; i < results.length; i++) {
-        filtered.push(results[i]);
-      }
+      setFilteredProducts(sortedResult);
+    }
+  };
+
+  const sortProducts = (productsToSort: Product[], sortCriteria: string): Product[] => {
+    const sorted = [...productsToSort];
+    
+    switch (sortCriteria) {
+      case 'price-low':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-az':
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'name-za':
+        sorted.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      default:
+        break;
     }
     
-    // Sort the filtered results
-    if (sortBy === 'price-low') {
-      filtered.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-high') {
-      filtered.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'name-az') {
-      filtered.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      filtered.sort((a, b) => b.title.localeCompare(a.title));
-    }
-    // 'newest' is default - already sorted in query
-    
-    // Apply limit if specified
-    let finalResults: Product[];
-    if (limit && filtered.length > limit) {
-      finalResults = filtered.slice(0, limit);
-    } else {
-      finalResults = filtered;
-    }
-    
-    setFilteredProducts(finalResults);
+    return sorted;
   };
 
   const fetchProducts = async () => {
