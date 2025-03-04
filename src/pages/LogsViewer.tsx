@@ -1,10 +1,11 @@
+
 import React, { useEffect } from 'react';
 import { GlassCard } from '../components/ui/glass-card';
 import { useAuth } from '../contexts/AuthContext';
 import Loading from '../components/ui/loading';
-import LogsFilter from '../components/logs/LogsFilter';
-import LogsTable from '../components/logs/LogsTable';
-import LogsTabs from '../components/logs/LogsTabs';
+import { LogsFilter } from '../components/logs/LogsFilter';
+import { LogsTable } from '../components/logs/LogsTable';
+import { LogsTabs } from '../components/logs/LogsTabs';
 import { useLogsData } from '../hooks/useLogsData';
 import { useActivityLogger } from '../hooks/useActivityLogger';
 
