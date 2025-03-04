@@ -2,6 +2,8 @@
 import './App.css';
 import { Outlet } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
+import { CartProvider } from '@/contexts/CartContext';
+import Cart from '@/components/store/Cart';
 
 function App() {
   return (
@@ -20,8 +22,11 @@ function App() {
         <div className="absolute bottom-1/4 left-1/3 w-[200px] h-[600px] -rotate-45 opacity-5 bg-gradient-to-t from-indigo-500 via-indigo-500 to-transparent blur-xl"></div>
       </div>
 
-      <Outlet />
-      <Toaster />
+      <CartProvider>
+        <Outlet />
+        <Cart />
+        <Toaster />
+      </CartProvider>
     </div>
   );
 }

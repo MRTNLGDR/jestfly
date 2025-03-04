@@ -17,6 +17,9 @@ import PressKitPage from './pages/PressKitPage.tsx';
 import AirdropPage from './pages/AirdropPage.tsx';
 import AdminPanel from './pages/AdminPanel.tsx';
 import AuthPage from './pages/AuthPage.tsx';
+import CheckoutPage from './pages/CheckoutPage.tsx';
+import OrderSuccessPage from './pages/OrderSuccessPage.tsx';
+import ProductDetailPage from './pages/ProductDetailPage.tsx';
 import { AuthProvider } from './contexts/AuthContext.tsx';
 import LanguageProvider from './contexts/LanguageContext.tsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.tsx';
@@ -75,8 +78,41 @@ const router = createBrowserRouter([
     element: <AuthPage />,
   },
   {
-    path: "/store/*",
-    element: <StorePage />,
+    path: "/store",
+    children: [
+      {
+        path: "",
+        element: <StorePage />,
+      },
+      {
+        path: "checkout",
+        element: <CheckoutPage />,
+      },
+      {
+        path: "order-success",
+        element: <OrderSuccessPage />,
+      },
+      {
+        path: "product/:productId",
+        element: <ProductDetailPage />,
+      },
+      {
+        path: "nfts",
+        element: <StorePage />,
+      },
+      {
+        path: "music",
+        element: <StorePage />,
+      },
+      {
+        path: "merch",
+        element: <StorePage />,
+      },
+      {
+        path: "collectibles",
+        element: <StorePage />,
+      },
+    ],
   },
   {
     path: "/community/*",
