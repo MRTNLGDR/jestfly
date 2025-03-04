@@ -28,50 +28,53 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  useEffect(() => {
-    // Create a mutable copy to avoid deep type instantiation
-    const result: Product[] = [];
+  // Função separada para processar produtos para evitar problemas de tipagem excessiva
+  const processProducts = () => {
+    // Filtragem por termo de busca
+    let filtered: Product[] = [];
     
-    // First, filter products by search term
     if (search.trim() === '') {
-      // If no search, add all products
-      for (let i = 0; i < products.length; i++) {
-        result.push(products[i]);
-      }
+      filtered = [...products];
     } else {
-      // With search term, only add matching products
       const searchLower = search.toLowerCase().trim();
-      for (let i = 0; i < products.length; i++) {
-        const product = products[i];
+      for (const product of products) {
         if (
           product.title.toLowerCase().includes(searchLower) || 
           (product.description && product.description.toLowerCase().includes(searchLower))
         ) {
-          result.push(product);
+          filtered.push(product);
         }
       }
     }
     
-    // Sort the results
-    if (sortBy === 'price-low') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-high') {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'name-az') {
-      result.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      result.sort((a, b) => b.title.localeCompare(a.title));
+    // Ordenação
+    switch (sortBy) {
+      case 'price-low':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-az':
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'name-za':
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      // caso 'newest' é o padrão, já ordenado na query
     }
     
-    // Apply limit if needed
-    let finalResult: Product[];
-    if (limit && result.length > limit) {
-      finalResult = result.slice(0, limit);
-    } else {
-      finalResult = result;
+    // Aplicar limite se necessário
+    if (limit && filtered.length > limit) {
+      return filtered.slice(0, limit);
     }
     
-    setFilteredProducts(finalResult);
+    return filtered;
+  };
+
+  useEffect(() => {
+    const result = processProducts();
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
