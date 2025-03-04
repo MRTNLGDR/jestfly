@@ -30,56 +30,41 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Process products when original array, search, or sort criteria change
   useEffect(() => {
-    const processedProducts = processProducts(products, search, sortBy, limit);
-    setFilteredProducts(processedProducts);
+    let result = [...products];
+    
+    // Apply search filtering if needed
+    if (search.trim() !== '') {
+      const searchLower = search.toLowerCase().trim();
+      result = result.filter(product => 
+        product.title.toLowerCase().includes(searchLower) || 
+        (product.description && product.description.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Sort the filtered products
+    switch (sortBy) {
+      case 'price-low':
+        result.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        result.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-az':
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'name-za':
+        result.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      // 'newest' is default - sorted in query
+    }
+    
+    // Apply limit if specified
+    if (limit && result.length > limit) {
+      result = result.slice(0, limit);
+    }
+    
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
-
-  // Combined function to process products (filter, sort, limit)
-  const processProducts = (
-    productsList: Product[], 
-    searchTerm: string, 
-    sortMethod: string, 
-    limitCount?: number
-  ): Product[] => {
-    // Step 1: Filter by search term
-    let result: Product[] = [];
-    if (searchTerm.trim() === '') {
-      // No search filtering needed
-      result = [...productsList];
-    } else {
-      // Apply search filtering
-      const searchLower = searchTerm.toLowerCase().trim();
-      result = [];
-      for (let i = 0; i < productsList.length; i++) {
-        const product = productsList[i];
-        if (
-          product.title.toLowerCase().includes(searchLower) || 
-          (product.description && product.description.toLowerCase().includes(searchLower))
-        ) {
-          result.push(product);
-        }
-      }
-    }
-    
-    // Step 2: Sort the filtered products
-    if (sortMethod === 'price-low') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortMethod === 'price-high') {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortMethod === 'name-az') {
-      result.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortMethod === 'name-za') {
-      result.sort((a, b) => b.title.localeCompare(a.title));
-    }
-    // 'newest' is default - already sorted in query by created_at
-    
-    // Step 3: Apply limit if specified
-    if (limitCount && result.length > limitCount) {
-      result = result.slice(0, limitCount);
-    }
-    
-    return result;
-  };
 
   const fetchProducts = async () => {
     setLoading(true);
