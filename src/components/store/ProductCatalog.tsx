@@ -30,41 +30,57 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Process products when original array, search, or sort criteria change
   useEffect(() => {
-    let result = [...products];
+    // Create a new copy to avoid modifying the original array
+    let resultProducts = [...products];
     
-    // Apply search filtering if needed
+    // Apply search filtering
     if (search.trim() !== '') {
       const searchLower = search.toLowerCase().trim();
-      result = result.filter(product => 
-        product.title.toLowerCase().includes(searchLower) || 
-        (product.description && product.description.toLowerCase().includes(searchLower))
-      );
+      const searchResults: Product[] = [];
+      
+      // Using a for loop instead of filter to avoid potential type issues
+      for (let i = 0; i < resultProducts.length; i++) {
+        const product = resultProducts[i];
+        const titleMatch = product.title.toLowerCase().includes(searchLower);
+        const descriptionMatch = product.description ? 
+          product.description.toLowerCase().includes(searchLower) : false;
+        
+        if (titleMatch || descriptionMatch) {
+          searchResults.push(product);
+        }
+      }
+      
+      resultProducts = searchResults;
     }
     
     // Sort the filtered products
-    switch (sortBy) {
-      case 'price-low':
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-az':
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-za':
-        result.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      // 'newest' is default - sorted in query
-    }
+    resultProducts = sortProducts(resultProducts, sortBy);
     
     // Apply limit if specified
-    if (limit && result.length > limit) {
-      result = result.slice(0, limit);
+    if (limit && resultProducts.length > limit) {
+      resultProducts = resultProducts.slice(0, limit);
     }
     
-    setFilteredProducts(result);
+    setFilteredProducts(resultProducts);
   }, [products, search, sortBy, limit]);
+
+  // Separate sorting function to simplify the main useEffect
+  const sortProducts = (productsToSort: Product[], sortMethod: string): Product[] => {
+    const sortedProducts = [...productsToSort];
+    
+    if (sortMethod === 'price-low') {
+      sortedProducts.sort((a, b) => a.price - b.price);
+    } else if (sortMethod === 'price-high') {
+      sortedProducts.sort((a, b) => b.price - a.price);
+    } else if (sortMethod === 'name-az') {
+      sortedProducts.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortMethod === 'name-za') {
+      sortedProducts.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    // 'newest' is default - already sorted in query
+    
+    return sortedProducts;
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
