@@ -6,6 +6,7 @@ import { Calendar } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
 import GlassAudioPlayer from './GlassAudioPlayer';
 import JestCoinTicker from './JestCoinTicker';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface CrystalHeroProps {
   title?: string;
@@ -16,13 +17,14 @@ interface CrystalHeroProps {
 
 const CrystalHero: React.FC<CrystalHeroProps> = ({
   title = "JESTFLY",
-  subtitle = "Descubra efeitos de vidro hiper-realista",
+  subtitle = "Ecossistema ORBVIR para música, arte e comunidade",
   crystalParams = defaultModelParams,
   className = "",
 }) => {
   const isMobile = useIsMobile();
   const [isPlayerMinimized, setIsPlayerMinimized] = useState(true);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const { t } = useLanguage();
   
   // Listen to scroll events
   useEffect(() => {
@@ -46,19 +48,19 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       {/* Side captions - hidden on mobile */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
         <div className="p-3 rounded-lg mb-3">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">bangers only</h2>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">ORBVIR</h2>
           <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
-            <p>IT'S ALWAYS TIME</p>
-            <p>TO ENJOY</p>
+            <p>CONECTANDO</p>
+            <p>ECOSSISTEMAS</p>
           </div>
         </div>
       </div>
       
       <div className="absolute top-1/3 right-4 sm:right-8 z-30 text-right hidden md:block">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">inspired</h2>
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">digital</h2>
         <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
-          <p>FROM 10:00</p>
-          <p>TO 19:00</p>
+          <p>MÚSICA</p>
+          <p>ARTE</p>
         </div>
         
         {/* JestCoin ticker positioned near "inspired" */}
@@ -72,6 +74,16 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl h-full">
           <CrystalComponent parameters={crystalParams} />
         </div>
+      </div>
+      
+      {/* ORBVIR ecosystem description - centered below crystal */}
+      <div className="absolute bottom-[20%] left-0 right-0 text-center z-30 px-4">
+        <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400">
+          Ecossistema ORBVIR
+        </h2>
+        <p className="mt-2 text-white/80 max-w-lg mx-auto">
+          Onde artistas e fãs se conectam através de música, NFTs e experiências digitais inovadoras
+        </p>
       </div>
       
       {/* Glassmorphism audio player - fixed in the corner */}
@@ -94,10 +106,10 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       <div className="absolute bottom-6 left-0 right-0 px-4 sm:px-6 z-30 flex justify-between items-center text-xs text-white/70">
         <div className="flex items-center space-x-2">
           <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="text-xs">5/15/2023</span>
+          <span className="text-xs">5/15/2024</span>
         </div>
         
-        <div className="hidden md:block uppercase">BUS® ©2023</div>
+        <div className="hidden md:block uppercase">ORBVIR® ©2024</div>
         
         <div className="hidden md:block">50°05'36.2"N 14°26'51.3"E</div>
       </div>

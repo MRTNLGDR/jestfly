@@ -11,19 +11,39 @@ import CrystalGallery from '../components/CrystalGallery';
 import ConnectionSection from '../components/ConnectionSection';
 import ShopPreview from '../components/ShopPreview';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { LoadingSpinner } from '../components/ui/loading';
 
 const Index: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const authContext = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Simulate loading time
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 1500);
+    }, 2000); // Longer loading time for animation
 
     return () => clearTimeout(timer);
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black">
+        <div className="relative h-24 w-24 animate-spin">
+          <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
+          <div className="absolute inset-0 rounded-full border-t-4 border-purple-500"></div>
+        </div>
+        <h1 className="mt-10 text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-600">
+          JESTFLY
+        </h1>
+        <p className="mt-4 text-white/70 text-lg max-w-md text-center">
+          Conectando artistas e fãs no ecossistema ORBVIR através de música, comunidade e inovação digital.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <MainLayout>
@@ -63,7 +83,7 @@ const Index: React.FC = () => {
               className="bg-purple-800/80 backdrop-blur-sm text-white px-4 py-2 rounded-full 
                        flex items-center space-x-2 hover:bg-purple-700 transition-colors shadow-lg"
             >
-              <span>Admin</span>
+              <span>{t('nav.admin')}</span>
             </Link>
           </div>
         )}
