@@ -13,9 +13,8 @@ interface ProductCatalogProps {
   limit?: number;
 }
 
-// Simple sorting function with explicit types
+// Create a more efficient sorting function with explicit types
 const sortProducts = (products: Product[], sortBy: string): Product[] => {
-  // Create a new array to avoid mutating the original
   const result = [...products];
   
   switch (sortBy) {
@@ -28,7 +27,7 @@ const sortProducts = (products: Product[], sortBy: string): Product[] => {
     case 'name-za':
       return result.sort((a, b) => b.title.localeCompare(a.title));
     default:
-      return result; // 'newest' or any other value
+      return result;
   }
 };
 
@@ -47,30 +46,30 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Separate function to filter products by search term
-  const filterProductsBySearch = (products: Product[], searchTerm: string): Product[] => {
-    if (!searchTerm) return [...products];
+  // Filter products by search term - moved outside useEffect to avoid type issues
+  const filterProductsBySearch = (prods: Product[], searchTerm: string): Product[] => {
+    if (!searchTerm.trim()) return [...prods];
     
     const searchLower = searchTerm.toLowerCase();
-    return products.filter(product => 
+    return prods.filter(product => 
       product.title.toLowerCase().includes(searchLower) || 
       (product.description && product.description.toLowerCase().includes(searchLower))
     );
   };
 
-  // Effect to handle filtering and sorting
+  // Apply filtering and sorting logic
   useEffect(() => {
-    // Step 1: Filter products by search term
-    const filtered = filterProductsBySearch(products, search);
+    // Step 1: Filter by search
+    const searchFiltered = filterProductsBySearch(products, search);
     
-    // Step 2: Sort the filtered products
-    const sorted = sortProducts(filtered, sortBy);
+    // Step 2: Sort filtered results
+    const sorted = sortProducts(searchFiltered, sortBy);
     
     // Step 3: Apply limit if needed
-    const result = limit ? sorted.slice(0, limit) : sorted;
+    const limited = limit ? sorted.slice(0, limit) : sorted;
     
-    // Step 4: Update state
-    setFilteredProducts(result);
+    // Update state with the final result
+    setFilteredProducts(limited);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
