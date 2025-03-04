@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -12,32 +11,6 @@ interface ProductCatalogProps {
   featuredOnly?: boolean;
   limit?: number;
 }
-
-// Helper function to sort products
-const sortProducts = (products: Product[], sortType: string): Product[] => {
-  const result = [...products];
-  
-  switch (sortType) {
-    case 'price-low':
-      return result.sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
-        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
-        return priceA - priceB;
-      });
-    case 'price-high':
-      return result.sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
-        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
-        return priceB - priceA;
-      });
-    case 'name-az':
-      return result.sort((a, b) => a.title.localeCompare(b.title));
-    case 'name-za':
-      return result.sort((a, b) => b.title.localeCompare(a.title));
-    default:
-      return result; // 'newest' or any other value
-  }
-};
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
   category, 
@@ -56,7 +29,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   useEffect(() => {
     // Apply search filter first
-    let result = [...products];
+    let result = products;
     
     if (search) {
       const searchLower = search.toLowerCase();
@@ -66,14 +39,34 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       );
     }
     
-    // Then sort the filtered results
-    const sortedResult = sortProducts(result, sortBy);
+    // Make a fresh copy before sorting to avoid mutations
+    const resultToSort = [...result];
+    
+    // Then apply sorting based on the selected option
+    if (sortBy === 'price-low') {
+      resultToSort.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
+        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
+        return priceA - priceB;
+      });
+    } else if (sortBy === 'price-high') {
+      resultToSort.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
+        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
+        return priceB - priceA;
+      });
+    } else if (sortBy === 'name-az') {
+      resultToSort.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      resultToSort.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    // For 'newest', we keep the original order (already sorted by created_at in the fetchProducts function)
     
     // Apply limit if provided
-    if (limit && sortedResult.length > limit) {
-      setFilteredProducts(sortedResult.slice(0, limit));
+    if (limit && resultToSort.length > limit) {
+      setFilteredProducts(resultToSort.slice(0, limit));
     } else {
-      setFilteredProducts(sortedResult);
+      setFilteredProducts(resultToSort);
     }
   }, [products, search, sortBy, limit]);
 
