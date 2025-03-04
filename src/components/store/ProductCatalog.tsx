@@ -30,35 +30,36 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Apply filtering and sorting logic
   useEffect(() => {
-    // Create a new array to avoid mutation
-    const searchFiltered = [...products];
+    // Start with a fresh copy of products
+    let result = [...products];
     
-    // Filter by search term
-    let result = searchFiltered;
+    // Apply search filter if there's a search term
     if (search.trim()) {
       const searchLower = search.toLowerCase();
-      result = searchFiltered.filter(product => 
+      result = result.filter(product => 
         product.title.toLowerCase().includes(searchLower) || 
         (product.description && product.description.toLowerCase().includes(searchLower))
       );
     }
     
-    // Sort products
-    let sortedResult = [...result];
+    // Apply sorting based on the selected sort option
     if (sortBy === 'price-low') {
-      sortedResult.sort((a, b) => Number(a.price) - Number(b.price));
+      result = [...result].sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
-      sortedResult.sort((a, b) => Number(b.price) - Number(a.price));
+      result = [...result].sort((a, b) => b.price - a.price);
     } else if (sortBy === 'name-az') {
-      sortedResult.sort((a, b) => a.title.localeCompare(b.title));
+      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      sortedResult.sort((a, b) => b.title.localeCompare(a.title));
+      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+    }
+    // Note: 'newest' is default, and already sorted by created_at in the fetch
+    
+    // Apply limit if provided
+    if (limit && result.length > limit) {
+      result = result.slice(0, limit);
     }
     
-    // Apply limit if needed
-    const finalResult = limit ? sortedResult.slice(0, limit) : sortedResult;
-    
-    setFilteredProducts(finalResult);
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
