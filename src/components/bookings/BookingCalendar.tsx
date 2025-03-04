@@ -5,6 +5,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { DayContent, DayContentProps, DayProps } from 'react-day-picker';
 
 interface BookingCalendarProps {
   availableDates: Date[];
@@ -31,6 +32,33 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     );
   };
 
+  // Componente personalizado para o Day
+  const MyDay = (props: DayProps) => {
+    const { date } = props;
+    if (!date) return <DayContent {...props} />;
+    
+    const isAvailable = isDateAvailable(date);
+    
+    return (
+      <div
+        className={cn(
+          props.className,
+          !isAvailable && 'text-gray-400 cursor-not-allowed opacity-30',
+          isAvailable && 'hover:bg-purple-500/20'
+        )}
+      >
+        <button
+          type="button"
+          disabled={!isAvailable}
+          className="w-full h-full"
+          onClick={() => isAvailable && onSelectDate(date)}
+        >
+          {formatDay(date)}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <GlassCard className="p-4">
       <h3 className="text-xl font-bold text-white mb-4">Selecione uma Data</h3>
@@ -45,23 +73,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           today: 'bg-white/10 text-white',
         }}
         components={{
-          Day: ({ day, ...props }) => {
-            const isAvailable = isDateAvailable(day);
-            return (
-              <button
-                type="button"
-                {...props}
-                className={cn(
-                  props.className,
-                  !isAvailable && 'text-gray-400 cursor-not-allowed opacity-30',
-                  isAvailable && 'hover:bg-purple-500/20'
-                )}
-                disabled={!isAvailable}
-              >
-                {formatDay(day)}
-              </button>
-            );
-          },
+          Day: MyDay
         }}
       />
     </GlassCard>
