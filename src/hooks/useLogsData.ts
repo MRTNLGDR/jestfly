@@ -118,7 +118,9 @@ export const useLogsData = (isAuthorized: boolean) => {
     let headers: string[];
     let csvData: any[];
     
-    if (filters.activeTab === 'activity') {
+    const isSystemLog = filters.activeTab !== 'activity';
+    
+    if (!isSystemLog) {
       headers = ['Data', 'Ação', 'Usuário', 'Entidade', 'Status', 'Detalhes'];
       csvData = (logs as LogEntry[]).map((log: LogEntry) => [
         new Date(log.created_at).toLocaleString(),
