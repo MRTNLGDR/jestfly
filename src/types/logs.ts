@@ -1,5 +1,4 @@
 
-// Log types
 export interface BaseLogEntry {
   id: string;
   timestamp: string;
@@ -7,15 +6,15 @@ export interface BaseLogEntry {
 }
 
 export interface LogEntry extends BaseLogEntry {
-  user_id?: string;
+  user_id: string;
   action: string;
   resource?: string;
   resource_id?: string;
 }
 
 export interface SystemLogEntry extends BaseLogEntry {
-  level: 'info' | 'warning' | 'error' | 'debug' | 'critical';
-  source: 'system' | 'user' | 'api' | 'auth' | 'database';
+  level: 'info' | 'warning' | 'error';
+  source: 'system' | 'api' | 'auth' | 'database' | string;
   metadata?: Record<string, any>;
 }
 
