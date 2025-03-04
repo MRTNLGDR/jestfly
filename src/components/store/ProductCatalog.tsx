@@ -26,7 +26,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   useEffect(() => {
     fetchProducts();
-  }, [category]);
+  }, [category, featuredOnly]);
 
   useEffect(() => {
     // Filter and sort products whenever products, search, or sortBy changes
