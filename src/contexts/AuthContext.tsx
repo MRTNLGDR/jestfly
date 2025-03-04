@@ -5,12 +5,13 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Update the ProfileData interface with the specific profile_type values
 export interface ProfileData {
   id?: string;
   email?: string;
   display_name?: string;
   username?: string;
-  profile_type?: string;
+  profile_type?: 'fan' | 'artist' | 'admin' | 'collaborator';
   bio?: string;
   avatar?: string;
   wallet_address?: string;
@@ -140,6 +141,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData?: Partial<ProfileData>) => {
     setIsLoading(true);
     try {
+      // Ensure profile_type is one of the allowed values
+      const profileType = userData?.profile_type || 'fan';
+      
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
@@ -147,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             display_name: userData?.display_name,
             username: userData?.username,
-            profileType: userData?.profile_type || 'fan'
+            profileType: profileType as 'fan' | 'artist' | 'admin' | 'collaborator'
           }
         }
       });
@@ -186,9 +190,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsLoading(true);
     try {
+      // Create a new object with the correct typings for profile_type
+      const updateData: {
+        display_name?: string;
+        username?: string;
+        profile_type?: 'fan' | 'artist' | 'admin' | 'collaborator';
+        bio?: string;
+        avatar?: string;
+        wallet_address?: string;
+        updated_at?: string;
+      } = { ...data };
+      
+      // Ensure profile_type is one of the allowed values if it exists
+      if (data.profile_type && !['fan', 'artist', 'admin', 'collaborator'].includes(data.profile_type)) {
+        throw new Error('Invalid profile type');
+      }
+
       const { error } = await supabase
         .from('profiles')
-        .update(data)
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) {
