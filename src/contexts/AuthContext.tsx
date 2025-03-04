@@ -43,7 +43,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('id', currentSession.user.id)
           .single();
         
-        setProfile(data);
+        if (data) {
+          // Convert JSON object to Record<string, string> for social_links
+          const socialLinks = typeof data.social_links === 'string' 
+            ? JSON.parse(data.social_links) 
+            : data.social_links || {};
+            
+          const profileData: ProfileData = {
+            ...data,
+            social_links: socialLinks as Record<string, string>
+          };
+          
+          setProfile(profileData);
+        }
       }
       
       setLoading(false);
@@ -63,7 +75,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('id', newSession.user.id)
           .single();
         
-        setProfile(data);
+        if (data) {
+          // Convert JSON object to Record<string, string> for social_links
+          const socialLinks = typeof data.social_links === 'string' 
+            ? JSON.parse(data.social_links) 
+            : data.social_links || {};
+            
+          const profileData: ProfileData = {
+            ...data,
+            social_links: socialLinks as Record<string, string>
+          };
+          
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
       } else {
         setProfile(null);
       }
@@ -127,8 +153,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select()
         .single();
       
-      if (!error) {
-        setProfile(data);
+      if (!error && data) {
+        // Convert JSON object to Record<string, string> for social_links
+        const socialLinks = typeof data.social_links === 'string' 
+          ? JSON.parse(data.social_links) 
+          : data.social_links || {};
+          
+        const profileData: ProfileData = {
+          ...data,
+          social_links: socialLinks as Record<string, string>
+        };
+        
+        setProfile(profileData);
+        return { data: profileData, error: null };
       }
       
       return { data, error };
@@ -173,7 +210,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
       
       if (data) {
-        setProfile(data);
+        // Convert JSON object to Record<string, string> for social_links
+        const socialLinks = typeof data.social_links === 'string' 
+          ? JSON.parse(data.social_links) 
+          : data.social_links || {};
+          
+        const profileData: ProfileData = {
+          ...data,
+          social_links: socialLinks as Record<string, string>
+        };
+        
+        setProfile(profileData);
         return true;
       }
       
@@ -184,7 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     user,
     session,
     profile,

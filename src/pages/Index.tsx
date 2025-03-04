@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import MainLayout from '../layouts/MainLayout';
 import CrystalHero from '../components/CrystalHero';
 import ArtistShowcase from '../components/ArtistShowcase';
 import NFTSection from '../components/NFTSection';
@@ -25,47 +26,49 @@ const Index: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative bg-black min-h-screen text-white overflow-hidden">
-      {/* Hero Section */}
-      <CrystalHero />
-      
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-16 space-y-24">
-        {/* Featured Artists */}
-        <ArtistShowcase />
+    <MainLayout>
+      <div className="relative bg-black min-h-screen text-white overflow-hidden">
+        {/* Hero Section */}
+        <CrystalHero />
         
-        {/* NFT Section */}
-        <NFTSection />
-        
-        {/* Events Section */}
-        <EventsSection />
-        
-        {/* Roadmap / Timeline */}
-        <RoadmapSection />
-        
-        {/* Crystal Gallery */}
-        <CrystalGallery />
-        
-        {/* Shop Preview */}
-        <ShopPreview />
-        
-        {/* Newsletter / Connection */}
-        <ConnectionSection />
-      </div>
-      
-      {/* Admin Link - only visible to admins */}
-      {authContext && authContext.user && authContext.user.email === "admin@example.com" && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <Link 
-            to="/admin" 
-            className="bg-purple-800/80 backdrop-blur-sm text-white px-4 py-2 rounded-full 
-                     flex items-center space-x-2 hover:bg-purple-700 transition-colors shadow-lg"
-          >
-            <span>Admin</span>
-          </Link>
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-16 space-y-24">
+          {/* Featured Artists */}
+          <ArtistShowcase />
+          
+          {/* NFT Section */}
+          <NFTSection />
+          
+          {/* Events Section */}
+          <EventsSection />
+          
+          {/* Roadmap / Timeline */}
+          <RoadmapSection />
+          
+          {/* Crystal Gallery */}
+          <CrystalGallery />
+          
+          {/* Shop Preview */}
+          <ShopPreview />
+          
+          {/* Newsletter / Connection */}
+          <ConnectionSection />
         </div>
-      )}
-    </div>
+        
+        {/* Admin Link - only visible to admins */}
+        {authContext && authContext.user && authContext.user.email === "admin@example.com" && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <Link 
+              to="/admin" 
+              className="bg-purple-800/80 backdrop-blur-sm text-white px-4 py-2 rounded-full 
+                       flex items-center space-x-2 hover:bg-purple-700 transition-colors shadow-lg"
+            >
+              <span>Admin</span>
+            </Link>
+          </div>
+        )}
+      </div>
+    </MainLayout>
   );
 };
 

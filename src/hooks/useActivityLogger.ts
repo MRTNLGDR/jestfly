@@ -35,7 +35,57 @@ export const useActivityLogger = () => {
     }
   }, []);
 
-  return { logActivity, logLoading };
+  // Add the missing functions that are being referenced in other files
+  const logSystemActivity = useCallback(async (
+    action: string,
+    details?: Record<string, any>,
+    success: boolean = true
+  ) => {
+    try {
+      setLogLoading(true);
+      
+      const { error } = await supabase
+        .from('system_logs')
+        .insert({
+          action,
+          details,
+          success,
+          ip_address: 'client',
+          user_agent: navigator.userAgent
+        });
+      
+      if (error) {
+        console.error('Error logging system activity:', error);
+      }
+    } catch (err) {
+      console.error('Failed to log system activity:', err);
+    } finally {
+      setLogLoading(false);
+    }
+  }, []);
+
+  const logProfileUpdate = useCallback(async (
+    userId: string | undefined,
+    details?: Record<string, any>
+  ) => {
+    return logActivity(userId, 'profile_update', details);
+  }, [logActivity]);
+
+  const logAccessAttempt = useCallback(async (
+    userId: string | undefined,
+    resource: string,
+    success: boolean = true
+  ) => {
+    return logActivity(userId, 'access_attempt', { resource, success });
+  }, [logActivity]);
+
+  return {
+    logActivity,
+    logSystemActivity,
+    logProfileUpdate,
+    logAccessAttempt,
+    logLoading
+  };
 };
 
 export default useActivityLogger;
