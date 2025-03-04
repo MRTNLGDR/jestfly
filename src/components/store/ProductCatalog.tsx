@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -11,6 +12,32 @@ interface ProductCatalogProps {
   featuredOnly?: boolean;
   limit?: number;
 }
+
+// Helper function to handle product sorting without complex type inference
+const sortProducts = (products: Product[], sortBy: string): Product[] => {
+  const productsCopy = [...products]; // Create a copy to avoid mutations
+  
+  switch (sortBy) {
+    case 'price-low':
+      return productsCopy.sort((a, b) => {
+        const priceA = Number(a.price);
+        const priceB = Number(b.price);
+        return priceA - priceB;
+      });
+    case 'price-high':
+      return productsCopy.sort((a, b) => {
+        const priceA = Number(a.price);
+        const priceB = Number(b.price);
+        return priceB - priceA;
+      });
+    case 'name-az':
+      return productsCopy.sort((a, b) => a.title.localeCompare(b.title));
+    case 'name-za':
+      return productsCopy.sort((a, b) => b.title.localeCompare(a.title));
+    default:
+      return productsCopy; // 'newest' or any other value
+  }
+};
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
   category, 
@@ -28,46 +55,23 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    // Apply search filter first
-    let result = products;
+    // Apply search filter
+    const filtered = search 
+      ? products.filter(product => {
+          const searchLower = search.toLowerCase();
+          return product.title.toLowerCase().includes(searchLower) || 
+                 (product.description && product.description.toLowerCase().includes(searchLower));
+        })
+      : [...products];
     
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(product => 
-        product.title.toLowerCase().includes(searchLower) || 
-        (product.description && product.description.toLowerCase().includes(searchLower))
-      );
-    }
-    
-    // Make a fresh copy before sorting to avoid mutations
-    const resultToSort = [...result];
-    
-    // Then apply sorting based on the selected option
-    if (sortBy === 'price-low') {
-      resultToSort.sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
-        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
-        return priceA - priceB;
-      });
-    } else if (sortBy === 'price-high') {
-      resultToSort.sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
-        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
-        return priceB - priceA;
-      });
-    } else if (sortBy === 'name-az') {
-      resultToSort.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      resultToSort.sort((a, b) => b.title.localeCompare(a.title));
-    }
-    // For 'newest', we keep the original order (already sorted by created_at in the fetchProducts function)
+    // Apply sorting
+    const sorted = sortProducts(filtered, sortBy);
     
     // Apply limit if provided
-    if (limit && resultToSort.length > limit) {
-      setFilteredProducts(resultToSort.slice(0, limit));
-    } else {
-      setFilteredProducts(resultToSort);
-    }
+    const limited = limit ? sorted.slice(0, limit) : sorted;
+    
+    // Update state
+    setFilteredProducts(limited);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
