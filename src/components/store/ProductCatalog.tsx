@@ -41,34 +41,38 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       );
     }
     
-    // Apply sorting with simplified logic to avoid excessive type instantiation
-    if (sortBy === 'price-low') {
-      // Create a new array before sorting to avoid mutation
-      result = result.slice().sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
-        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
-        return priceA - priceB;
-      });
-    } else if (sortBy === 'price-high') {
-      result = result.slice().sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
-        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
-        return priceB - priceA;
-      });
-    } else if (sortBy === 'name-az') {
-      result = result.slice().sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      result = result.slice().sort((a, b) => b.title.localeCompare(a.title));
-    }
-    // For 'newest', we're assuming the products are already sorted by newest first
+    // Apply sorting using simple dedicated sort functions to avoid deep type instantiation
+    const sortedResult = applySorting(result, sortBy);
     
     // Apply limit if provided
-    if (limit && result.length > limit) {
-      result = result.slice(0, limit);
+    if (limit && sortedResult.length > limit) {
+      setFilteredProducts(sortedResult.slice(0, limit));
+    } else {
+      setFilteredProducts(sortedResult);
     }
-    
-    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
+
+  // Separate the sorting logic to simplify type inference
+  const applySorting = (items: Product[], sortType: string): Product[] => {
+    const itemsCopy = [...items];
+    
+    switch (sortType) {
+      case 'price-low':
+        return itemsCopy.sort((a, b) => {
+          return Number(a.price) - Number(b.price);
+        });
+      case 'price-high':
+        return itemsCopy.sort((a, b) => {
+          return Number(b.price) - Number(a.price);
+        });
+      case 'name-az':
+        return itemsCopy.sort((a, b) => a.title.localeCompare(b.title));
+      case 'name-za':
+        return itemsCopy.sort((a, b) => b.title.localeCompare(a.title));
+      default:
+        return itemsCopy; // 'newest' - keep original order
+    }
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
