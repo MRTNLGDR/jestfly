@@ -28,51 +28,52 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // This useEffect handles filtering and sorting separately to avoid type depth issues
+  // Separate filtering and sorting to avoid deep type instantiation
   useEffect(() => {
-    // Apply filters only first
-    let results = [...products];
+    // First, filter products
+    let filtered = filterProducts(products, search);
     
-    // Filter by search term
-    if (search && search.trim() !== '') {
-      const term = search.toLowerCase().trim();
-      results = results.filter(product => {
-        return product.title.toLowerCase().includes(term) || 
-               (product.description ? product.description.toLowerCase().includes(term) : false);
-      });
+    // Then, sort the filtered products
+    let sorted = sortProducts(filtered, sortBy);
+    
+    // Finally, apply limit if needed
+    if (limit && limit > 0 && sorted.length > limit) {
+      sorted = sorted.slice(0, limit);
     }
     
-    // Apply sorting based on sortBy value
-    applySort(results);
-    
+    setFilteredProducts(sorted);
   }, [products, search, sortBy, limit]);
 
-  // Separate function for sorting to break up complex type inference
-  const applySort = (results: Product[]) => {
-    let sortedResults = [...results];
+  // Separate function for filtering to simplify type inference
+  const filterProducts = (products: Product[], searchTerm: string): Product[] => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return products;
+    }
     
-    switch (sortBy) {
+    const term = searchTerm.toLowerCase().trim();
+    return products.filter(product => {
+      return product.title.toLowerCase().includes(term) || 
+             (product.description ? product.description.toLowerCase().includes(term) : false);
+    });
+  };
+
+  // Separate function for sorting to simplify type inference
+  const sortProducts = (products: Product[], sortOption: string): Product[] => {
+    const result = [...products];
+    
+    switch (sortOption) {
       case 'price-low':
-        sortedResults.sort((a, b) => a.price - b.price);
-        break;
+        return result.sort((a, b) => a.price - b.price);
       case 'price-high':
-        sortedResults.sort((a, b) => b.price - a.price);
-        break;
+        return result.sort((a, b) => b.price - a.price);
       case 'name-az':
-        sortedResults.sort((a, b) => a.title.localeCompare(b.title));
-        break;
+        return result.sort((a, b) => a.title.localeCompare(b.title));
       case 'name-za':
-        sortedResults.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      // For 'newest', we rely on the default sorting from the query
+        return result.sort((a, b) => b.title.localeCompare(a.title));
+      case 'newest':
+      default:
+        return result; // Already sorted by created_at in the query
     }
-    
-    // Apply limit if provided
-    if (limit && limit > 0 && sortedResults.length > limit) {
-      sortedResults = sortedResults.slice(0, limit);
-    }
-    
-    setFilteredProducts(sortedResults);
   };
 
   const fetchProducts = async () => {
