@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 
 // Import pages
@@ -40,66 +39,62 @@ import NotificationsPage from './pages/NotificationsPage';
 // Import contexts
 import { AuthProvider } from './contexts/AuthContext';
 
-const queryClient = new QueryClient();
-
 function App() {
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/index" />} />
-            <Route path="/index" element={<Index />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
-            <Route path="/" element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/community/*" element={<CommunityPage />} />
-              <Route path="/admin-auth" element={<AdminAuthPage />} />
-              <Route path="/assets" element={<AssetUploader />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/logs" element={<LogsPage />} />
-              <Route path="/logs-viewer" element={<LogsViewer />} />
-              <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/notes" element={<NotesPage />} />
-              <Route path="/demo-submission" element={<DemoSubmissionPage />} />
-              <Route path="/press-kit" element={<PressKitPage />} />
-              <Route path="/live-stream" element={<LiveStreamPage />} />
-              <Route path="/jestcoin" element={<JestCoinPage />} />
-              <Route path="/demo-review" element={
-                <ProtectedRoute requiredProfileType="admin">
-                  <DemoReviewPage />
-                </ProtectedRoute>
-              } />
-            </Route>
-            <Route path="/admin-panel" element={
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navigate to="/index" />} />
+          <Route path="/index" element={<Index />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
+          <Route path="/" element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/community/*" element={<CommunityPage />} />
+            <Route path="/admin-auth" element={<AdminAuthPage />} />
+            <Route path="/assets" element={<AssetUploader />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/logs" element={<LogsPage />} />
+            <Route path="/logs-viewer" element={<LogsViewer />} />
+            <Route path="/bookings" element={<BookingsPage />} />
+            <Route path="/notes" element={<NotesPage />} />
+            <Route path="/demo-submission" element={<DemoSubmissionPage />} />
+            <Route path="/press-kit" element={<PressKitPage />} />
+            <Route path="/live-stream" element={<LiveStreamPage />} />
+            <Route path="/jestcoin" element={<JestCoinPage />} />
+            <Route path="/demo-review" element={
               <ProtectedRoute requiredProfileType="admin">
-                <AdminPanel />
+                <DemoReviewPage />
               </ProtectedRoute>
             } />
-            <Route path="/admin-dashboard" element={
-              <ProtectedRoute requiredProfileType="admin">
-                <AdminDashboardPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/store" element={<StorePage />} />
-            <Route path="/analytics" element={<AnalyticsPage />} />
-            <Route path="/moderation" element={<ModerationPage />} />
-            <Route path="/airdrop" element={<AirdropPage />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+          </Route>
+          <Route path="/admin-panel" element={
+            <ProtectedRoute requiredProfileType="admin">
+              <AdminPanel />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin-dashboard" element={
+            <ProtectedRoute requiredProfileType="admin">
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/store" element={<StorePage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/moderation" element={<ModerationPage />} />
+          <Route path="/airdrop" element={<AirdropPage />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
         <Toaster />
-      </AuthProvider>
-    </QueryClientProvider>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
