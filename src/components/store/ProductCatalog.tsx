@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -13,23 +12,15 @@ interface ProductCatalogProps {
   limit?: number;
 }
 
-// Helper function to handle product sorting without complex type inference
+// Helper function to handle product sorting with explicit type annotation
 const sortProducts = (products: Product[], sortBy: string): Product[] => {
   const productsCopy = [...products]; // Create a copy to avoid mutations
   
   switch (sortBy) {
     case 'price-low':
-      return productsCopy.sort((a, b) => {
-        const priceA = Number(a.price);
-        const priceB = Number(b.price);
-        return priceA - priceB;
-      });
+      return productsCopy.sort((a, b) => Number(a.price) - Number(b.price));
     case 'price-high':
-      return productsCopy.sort((a, b) => {
-        const priceA = Number(a.price);
-        const priceB = Number(b.price);
-        return priceB - priceA;
-      });
+      return productsCopy.sort((a, b) => Number(b.price) - Number(a.price));
     case 'name-az':
       return productsCopy.sort((a, b) => a.title.localeCompare(b.title));
     case 'name-za':
@@ -55,7 +46,8 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    // Apply search filter
+    // Apply search and sorting in steps to avoid deep type nesting
+    // 1. First create a filtered array based on search
     let filtered: Product[] = [];
     
     if (search) {
@@ -65,17 +57,18 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         (product.description && product.description.toLowerCase().includes(searchLower))
       );
     } else {
-      filtered = [...products];
+      // Explicitly create a new array to avoid TypeScript tracking mutations
+      filtered = Array.from(products);
     }
     
-    // Apply sorting
+    // 2. Sort the filtered array
     const sorted = sortProducts(filtered, sortBy);
     
-    // Apply limit if provided
-    const limited = limit ? sorted.slice(0, limit) : sorted;
+    // 3. Apply limit if provided
+    const result = limit ? sorted.slice(0, limit) : sorted;
     
-    // Update state
-    setFilteredProducts(limited);
+    // 4. Update state with the final result
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
