@@ -1,228 +1,200 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-type Language = 'pt' | 'en';
+// Define available languages
+type Language = 'en' | 'pt';
 
-interface LanguageContextType {
+// Translations dictionary
+type Translations = {
+  [key: string]: {
+    [key in Language]: string;
+  };
+};
+
+// Initial translations
+const translations: Translations = {
+  // Common
+  'nav.home': {
+    en: 'Home',
+    pt: 'Início',
+  },
+  'nav.store': {
+    en: 'Store',
+    pt: 'Loja',
+  },
+  'nav.community': {
+    en: 'Community',
+    pt: 'Comunidade',
+  },
+  'nav.bookings': {
+    en: 'Bookings',
+    pt: 'Reservas',
+  },
+  'nav.profile': {
+    en: 'Profile',
+    pt: 'Perfil',
+  },
+  'nav.demo': {
+    en: 'Demo Submission',
+    pt: 'Enviar Demo',
+  },
+  'nav.live': {
+    en: 'Live Stream',
+    pt: 'Transmissão ao Vivo',
+  },
+  'nav.press': {
+    en: 'Press Kit',
+    pt: 'Kit de Imprensa',
+  },
+  'nav.admin': {
+    en: 'Admin',
+    pt: 'Administração',
+  },
+  
+  // Demo Submission
+  'demo.title': {
+    en: 'Submit Your Demo',
+    pt: 'Envie Sua Demo',
+  },
+  'demo.subtitle': {
+    en: 'Join the exclusive JESTFLY roster',
+    pt: 'Junte-se ao seleto grupo JESTFLY',
+  },
+  'demo.description': {
+    en: 'Submit your music demo to be considered for release on JESTFLY Records and become a member of the exclusive JESTFLY Mansion VIP.',
+    pt: 'Envie sua demo musical para ser considerada para lançamento pela JESTFLY Records e torne-se membro exclusivo do JESTFLY Mansion VIP.',
+  },
+  'demo.form.name': {
+    en: 'Artist Name',
+    pt: 'Nome do Artista',
+  },
+  'demo.form.email': {
+    en: 'Email',
+    pt: 'Email',
+  },
+  'demo.form.genre': {
+    en: 'Genre',
+    pt: 'Gênero',
+  },
+  'demo.form.bio': {
+    en: 'Biography',
+    pt: 'Biografia',
+  },
+  'demo.form.links': {
+    en: 'Social Media Links',
+    pt: 'Links de Redes Sociais',
+  },
+  'demo.form.upload': {
+    en: 'Upload Demo',
+    pt: 'Carregar Demo',
+  },
+  'demo.form.submit': {
+    en: 'Submit Demo',
+    pt: 'Enviar Demo',
+  },
+  
+  // Live Stream
+  'live.title': {
+    en: 'Live Stream',
+    pt: 'Transmissão ao Vivo',
+  },
+  'live.connect': {
+    en: 'Connect With Fans',
+    pt: 'Conecte-se Com os Fãs',
+  },
+  'live.platforms': {
+    en: 'Stream to Multiple Platforms',
+    pt: 'Transmita para Várias Plataformas',
+  },
+  'live.start': {
+    en: 'Start Streaming',
+    pt: 'Iniciar Transmissão',
+  },
+  'live.comments': {
+    en: 'Comments',
+    pt: 'Comentários',
+  },
+  'live.facebook': {
+    en: 'Facebook',
+    pt: 'Facebook',
+  },
+  'live.instagram': {
+    en: 'Instagram',
+    pt: 'Instagram',
+  },
+  'live.youtube': {
+    en: 'YouTube',
+    pt: 'YouTube',
+  },
+  
+  // Press Kit
+  'press.title': {
+    en: 'Press Kit',
+    pt: 'Kit de Imprensa',
+  },
+  'press.subtitle': {
+    en: 'Media Resources',
+    pt: 'Recursos para Mídia',
+  },
+  'press.description': {
+    en: 'Access high-quality press materials for your coverage. Enter your details below to gain access.',
+    pt: 'Acesse materiais de imprensa de alta qualidade para sua cobertura. Insira seus dados abaixo para obter acesso.',
+  },
+  'press.form.name': {
+    en: 'Full Name',
+    pt: 'Nome Completo',
+  },
+  'press.form.email': {
+    en: 'Email',
+    pt: 'Email',
+  },
+  'press.form.outlet': {
+    en: 'Media Outlet',
+    pt: 'Veículo de Mídia',
+  },
+  'press.form.submit': {
+    en: 'Access Press Kit',
+    pt: 'Acessar Kit de Imprensa',
+  },
+};
+
+// Context interface
+interface LanguageContextProps {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
 }
 
-// Create context with a default value
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+// Create Context
+const LanguageContext = createContext<LanguageContextProps | undefined>(undefined);
 
-// Define translations
-const translations = {
-  en: {
-    // Header
-    'nav.home': 'Home',
-    'nav.store': 'Store',
-    'nav.community': 'Community',
-    'nav.bookings': 'Bookings',
-    'nav.notes': 'Notes',
-    'nav.profile': 'Profile',
-    'nav.demos': 'Demos',
-    'nav.livestream': 'Live',
-    'nav.presskit': 'Press Kit',
-    'nav.jestcoin': 'JestCoin',
-    'nav.airdrop': 'Airdrop',
-    'nav.admin': 'Admin',
-    'nav.login': 'Log In',
-    'nav.register': 'Register',
-    'nav.logout': 'Log Out',
-    
-    // Common
-    'common.loading': 'Loading...',
-    'common.error': 'Error',
-    'common.success': 'Success',
-    'common.save': 'Save',
-    'common.cancel': 'Cancel',
-    'common.edit': 'Edit',
-    'common.delete': 'Delete',
-    'common.submit': 'Submit',
-    'common.search': 'Search',
-    
-    // Auth
-    'auth.login': 'Log In',
-    'auth.register': 'Register',
-    'auth.email': 'Email',
-    'auth.password': 'Password',
-    'auth.forgotPassword': 'Forgot Password?',
-    'auth.noAccount': 'Don\'t have an account?',
-    'auth.hasAccount': 'Already have an account?',
-    'auth.registerNow': 'Register Now',
-    'auth.loginNow': 'Log In Now',
-    
-    // Community
-    'community.title': 'Community',
-    'community.posts': 'Posts',
-    'community.events': 'Events',
-    'community.giveaways': 'Giveaways',
-    'community.jestflyers': 'JestFlyers Hub',
-    'community.newPost': 'New Post',
-    'community.comments': 'Comments',
-    'community.writeComment': 'Write a comment...',
-    
-    // Store
-    'store.title': 'Store',
-    'store.products': 'Products',
-    'store.cart': 'Cart',
-    'store.checkout': 'Checkout',
-    'store.addToCart': 'Add to Cart',
-    
-    // Profile
-    'profile.title': 'Profile',
-    'profile.edit': 'Edit Profile',
-    'profile.settings': 'Settings',
-    'profile.activity': 'Activity',
-    
-    // JestCoin
-    'jestcoin.title': 'JestCoin',
-    'jestcoin.balance': 'Balance',
-    'jestcoin.transactions': 'Transactions',
-    'jestcoin.rewards': 'Rewards',
-    
-    // Admin
-    'admin.dashboard': 'Dashboard',
-    'admin.users': 'Users',
-    'admin.content': 'Content',
-    'admin.settings': 'Settings',
-    'admin.logs': 'Logs',
-    
-    // Footer
-    'footer.copyright': '© 2024 JESTFLY. All rights reserved.',
-    'footer.terms': 'Terms',
-    'footer.privacy': 'Privacy',
-    'footer.contact': 'Contact',
-  },
-  pt: {
-    // Header
-    'nav.home': 'Início',
-    'nav.store': 'Loja',
-    'nav.community': 'Comunidade',
-    'nav.bookings': 'Reservas',
-    'nav.notes': 'Notas',
-    'nav.profile': 'Perfil',
-    'nav.demos': 'Demos',
-    'nav.livestream': 'Ao Vivo',
-    'nav.presskit': 'Kit de Imprensa',
-    'nav.jestcoin': 'JestCoin',
-    'nav.airdrop': 'Airdrop',
-    'nav.admin': 'Admin',
-    'nav.login': 'Entrar',
-    'nav.register': 'Cadastrar',
-    'nav.logout': 'Sair',
-    
-    // Common
-    'common.loading': 'Carregando...',
-    'common.error': 'Erro',
-    'common.success': 'Sucesso',
-    'common.save': 'Salvar',
-    'common.cancel': 'Cancelar',
-    'common.edit': 'Editar',
-    'common.delete': 'Excluir',
-    'common.submit': 'Enviar',
-    'common.search': 'Pesquisar',
-    
-    // Auth
-    'auth.login': 'Entrar',
-    'auth.register': 'Cadastrar',
-    'auth.email': 'Email',
-    'auth.password': 'Senha',
-    'auth.forgotPassword': 'Esqueceu a senha?',
-    'auth.noAccount': 'Não tem uma conta?',
-    'auth.hasAccount': 'Já tem uma conta?',
-    'auth.registerNow': 'Cadastre-se Agora',
-    'auth.loginNow': 'Entre Agora',
-    
-    // Community
-    'community.title': 'Comunidade',
-    'community.posts': 'Postagens',
-    'community.events': 'Eventos',
-    'community.giveaways': 'Sorteios',
-    'community.jestflyers': 'Hub de JestFlyers',
-    'community.newPost': 'Nova Postagem',
-    'community.comments': 'Comentários',
-    'community.writeComment': 'Escreva um comentário...',
-    
-    // Store
-    'store.title': 'Loja',
-    'store.products': 'Produtos',
-    'store.cart': 'Carrinho',
-    'store.checkout': 'Finalizar Compra',
-    'store.addToCart': 'Adicionar ao Carrinho',
-    
-    // Profile
-    'profile.title': 'Perfil',
-    'profile.edit': 'Editar Perfil',
-    'profile.settings': 'Configurações',
-    'profile.activity': 'Atividade',
-    
-    // JestCoin
-    'jestcoin.title': 'JestCoin',
-    'jestcoin.balance': 'Saldo',
-    'jestcoin.transactions': 'Transações',
-    'jestcoin.rewards': 'Recompensas',
-    
-    // Admin
-    'admin.dashboard': 'Painel',
-    'admin.users': 'Usuários',
-    'admin.content': 'Conteúdo',
-    'admin.settings': 'Configurações',
-    'admin.logs': 'Logs',
-    
-    // Footer
-    'footer.copyright': '© 2024 JESTFLY. Todos os direitos reservados.',
-    'footer.terms': 'Termos',
-    'footer.privacy': 'Privacidade',
-    'footer.contact': 'Contato',
-  }
-};
-
-interface LanguageProviderProps {
-  children: ReactNode;
-}
-
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('pt');
-
-  // Load saved language from localStorage on initial render
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('language');
-    if (savedLanguage && (savedLanguage === 'pt' || savedLanguage === 'en')) {
-      setLanguage(savedLanguage);
-    }
-  }, []);
-
-  // Save language to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
+// Provider Component
+export const LanguageProvider: React.FC<{children: ReactNode}> = ({ children }) => {
+  const [language, setLanguage] = useState<Language>('en');
 
   // Translation function
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations[typeof language]] || key;
-  };
-
-  const value = {
-    language,
-    setLanguage,
-    t
+    if (translations[key] && translations[key][language]) {
+      return translations[key][language];
+    }
+    console.warn(`Translation key "${key}" missing for language: ${language}`);
+    return key;
   };
 
   return (
-    <LanguageContext.Provider value={value}>
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
 };
 
 // Custom hook to use the language context
-export const useLanguage = (): LanguageContextType => {
+export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
 };
+
+export default LanguageProvider;

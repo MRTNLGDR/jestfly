@@ -1,47 +1,47 @@
 
 import React from 'react';
-import { Gift, ArrowRight } from 'lucide-react';
 
-const GiveawaysPage: React.FC = () => {
-  return (
-    <>
-      <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 mb-8">
-        Sorteios JESTFLY
-      </h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-black/40 backdrop-blur-md border border-purple-500/20 rounded-lg p-6 transition-all hover:border-purple-500/40 hover:transform hover:translate-y-[-5px]">
-          <div className="flex items-center gap-3 mb-4">
-            <Gift className="h-5 w-5 text-purple-400" />
-            <h3 className="text-xl font-bold text-white">Próximos sorteios</h3>
-          </div>
-          <p className="text-white/70 mb-4">
-            Em breve anunciaremos sorteios exclusivos para a comunidade JESTFLY.
-            Fique de olho para não perder nenhuma oportunidade!
-          </p>
-          <div className="flex items-center text-purple-400 text-sm font-medium mt-2 group cursor-pointer">
-            <span>Notificar-me</span>
-            <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
+const GiveawaysPage = () => (
+  <div className="min-h-screen bg-gradient-to-b from-black to-pink-900 pt-24 px-6">
+    <h1 className="text-4xl md:text-6xl font-bold text-white mb-8">Active Giveaways</h1>
+    <div className="space-y-6">
+      {[1, 2, 3].map((item) => (
+        <div key={item} className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg overflow-hidden hover:border-pink-500 transition-all p-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="w-full md:w-1/4 aspect-square bg-gradient-to-br from-pink-800 to-purple-900 rounded-lg flex items-center justify-center">
+              <span className="text-4xl">{item === 1 ? "🎧" : item === 2 ? "🎟️" : "👕"}</span>
+            </div>
+            <div className="flex-1">
+              <div className="flex justify-between items-start flex-wrap">
+                <h3 className="text-xl font-semibold text-white">
+                  {item === 1 ? "Limited Edition Headphones" : item === 2 ? "VIP Concert Tickets" : "Exclusive Merch Bundle"}
+                </h3>
+                <div className="bg-pink-900/60 text-pink-200 px-3 py-1 rounded-full text-xs">
+                  {`${5-item} days left`}
+                </div>
+              </div>
+              <p className="text-white/70 mt-2">
+                Enter for a chance to win this exclusive {item === 1 ? "limited edition headphones set" : item === 2 ? "pair of VIP tickets to our next concert" : "merch bundle featuring our latest designs"}
+              </p>
+              <div className="mt-4">
+                <div className="text-white/80 text-sm mb-1">Entry Progress</div>
+                <div className="w-full bg-white/10 rounded-full h-2 mb-2">
+                  <div className="bg-pink-500 h-2 rounded-full" style={{ width: `${20 * item}%` }}></div>
+                </div>
+                <div className="flex justify-between text-xs text-white/60">
+                  <span>{item * 124} entries</span>
+                  <span>Goal: 500 entries</span>
+                </div>
+              </div>
+              <button className="mt-4 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white px-6 py-2 rounded-full transition-colors">
+                Enter Giveaway
+              </button>
+            </div>
           </div>
         </div>
-        
-        <div className="bg-black/40 backdrop-blur-md border border-purple-500/20 rounded-lg p-6 transition-all hover:border-purple-500/40 hover:transform hover:translate-y-[-5px]">
-          <div className="flex items-center gap-3 mb-4">
-            <Gift className="h-5 w-5 text-purple-400" />
-            <h3 className="text-xl font-bold text-white">NFT Exclusivo</h3>
-          </div>
-          <p className="text-white/70 mb-4">
-            Sorteio de um NFT exclusivo para membros premium da comunidade.
-            Inscreva-se para concorrer a esta peça digital única.
-          </p>
-          <div className="flex items-center text-purple-400 text-sm font-medium mt-2 group cursor-pointer">
-            <span>Em breve</span>
-            <ArrowRight className="h-4 w-4 ml-1 transition-transform group-hover:translate-x-1" />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-};
+      ))}
+    </div>
+  </div>
+);
 
 export default GiveawaysPage;

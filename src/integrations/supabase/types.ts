@@ -9,53 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      bookings: {
-        Row: {
-          booking_type: string
-          created_at: string | null
-          end_time: string
-          id: string
-          notes: string | null
-          price: number
-          start_time: string
-          status: string
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          booking_type: string
-          created_at?: string | null
-          end_time: string
-          id?: string
-          notes?: string | null
-          price: number
-          start_time: string
-          status?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          booking_type?: string
-          created_at?: string | null
-          end_time?: string
-          id?: string
-          notes?: string | null
-          price?: number
-          start_time?: string
-          status?: string
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "bookings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       comment_likes: {
         Row: {
           comment_id: string
@@ -649,92 +602,17 @@ export type Database = {
         }
         Relationships: []
       }
-      user_activity_logs: {
-        Row: {
-          action: string
-          created_at: string | null
-          details: Json | null
-          entity_id: string | null
-          entity_type: string | null
-          id: string
-          ip_address: string | null
-          success: boolean | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string | null
-          details?: Json | null
-          entity_id?: string | null
-          entity_type?: string | null
-          id?: string
-          ip_address?: string | null
-          success?: boolean | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string | null
-          details?: Json | null
-          entity_id?: string | null
-          entity_type?: string | null
-          id?: string
-          ip_address?: string | null
-          success?: boolean | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      check_user_profile_type: {
-        Args: {
-          required_type: string
-        }
-        Returns: boolean
-      }
       has_role: {
         Args: {
           user_id: string
           required_role: Database["public"]["Enums"]["app_role"]
         }
         Returns: boolean
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_or_artist: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_admin_or_collaborator: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_artist: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_collaborator: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      log_user_activity: {
-        Args: {
-          action: string
-          entity_type?: string
-          entity_id?: string
-          details?: Json
-          success?: boolean
-        }
-        Returns: string
       }
     }
     Enums: {

@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -24,25 +24,18 @@ interface GlassHeaderProps {
 }
 
 const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
-  const { t } = useLanguage();
+  const { t: translate } = useLanguage();
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Fechar o menu quando a rota mudar
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const handleNavigate = (href: string) => {
     navigate(href);
     setIsMenuOpen(false);
-  };
-
-  // Verifica se o link está ativo
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
   };
 
   return (
@@ -65,13 +58,9 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href) 
-                      ? 'text-white bg-purple-800/50' 
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
-                  }`}
+                  className="text-white/80 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                 >
-                  {item.label}
+                  {translate(item.label)}
                 </Link>
               ))}
             </div>
@@ -91,7 +80,7 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-black/90 backdrop-blur-md border-white/10 text-white z-[100]">
+                <DropdownMenuContent align="end" className="w-56 bg-black/90 backdrop-blur-md border-white/10 text-white">
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="font-medium">{profile.display_name}</p>
                     <p className="text-xs text-white/60 truncate">{profile.email}</p>
@@ -136,8 +125,7 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
             <div className="ml-4 md:hidden">
               <button
                 className="text-white hover:text-white focus:outline-none"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
+                onClick={toggleMenu}
               >
                 {isMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -152,19 +140,15 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems }) => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-md border-b border-white/10 absolute w-full z-40">
+        <div className="md:hidden bg-black/95 backdrop-blur-md border-b border-white/10">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {menuItems.map((item) => (
               <button
                 key={item.href}
-                className={`w-full text-left px-3 py-2 rounded-md text-base font-medium ${
-                  isActive(item.href)
-                    ? 'text-white bg-purple-800/50'
-                    : 'text-white/80 hover:bg-white/10'
-                }`}
+                className="text-white block px-3 py-2 rounded-md text-base font-medium w-full text-left hover:bg-white/10"
                 onClick={() => handleNavigate(item.href)}
               >
-                {item.label}
+                {translate(item.label)}
               </button>
             ))}
           </div>

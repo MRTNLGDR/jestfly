@@ -1,37 +1,79 @@
 
-export interface User {
-  username: string;
-  display_name: string;
-  avatar: string;
-}
+import { Database } from "@/integrations/supabase/types";
 
-export interface Post {
+// Definindo categoria como união de strings literal em vez de enum
+export type PostCategory = 'announcement' | 'event' | 'discussion' | 'collaboration' | 'question';
+
+export type CommunityPost = {
   id: string;
   title: string;
   content: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
+  category: PostCategory;
   likes_count: number;
   comments_count: number;
   is_pinned: boolean;
   is_featured: boolean;
-  category: string;
-  user: User;
-}
-
-export interface Comment {
-  id: string;
-  content: string;
-  user_id: string;
-  post_id: string;
   created_at: string;
+  updated_at: string;
+  user_id: string;
+  user?: {
+    username: string;
+    avatar?: string;
+    display_name: string;
+  };
+};
+
+export type PostComment = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
   likes_count: number;
-  user: User;
-}
+  created_at: string;
+  updated_at: string;
+  user?: {
+    username: string;
+    avatar?: string;
+    display_name: string;
+  };
+};
 
-export interface CommunityPost extends Post {
-  user: User;
-}
+export type PostLike = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+};
 
-export type PostCategory = 'announcement' | 'event' | 'discussion' | 'collaboration' | 'question';
+export type CommentLike = {
+  id: string;
+  comment_id: string;
+  user_id: string;
+  created_at: string;
+};
+
+// Input types for creating new records
+export type CreatePostInput = {
+  title: string;
+  content: string;
+  category: PostCategory;
+  user_id: string;
+  is_pinned?: boolean;
+  is_featured?: boolean;
+};
+
+export type CreateCommentInput = {
+  post_id: string;
+  user_id: string;
+  content: string;
+};
+
+export type CreatePostLikeInput = {
+  post_id: string;
+  user_id: string;
+};
+
+export type CreateCommentLikeInput = {
+  comment_id: string;
+  user_id: string;
+};

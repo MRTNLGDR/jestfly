@@ -1,74 +1,55 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Loading from '@/components/ui/loading';
-import { useActivityLogger } from '@/hooks/useActivityLogger';
+import { Loader2 } from 'lucide-react';
+
+type AllowedProfileTypes = 'fan' | 'artist' | 'collaborator' | 'admin';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedProfiles?: string[];
+  allowedProfiles?: AllowedProfileTypes[];
+  requireAuth?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  allowedProfiles 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  allowedProfiles = [],
+  requireAuth = true,
 }) => {
-  const { profile, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
-  const { logSystemActivity } = useActivityLogger();
-  
-  useEffect(() => {
-    const handleAccessAttempt = async () => {
-      if (!loading) {
-        // If user is logged in but not allowed
-        if (profile && allowedProfiles && !allowedProfiles.includes(profile.profile_type)) {
-          // Log unauthorized access attempt
-          await logSystemActivity(
-            'Tentativa de acesso não autorizado',
-            { 
-              route: location.pathname,
-              requiredProfiles: allowedProfiles,
-              userProfile: profile.profile_type
-            },
-            false
-          );
-        }
-        // If user is allowed, log successful access
-        else if (profile && (!allowedProfiles || allowedProfiles.includes(profile.profile_type))) {
-          await logSystemActivity(
-            'Acessou rota protegida',
-            { route: location.pathname },
-            true
-          );
-        }
-      }
-    };
-    
-    handleAccessAttempt();
-  }, [profile, loading, location.pathname, allowedProfiles, logSystemActivity]);
-  
+
+  // Enquanto a autenticação está carregando, mostrar um spinner
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loading size="lg" text="Verificando credenciais..." />
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
       </div>
     );
   }
-  
-  // If not logged in, redirect to auth page
-  if (!profile) {
-    // Store the location for redirect after login
-    localStorage.setItem('redirectAfterLogin', location.pathname);
+
+  // Se não requer autenticação, renderizar as crianças diretamente
+  if (!requireAuth) {
+    return <>{children}</>;
+  }
+
+  // Se requer autenticação mas o usuário não está autenticado,
+  // redirecionar para a página de login
+  if (!user || !profile) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
-  
-  // If specific profile types are required
-  if (allowedProfiles && !allowedProfiles.includes(profile.profile_type)) {
-    return <Navigate to="/dashboard" replace />;
+
+  // Se há tipos de perfil permitidos e o perfil do usuário não está entre eles,
+  // redirecionar para a página inicial ou mostrar mensagem de acesso negado
+  if (
+    allowedProfiles.length > 0 &&
+    !allowedProfiles.includes(profile.profile_type as AllowedProfileTypes)
+  ) {
+    return <Navigate to="/" replace />;
   }
-  
-  // If all checks pass, render the children
+
+  // Se tudo estiver ok, renderizar o conteúdo protegido
   return <>{children}</>;
 };
 
