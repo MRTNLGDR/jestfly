@@ -1,135 +1,185 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Log, LogsFilter } from '@/types/logs';
+
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { LogEntry, LogFilters } from '@/types/logs';
+import { useToast } from '@/hooks/use-toast';
 
-// Mock data for demo purposes
-const mockLogs: Log[] = [
-  {
-    id: '1',
-    timestamp: new Date().toISOString(),
-    level: 'info',
-    module: 'auth',
-    message: 'Usuário realizou login com sucesso',
-    user_email: 'usuario@jestfly.com'
-  },
-  {
-    id: '2',
-    timestamp: new Date(Date.now() - 3600000).toISOString(),
-    level: 'warning',
-    module: 'system',
-    message: 'Tentativa de acesso a recurso restrito',
-    user_email: 'usuario@jestfly.com'
-  },
-  {
-    id: '3',
-    timestamp: new Date(Date.now() - 7200000).toISOString(),
-    level: 'error',
-    module: 'api',
-    message: 'Falha na conexão com serviço externo',
-    details: 'Timeout após 30 segundos'
-  },
-  {
-    id: '4',
-    timestamp: new Date(Date.now() - 86400000).toISOString(),
-    level: 'debug',
-    module: 'admin',
-    message: 'Atualização de configurações do sistema',
-    user_email: 'admin@jestfly.com'
-  },
-  {
-    id: '5',
-    timestamp: new Date(Date.now() - 172800000).toISOString(),
-    level: 'info',
-    module: 'user',
-    message: 'Perfil de usuário atualizado',
-    user_email: 'usuario@jestfly.com'
-  }
-];
+const DEFAULT_FILTERS: LogFilters = {
+  limit: 50,
+  page: 1,
+  activeTab: 'all',
+  searchTerm: null,
+  entityType: null,
+  success: null,
+  startDate: null,
+  endDate: null
+};
 
-export const useLogsData = (hasAccess: boolean) => {
-  const [logs, setLogs] = useState<Log[]>([]);
+export const useLogsData = (hasAccess: boolean = false) => {
+  const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<LogsFilter>({
-    search: '',
-    dateRange: 'all',
-    level: 'all',
-    module: 'all',
-    activeTab: 'all'
-  });
+  const [filters, setFilters] = useState<LogFilters>(DEFAULT_FILTERS);
+  const [totalCount, setTotalCount] = useState(0);
+  const { toast } = useToast();
 
-  const fetchLogs = useCallback(async () => {
-    if (!hasAccess) return;
-    
-    setLoading(true);
-    
+  const fetchLogs = async () => {
     try {
-      // In a real application, we would fetch from Supabase or another data source
-      // const { data, error } = await supabase
-      //   .from('logs')
-      //   .select('*')
-      //   .order('timestamp', { ascending: false });
-      
-      // if (error) throw error;
-      
-      // For demo purposes, we're using mock data
-      setTimeout(() => {
-        setLogs(mockLogs);
+      if (!hasAccess) {
+        setLogs([]);
         setLoading(false);
-      }, 1000);
-      
-    } catch (error) {
-      console.error('Error fetching logs:', error);
-      toast.error('Erro ao carregar logs do sistema');
+        return;
+      }
+
+      setLoading(true);
+
+      // Build the query
+      let query = supabase
+        .from('user_activity_logs')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .limit(filters.limit);
+
+      // Apply filters
+      if (filters.activeTab && filters.activeTab !== 'all') {
+        query = query.eq('entity_type', filters.activeTab);
+      }
+
+      if (filters.entityType) {
+        query = query.eq('entity_type', filters.entityType);
+      }
+
+      if (filters.success !== null) {
+        query = query.eq('success', filters.success);
+      }
+
+      if (filters.searchTerm) {
+        query = query.or(`action.ilike.%${filters.searchTerm}%,details.ilike.%${filters.searchTerm}%`);
+      }
+
+      if (filters.startDate) {
+        query = query.gte('created_at', filters.startDate);
+      }
+
+      if (filters.endDate) {
+        query = query.lte('created_at', filters.endDate);
+      }
+
+      // Execute the query
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error fetching logs:', error);
+        toast({
+          title: 'Erro ao carregar logs',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setLogs([]);
+        setTotalCount(0);
+      } else {
+        setLogs(data as LogEntry[]);
+        setTotalCount(count || 0);
+      }
+    } catch (err) {
+      console.error('Exception while fetching logs:', err);
+      toast({
+        title: 'Erro ao carregar logs',
+        description: 'Ocorreu um erro ao buscar os logs de atividade.',
+        variant: 'destructive',
+      });
+      setLogs([]);
+      setTotalCount(0);
+    } finally {
       setLoading(false);
     }
-  }, [hasAccess]);
+  };
 
-  useEffect(() => {
-    fetchLogs();
-  }, [fetchLogs]);
-
-  const updateFilter = (key: string, value: string) => {
+  // Update a single filter
+  const updateFilter = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
+  // Handle search
   const handleSearch = () => {
-    // In a real application, this would trigger a new fetch with the search parameters
-    toast.info('Buscando logs...');
-    
-    // Mock filtering based on search term
-    const filteredLogs = mockLogs.filter(log => 
-      log.message.toLowerCase().includes(filters.search.toLowerCase()) ||
-      (log.user_email && log.user_email.toLowerCase().includes(filters.search.toLowerCase()))
-    );
-    
-    setLogs(filteredLogs);
-  };
-
-  const handleReset = () => {
-    setFilters({
-      search: '',
-      dateRange: 'all',
-      level: 'all',
-      module: 'all',
-      activeTab: 'all'
-    });
-    
     fetchLogs();
   };
 
-  const handleExport = () => {
-    // In a real application, this would generate a CSV file
-    toast.success('Logs exportados com sucesso');
-    
-    // Mock export - in a real app, you'd generate a file for download
-    console.log('Exporting logs:', logs);
+  // Reset filters to default
+  const handleReset = () => {
+    setFilters(DEFAULT_FILTERS);
   };
+
+  // Export logs to CSV
+  const handleExport = () => {
+    try {
+      // Convert logs to CSV
+      const headers = [
+        'Data/Hora',
+        'Ação',
+        'Tipo',
+        'Usuário',
+        'Status',
+        'IP',
+        'Detalhes'
+      ];
+
+      const csvRows = logs.map(log => [
+        new Date(log.created_at).toLocaleString('pt-BR'),
+        log.action,
+        log.entity_type || '-',
+        log.user_id || '-',
+        log.success === true ? 'Sucesso' : log.success === false ? 'Falha' : 'Info',
+        log.ip_address || '-',
+        log.details ? JSON.stringify(log.details) : '-'
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      ].join('\n');
+
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `logs_${new Date().toISOString().slice(0, 10)}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: 'Exportação concluída',
+        description: 'Logs exportados com sucesso.',
+      });
+    } catch (err) {
+      console.error('Error exporting logs:', err);
+      toast({
+        title: 'Erro na exportação',
+        description: 'Ocorreu um erro ao exportar os logs.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Fetch logs when filters change or component mounts
+  useEffect(() => {
+    if (hasAccess) {
+      fetchLogs();
+    }
+  }, [
+    hasAccess,
+    filters.activeTab,
+    filters.limit,
+    filters.page
+  ]);
 
   return {
     logs,
     loading,
     filters,
+    totalCount,
     updateFilter,
     handleSearch,
     handleReset,

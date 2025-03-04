@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LogsPage from '@/pages/LogsPage';
@@ -9,6 +8,8 @@ import DashboardPage from '@/pages/DashboardPage';
 import SettingsPage from '@/pages/SettingsPage';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import BookingsPage from './pages/BookingsPage';
+import MainLayout from './layouts/MainLayout';
 
 function App() {
   // Creating default props for HomePage
@@ -83,6 +84,18 @@ function App() {
         />
         
         {/* Adicionar outras rotas aqui conforme necessário */}
+        
+        {/* Add the /bookings route */}
+        <Route 
+          path="/bookings" 
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <BookingsPage />
+              </MainLayout>
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
       <Toaster />
     </div>
