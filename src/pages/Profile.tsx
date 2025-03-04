@@ -4,7 +4,7 @@ import MainLayout from '../layouts/MainLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { GlassCard } from '../components/ui/glass-card';
-import { ProfileForm } from '../components/profile/ProfileForm';
+import ProfileForm from '../components/profile/ProfileForm';
 import Loading from '../components/ui/loading';
 
 const Profile: React.FC = () => {

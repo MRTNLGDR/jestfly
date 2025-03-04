@@ -2,7 +2,7 @@
 import React from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useLanguage } from '../contexts/LanguageContext';
-import { RegisterForm } from '../components/auth/RegisterForm';
+import RegisterForm from '../components/auth/RegisterForm';
 import { GlassCard } from '../components/ui/glass-card';
 
 const Register: React.FC = () => {

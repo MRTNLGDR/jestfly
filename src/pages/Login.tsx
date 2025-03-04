@@ -2,7 +2,7 @@
 import React from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useLanguage } from '../contexts/LanguageContext';
-import { LoginForm } from '../components/auth/LoginForm';
+import LoginForm from '../components/auth/LoginForm';
 import { GlassCard } from '../components/ui/glass-card';
 
 const Login: React.FC = () => {

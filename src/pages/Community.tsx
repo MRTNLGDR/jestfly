@@ -2,7 +2,7 @@
 import React from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { useLanguage } from '../contexts/LanguageContext';
-import { CommunityHome } from '../components/community/CommunityHome';
+import CommunityHome from '../components/community/CommunityHome';
 
 const Community: React.FC = () => {
   const { t } = useLanguage();
