@@ -5,7 +5,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { DayContent, DayContentProps, DayProps } from 'react-day-picker';
+import { DayComponentProps } from 'react-day-picker';
 
 interface BookingCalendarProps {
   availableDates: Date[];
@@ -32,17 +32,17 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     );
   };
 
-  // Componente personalizado para o Day
-  const MyDay = (props: DayProps) => {
-    const { date } = props;
-    if (!date) return <DayContent {...props} />;
+  // Custom Day component with proper types
+  const MyDay = (props: DayComponentProps) => {
+    const { date, className } = props;
+    if (!date) return null;
     
     const isAvailable = isDateAvailable(date);
     
     return (
       <div
         className={cn(
-          props.className,
+          className,
           !isAvailable && 'text-gray-400 cursor-not-allowed opacity-30',
           isAvailable && 'hover:bg-purple-500/20'
         )}
