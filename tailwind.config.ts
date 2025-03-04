@@ -19,6 +19,25 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				mono: ['JetBrains Mono', 'monospace'],
+			},
+			fontSize: {
+				'display-2xl': ['4.5rem', { lineHeight: '1.15', letterSpacing: '-0.02em', fontWeight: '300' }],
+				'display-xl': ['3.75rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '300' }],
+				'display-lg': ['3rem', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '400' }],
+				'display-md': ['2.5rem', { lineHeight: '1.2', letterSpacing: '-0.01em', fontWeight: '400' }],
+				'display-sm': ['2rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '400' }],
+				'display-xs': ['1.75rem', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '500' }],
+				'title-lg': ['1.5rem', { lineHeight: '1.3', letterSpacing: '0em', fontWeight: '500' }],
+				'title-md': ['1.25rem', { lineHeight: '1.4', letterSpacing: '0em', fontWeight: '500' }],
+				'title-sm': ['1.125rem', { lineHeight: '1.4', letterSpacing: '0em', fontWeight: '500' }],
+				'body-lg': ['1.125rem', { lineHeight: '1.5', letterSpacing: '0em', fontWeight: '400' }],
+				'body-md': ['1rem', { lineHeight: '1.5', letterSpacing: '0em', fontWeight: '400' }],
+				'body-sm': ['0.875rem', { lineHeight: '1.5', letterSpacing: '0em', fontWeight: '400' }],
+				'caption': ['0.75rem', { lineHeight: '1.5', letterSpacing: '0em', fontWeight: '400' }],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

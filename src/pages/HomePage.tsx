@@ -9,6 +9,7 @@ import ConnectionSection from '../components/ConnectionSection';
 import Footer from '../components/Footer';
 import { ModelParameters } from '../types/model';
 import ArtistShowcase from '../components/ArtistShowcase';
+import TypographyShowcase from '../components/TypographyShowcase';
 
 interface HomePageProps {
   crystalParams: ModelParameters;
@@ -57,6 +58,9 @@ const HomePage: React.FC<HomePageProps> = ({
         subtitle="FUTURE.TECH"
         crystalParams={crystalParams}
       />
+      
+      {/* Typography Showcase */}
+      <TypographyShowcase />
       
       {/* Quick facts marquee like Nike's site */}
       <div className="w-full bg-black py-4 border-t border-b border-white/10 overflow-hidden">

@@ -33,411 +33,116 @@
   }
   
   body {
-    @apply bg-black text-foreground antialiased overflow-x-hidden;
+    @apply bg-black text-foreground font-sans antialiased overflow-x-hidden;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
 
   html {
     @apply scroll-smooth;
   }
+  
+  h1 {
+    @apply text-display-lg font-light tracking-tight mb-4;
+  }
+  
+  h2 {
+    @apply text-display-sm font-normal tracking-tight mb-3;
+  }
+  
+  h3 {
+    @apply text-title-lg font-medium mb-2;
+  }
+  
+  h4 {
+    @apply text-title-md font-medium mb-2;
+  }
+  
+  h5 {
+    @apply text-title-sm font-medium mb-1;
+  }
+  
+  p {
+    @apply text-body-md text-white/80 mb-4;
+  }
+  
+  .lead {
+    @apply text-body-lg text-white/90;
+  }
+  
+  small, .text-small {
+    @apply text-body-sm text-white/70;
+  }
+  
+  .caption {
+    @apply text-caption text-white/60;
+  }
 }
 
 @layer utilities {
-  .scrollbar-none {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
-  }
-
-  .glass-morphism {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.3)];
-  }
-  
-  .glass-morphism-subtle {
-    @apply backdrop-blur-md bg-white/5 border-t border-b border-white/5;
-  }
-  
-  .neo-blur {
-    @apply backdrop-blur-2xl bg-black/40 border border-white/10;
-  }
-  
-  .text-gradient {
+  /* Typography gradient effects */
+  .text-gradient-primary {
     @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
   }
   
-  .text-gradient-primary {
-    @apply bg-gradient-to-br from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent;
-  }
-
-  .glow-text {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-  }
-
-  .glow-sm {
-    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
-  }
-
-  .glow-md {
-    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
-  }
-
-  .glow-lg {
-    filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
-  }
-
-  .glow-purple {
-    filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.5));
-  }
-
-  .glow-blue {
-    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
-  }
-
-  .glow-red {
-    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.5));
+  .text-gradient-purple {
+    @apply bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent;
   }
   
-  .holographic-text {
-    color: white;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .holographic-text::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 300%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.1),
-      rgba(255, 255, 255, 0.2),
-      rgba(255, 255, 255, 0.1),
-      transparent
-    );
-    animation: holographic-scan 3s linear infinite;
-  }
-
-  /* Novos efeitos de iluminação sutil */
-  .soft-light-beam {
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-  }
-
-  .soft-light-beam::before {
-    content: "";
-    position: absolute;
-    top: -100%;
-    left: -100%;
-    height: 300%;
-    width: 150%;
-    background: linear-gradient(
-      45deg,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
-    transform: rotate(45deg);
-    animation: light-sweep 8s ease-in-out infinite;
-    z-index: -1;
-  }
-
-  .card-highlight {
-    position: relative;
-  }
-
-  .card-highlight::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    background: linear-gradient(
-      to bottom right,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
-    opacity: 0;
-    transition: opacity 0.5s;
-  }
-
-  .card-highlight:hover::after {
-    opacity: 1;
-  }
-
-  .subtle-pulse {
-    animation: subtle-pulse 3s ease-in-out infinite;
-  }
-
-  .floating-light {
-    position: relative;
-  }
-
-  .floating-light::after {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 20px;
-    bottom: -20px;
-    left: 0;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .floating-light:hover::after {
-    opacity: 1;
-  }
-
-  /* Estilos de botão com gradiente sutil */
-  .btn-gradient {
-    background: linear-gradient(to right, rgba(110, 72, 170, 0.8), rgba(77, 58, 159, 0.8));
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-  }
-
-  .btn-gradient::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.7s;
-    z-index: -1;
-  }
-
-  .btn-gradient:hover::before {
-    left: 100%;
-  }
-
-  @keyframes holographic-scan {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
-  @keyframes light-sweep {
-    0%, 100% {
-      transform: translateX(-100%) rotate(45deg);
-    }
-    50% {
-      transform: translateX(100%) rotate(45deg);
-    }
-  }
-
-  @keyframes subtle-pulse {
-    0%, 100% {
-      opacity: 0.7;
-    }
-    50% {
-      opacity: 1;
-    }
+  .text-gradient-blue {
+    @apply bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent;
   }
   
-  .animate-float {
-    animation: float 8s ease-in-out infinite;
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent;
   }
   
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
+  /* Letter spacing utilities */
+  .tracking-tightest {
+    letter-spacing: -0.04em;
   }
-
-  /* Novos gradientes inspirados nas imagens de referência */
-  .gradient-space {
-    background: linear-gradient(135deg, rgba(16, 20, 34, 0.95) 0%, rgba(6, 11, 25, 0.95) 100%);
+  
+  .tracking-tighter {
+    letter-spacing: -0.02em;
   }
-
-  .gradient-cosmic {
-    background: linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(30, 15, 60, 0.9) 100%);
+  
+  .tracking-tight {
+    letter-spacing: -0.01em;
   }
-
-  .gradient-dark-purple {
-    background: linear-gradient(135deg, #20124d 0%, #341a83 100%);
+  
+  .tracking-normal {
+    letter-spacing: 0em;
   }
-
-  .gradient-highlight {
-    position: relative;
+  
+  .tracking-wide {
+    letter-spacing: 0.01em;
   }
-
-  .gradient-highlight::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to right,
-      transparent,
-      rgba(102, 51, 153, 0.1),
-      transparent
-    );
-    opacity: 0;
-    transition: opacity 0.5s;
+  
+  .tracking-wider {
+    letter-spacing: 0.02em;
   }
-
-  .gradient-highlight:hover::after {
-    opacity: 1;
+  
+  .tracking-widest {
+    letter-spacing: 0.04em;
   }
-}
-
-/* Hero Section */
-.hero {
-  position: relative;
-  height: 100vh;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(to bottom, #0d0d15, #1A1F2C); /* Darker gradient background */
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  max-width: 800px;
-  padding: 0 20px;
-  pointer-events: none;
-}
-
-.hero h1 {
-  font-size: clamp(3rem, 8vw, 5rem);
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-  font-weight: bold;
-}
-
-.gradient-title {
-  background: linear-gradient(90deg, #9b59b6, #3498db, #2ecc71);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  display: inline-block;
-  text-shadow: 0 0 2px rgba(255, 255, 255, 0.1);
-}
-
-.hero p {
-  font-size: clamp(1rem, 3vw, 1.5rem);
-  margin-top: 0;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-}
-
-/* Container for 3D Crystal Canvas */
-.hero-crystal {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  pointer-events: none;
-}
-
-/* Dynamic light effects to simulate HDR environment */
-.hero::before,
-.hero::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.15;
-}
-
-.hero::before {
-  width: 50vw;
-  height: 50vw;
-  background: radial-gradient(circle, #9b59b6, transparent 70%); /* Purple glow */
-  top: -15%;
-  right: -15%;
-  animation: float 10s ease-in-out infinite alternate;
-}
-
-.hero::after {
-  width: 40vw;
-  height: 40vw;
-  background: radial-gradient(circle, #2ecc71, transparent 70%); /* Green glow */
-  bottom: -5%;
-  left: -10%;
-  animation: float 15s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes float {
-  0% {
-    transform: translate(0, 0);
+  
+  /* Font weight utilities */
+  .font-light {
+    font-weight: 300;
   }
-  100% {
-    transform: translate(5%, 5%);
+  
+  .font-normal {
+    font-weight: 400;
   }
-}
-
-/* Quick facts marquee for homepage */
-.marquee-container {
-  overflow: hidden;
-  white-space: nowrap;
-  position: relative;
-  width: 100%;
-}
-
-.marquee-content {
-  display: inline-block;
-  animation: marquee 30s linear infinite;
-  font-family: monospace;
-  font-size: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
+  
+  .font-medium {
+    font-weight: 500;
   }
-  100% {
-    transform: translateX(-100%);
+  
+  .font-semibold {
+    font-weight: 600;
   }
-}
-
-/* Interactive hover effects for cards and buttons */
-.hover-scale {
-  transition: transform 0.3s ease;
-}
-
-.hover-scale:hover {
-  transform: scale(1.05);
-}
-
-/* Glass card with hover effects */
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-5px);
-}
-
-/* Futuristic grid background */
-.grid-background {
-  background-image: linear-gradient(rgba(25, 25, 35, 0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(25, 25, 35, 0.5) 1px, transparent 1px);
-  background-size: 20px 20px;
+  
+  .font-bold {
+    font-weight: 700;
+  }
 }
