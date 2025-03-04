@@ -66,7 +66,6 @@ const LogsPage = () => {
                 <p className="text-white/70">Nenhum log encontrado.</p>
               </div>
             ) : (
-              // Pass logs of either type to the updated LogsTable component
               <LogsTable logs={logs} />
             )}
           </GlassCard>
