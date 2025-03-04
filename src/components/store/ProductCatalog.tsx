@@ -40,17 +40,27 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       );
     }
     
-    // Apply sorting - use manual array copy approach to avoid TypeScript complexity
-    let sortedResult = [...result];
+    // Create a new array for sorting to avoid TypeScript complexity
+    const resultToSort = [...result];
+    let sortedResult: Product[] = resultToSort;
     
+    // Apply sorting with explicit typing
     if (sortBy === 'price-low') {
-      sortedResult.sort((a, b) => Number(a.price) - Number(b.price));
+      sortedResult = resultToSort.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
+        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
+        return priceA - priceB;
+      });
     } else if (sortBy === 'price-high') {
-      sortedResult.sort((a, b) => Number(b.price) - Number(a.price));
+      sortedResult = resultToSort.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
+        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
+        return priceB - priceA;
+      });
     } else if (sortBy === 'name-az') {
-      sortedResult.sort((a, b) => a.title.localeCompare(b.title));
+      sortedResult = resultToSort.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      sortedResult.sort((a, b) => b.title.localeCompare(a.title));
+      sortedResult = resultToSort.sort((a, b) => b.title.localeCompare(a.title));
     }
     // For 'newest', we keep the original order
     
