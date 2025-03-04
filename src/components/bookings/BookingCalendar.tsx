@@ -34,7 +34,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   // Custom Day component with proper types
   const MyDay = (props: DayContentProps) => {
-    const { date, className } = props;
+    const { date } = props;
     if (!date) return null;
     
     const isAvailable = isDateAvailable(date);
@@ -42,7 +42,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     return (
       <div
         className={cn(
-          className,
+          props.dayProps?.className,
           !isAvailable && 'text-gray-400 cursor-not-allowed opacity-30',
           isAvailable && 'hover:bg-purple-500/20'
         )}
