@@ -28,39 +28,49 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
+  // Separate useEffect to handle filtering and sorting
   useEffect(() => {
     if (products.length === 0) return;
     
-    // Apply filters and sorting as separate operations
-    let filtered = [...products];
+    // Create a new array to avoid modifying the original
+    let filteredResult = [...products];
     
-    // 1. Apply search filter
+    // Apply search filter first
     if (search && search.trim() !== '') {
-      const term = search.toLowerCase().trim();
-      filtered = filtered.filter(product => 
-        product.title.toLowerCase().includes(term) || 
-        (product.description ? product.description.toLowerCase().includes(term) : false)
-      );
+      const searchTerm = search.toLowerCase().trim();
+      filteredResult = filteredResult.filter(product => {
+        const titleMatch = product.title.toLowerCase().includes(searchTerm);
+        const descriptionMatch = product.description ? product.description.toLowerCase().includes(searchTerm) : false;
+        return titleMatch || descriptionMatch;
+      });
     }
     
-    // 2. Apply sorting
+    // Create a new sorted array based on the filtered results
+    let sortedResult = [...filteredResult];
+    
+    // Apply sorting based on sortBy value
     if (sortBy === 'price-low') {
-      filtered.sort((a, b) => a.price - b.price);
+      // Simple numeric sort for price low to high
+      sortedResult.sort((a, b) => Number(a.price) - Number(b.price));
     } else if (sortBy === 'price-high') {
-      filtered.sort((a, b) => b.price - a.price);
+      // Simple numeric sort for price high to low
+      sortedResult.sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sortBy === 'name-az') {
-      filtered.sort((a, b) => a.title.localeCompare(b.title));
+      // Alphabetical sort A-Z
+      sortedResult.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      filtered.sort((a, b) => b.title.localeCompare(a.title));
+      // Alphabetical sort Z-A
+      sortedResult.sort((a, b) => b.title.localeCompare(a.title));
     }
-    // No need for 'newest' case - already sorted by created_at in query
+    // 'newest' is default and already sorted in the query
     
-    // 3. Apply limit if needed
-    if (limit && limit > 0 && filtered.length > limit) {
-      filtered = filtered.slice(0, limit);
+    // Apply limit if specified
+    if (limit && limit > 0) {
+      sortedResult = sortedResult.slice(0, limit);
     }
     
-    setFilteredProducts(filtered);
+    // Set the final filtered and sorted products
+    setFilteredProducts(sortedResult);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
