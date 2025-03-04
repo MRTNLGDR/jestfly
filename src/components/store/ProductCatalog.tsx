@@ -30,37 +30,40 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Apply filtering and sorting logic
   useEffect(() => {
-    // First filter by search term
-    let result = [];
+    // Create a new filtered array based on search term
     const searchLower = search.toLowerCase().trim();
     
-    if (searchLower) {
-      result = products.filter(product => 
-        product.title.toLowerCase().includes(searchLower) || 
-        (product.description && product.description.toLowerCase().includes(searchLower))
-      );
-    } else {
-      result = [...products];
+    // Create a copy of the products array for manipulation
+    const filtered: Product[] = searchLower 
+      ? products.filter(product => 
+          product.title.toLowerCase().includes(searchLower) || 
+          (product.description && product.description.toLowerCase().includes(searchLower))
+        )
+      : [...products];
+    
+    // Apply sorting
+    let sorted: Product[] = [...filtered];
+    
+    switch(sortBy) {
+      case 'price-low':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-az':
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'name-za':
+        sorted.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      // 'newest' is the default, already sorted in the fetch
     }
     
-    // Then sort based on the selected option
-    if (sortBy === 'price-low') {
-      result.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-high') {
-      result.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'name-az') {
-      result.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      result.sort((a, b) => b.title.localeCompare(a.title));
-    }
-    // 'newest' is default, already sorted by created_at in the fetch
+    // Apply limit if needed
+    const limitedResult = limit ? sorted.slice(0, limit) : sorted;
     
-    // Finally, apply limit if specified
-    if (limit && result.length > limit) {
-      result = result.slice(0, limit);
-    }
-    
-    setFilteredProducts(result);
+    setFilteredProducts(limitedResult);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
