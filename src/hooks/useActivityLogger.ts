@@ -35,7 +35,7 @@ export const useActivityLogger = () => {
     }
   }, []);
 
-  // Add the missing functions that are being referenced in other files
+  // Fix the logSystemActivity function to use the correct structure for system_logs
   const logSystemActivity = useCallback(async (
     action: string,
     details?: Record<string, any>,
@@ -47,11 +47,9 @@ export const useActivityLogger = () => {
       const { error } = await supabase
         .from('system_logs')
         .insert({
-          action,
-          details,
-          success,
-          ip_address: 'client',
-          user_agent: navigator.userAgent
+          level: success ? 'info' : 'error',
+          message: action,
+          metadata: details
         });
       
       if (error) {
@@ -66,9 +64,13 @@ export const useActivityLogger = () => {
 
   const logProfileUpdate = useCallback(async (
     userId: string | undefined,
-    details?: Record<string, any>
+    details?: Record<string, any> | Array<string>
   ) => {
-    return logActivity(userId, 'profile_update', details);
+    return logActivity(userId, 'profile_update', 
+      Array.isArray(details) 
+        ? { updated_fields: details } 
+        : details
+    );
   }, [logActivity]);
 
   const logAccessAttempt = useCallback(async (

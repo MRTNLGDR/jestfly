@@ -49,9 +49,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ? JSON.parse(data.social_links) 
             : data.social_links || {};
             
+          // Convert preferences JSON to Record<string, any>
+          const preferences = typeof data.preferences === 'string'
+            ? JSON.parse(data.preferences)
+            : data.preferences || {};
+            
           const profileData: ProfileData = {
             ...data,
-            social_links: socialLinks as Record<string, string>
+            social_links: socialLinks as Record<string, string>,
+            preferences: preferences as Record<string, any>
           };
           
           setProfile(profileData);
@@ -81,9 +87,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ? JSON.parse(data.social_links) 
             : data.social_links || {};
             
+          // Convert preferences JSON to Record<string, any>
+          const preferences = typeof data.preferences === 'string'
+            ? JSON.parse(data.preferences)
+            : data.preferences || {};
+            
           const profileData: ProfileData = {
             ...data,
-            social_links: socialLinks as Record<string, string>
+            social_links: socialLinks as Record<string, string>,
+            preferences: preferences as Record<string, any>
           };
           
           setProfile(profileData);
@@ -159,16 +171,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ? JSON.parse(data.social_links) 
           : data.social_links || {};
           
-        const profileData: ProfileData = {
+        // Convert preferences JSON to Record<string, any>
+        const preferences = typeof data.preferences === 'string'
+          ? JSON.parse(data.preferences)
+          : data.preferences || {};
+          
+        const updatedProfileData: ProfileData = {
           ...data,
-          social_links: socialLinks as Record<string, string>
+          social_links: socialLinks as Record<string, string>,
+          preferences: preferences as Record<string, any>
         };
         
-        setProfile(profileData);
-        return { data: profileData, error: null };
+        setProfile(updatedProfileData);
+        return { data: updatedProfileData, error: null };
       }
       
-      return { data, error };
+      return { data: null, error };
     } catch (error) {
       return { data: null, error: error as Error };
     }
@@ -215,9 +233,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ? JSON.parse(data.social_links) 
           : data.social_links || {};
           
+        // Convert preferences JSON to Record<string, any>
+        const preferences = typeof data.preferences === 'string'
+          ? JSON.parse(data.preferences)
+          : data.preferences || {};
+          
         const profileData: ProfileData = {
           ...data,
-          social_links: socialLinks as Record<string, string>
+          social_links: socialLinks as Record<string, string>,
+          preferences: preferences as Record<string, any>
         };
         
         setProfile(profileData);

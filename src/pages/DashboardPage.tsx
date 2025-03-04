@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,9 +21,9 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     // Registrar tentativa de acesso ao dashboard
     if (profile) {
-      logAccessAttempt('dashboard', true);
+      logAccessAttempt(profile.id, 'dashboard', true);
     }
-  }, [profile]);
+  }, [profile, logAccessAttempt]);
   
   if (loading) {
     return (
