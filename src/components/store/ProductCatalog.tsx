@@ -43,13 +43,22 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     
     // Apply sorting with simplified logic to avoid excessive type instantiation
     if (sortBy === 'price-low') {
-      result = [...result].sort((a, b) => Number(a.price) - Number(b.price));
+      // Create a new array before sorting to avoid mutation
+      result = result.slice().sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
+        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
+        return priceA - priceB;
+      });
     } else if (sortBy === 'price-high') {
-      result = [...result].sort((a, b) => Number(b.price) - Number(a.price));
+      result = result.slice().sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
+        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
+        return priceB - priceA;
+      });
     } else if (sortBy === 'name-az') {
-      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+      result = result.slice().sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+      result = result.slice().sort((a, b) => b.title.localeCompare(a.title));
     }
     // For 'newest', we're assuming the products are already sorted by newest first
     
