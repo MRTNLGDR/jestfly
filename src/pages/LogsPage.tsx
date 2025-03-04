@@ -1,20 +1,17 @@
-
 import React from 'react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { useAuth } from '@/contexts/AuthContext';
-import Loading from '@/components/ui/loading';
-import LogsFilter from '@/components/logs/LogsFilter';
-import LogsTable from '@/components/logs/LogsTable';
-import LogsTabs from '@/components/logs/LogsTabs';
-import { useLogsData } from '@/hooks/useLogsData';
+import { GlassCard } from '../components/ui/glass-card';
+import { useAuth } from '../contexts/AuthContext';
+import Loading from '../components/ui/loading';
+import LogsFilter from '../components/logs/LogsFilter';
+import LogsTable from '../components/logs/LogsTable';
+import LogsTabs from '../components/logs/LogsTabs';
+import { useLogsData } from '../hooks/useLogsData';
 
 const LogsPage = () => {
   const { profile } = useAuth();
   
-  // Check if user is admin or collaborator
   const isAdminOrCollaborator = profile?.profile_type === 'admin' || profile?.profile_type === 'collaborator';
   
-  // Use our custom hook to fetch and manage logs data
   const { 
     logs, 
     loading, 
@@ -25,7 +22,6 @@ const LogsPage = () => {
     handleExport 
   } = useLogsData(isAdminOrCollaborator);
   
-  // Render access denied message if not admin or collaborator
   if (!isAdminOrCollaborator) {
     return (
       <div className="container mx-auto py-12 px-4">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
@@ -12,7 +11,7 @@ import ConnectionSection from '../components/ConnectionSection';
 import ShopPreview from '../components/ShopPreview';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { LoadingSpinner } from '../components/ui/loading';
+import Loading from '../components/ui/loading';
 
 const Index: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
