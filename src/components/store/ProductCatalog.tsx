@@ -30,21 +30,21 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Apply filtering and sorting logic
   useEffect(() => {
-    // Step 1: Apply search filter
-    let filtered = [...products];
+    // Convert search to lowercase once
+    const searchLower = search.toLowerCase().trim();
     
-    if (search.trim()) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(product => 
-        product.title.toLowerCase().includes(searchLower) || 
-        (product.description && product.description.toLowerCase().includes(searchLower))
-      );
-    }
+    // Apply search filter
+    const filtered = searchLower 
+      ? products.filter(product => 
+          product.title.toLowerCase().includes(searchLower) || 
+          (product.description && product.description.toLowerCase().includes(searchLower))
+        )
+      : products;
     
-    // Step 2: Apply sorting (create new array to avoid mutation)
-    let sorted = [...filtered];
+    // Create a new array for sorting to break the reference
+    const sorted = [...filtered];
     
-    // Avoid complex nesting by using simple conditionals
+    // Sort based on the selected option
     if (sortBy === 'price-low') {
       sorted.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
@@ -56,10 +56,10 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     // 'newest' is default, already sorted by created_at in the fetch
     
-    // Step 3: Apply limit if needed
-    const finalResults = limit ? sorted.slice(0, limit) : sorted;
+    // Apply limit if specified
+    const result = limit ? sorted.slice(0, limit) : sorted;
     
-    setFilteredProducts(finalResults);
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
