@@ -29,52 +29,35 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    // We need to simplify our filtering and sorting approach to avoid deep type instantiation
-    const processProducts = () => {
-      // Start with a fresh copy of products
-      const filtered: Product[] = [];
-      
-      // First filter by search
-      for (const product of products) {
-        if (search.trim() === '') {
-          filtered.push(product);
-        } else {
-          const searchLower = search.toLowerCase().trim();
-          if (
-            product.title.toLowerCase().includes(searchLower) || 
-            (product.description && product.description.toLowerCase().includes(searchLower))
-          ) {
-            filtered.push(product);
-          }
-        }
-      }
-      
-      // Now sort the filtered array
-      switch (sortBy) {
-        case 'price-low':
-          filtered.sort((a, b) => a.price - b.price);
-          break;
-        case 'price-high':
-          filtered.sort((a, b) => b.price - a.price);
-          break;
-        case 'name-az':
-          filtered.sort((a, b) => a.title.localeCompare(b.title));
-          break;
-        case 'name-za':
-          filtered.sort((a, b) => b.title.localeCompare(a.title));
-          break;
-        // default case is 'newest', which is already sorted by created_at in the API call
-      }
-      
-      // Finally, apply limit if needed
-      const result = limit && filtered.length > limit 
-        ? filtered.slice(0, limit) 
-        : filtered;
-      
-      setFilteredProducts(result);
-    };
+    // We'll completely rework this to avoid deep type instantiation issues
+    let result = [...products];
     
-    processProducts();
+    // Filter by search
+    if (search.trim() !== '') {
+      const searchLower = search.toLowerCase().trim();
+      result = result.filter(product => 
+        product.title.toLowerCase().includes(searchLower) || 
+        (product.description && product.description.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Sort the results
+    if (sortBy === 'price-low') {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name-az') {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      result.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    
+    // Apply limit if needed
+    if (limit && result.length > limit) {
+      result = result.slice(0, limit);
+    }
+    
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
