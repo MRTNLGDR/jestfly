@@ -1,10 +1,8 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { pt } from 'date-fns/locale';
-import { CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/ui/glass-card';
+import { Button } from '@/components/ui/button';
+import { CheckCircle2 } from 'lucide-react';
 
 interface BookingConfirmationProps {
   booking: {
@@ -17,85 +15,89 @@ interface BookingConfirmationProps {
   onClose: () => void;
 }
 
-const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
-  booking,
-  onClose
-}) => {
-  // Format date for display
-  const formattedDate = () => {
-    try {
-      return format(new Date(booking.date), "EEEE, d 'de' MMMM 'de' yyyy", { locale: pt });
-    } catch (e) {
-      return booking.date;
-    }
-  };
-
-  // Display booking type in a user-friendly way
-  const getBookingTypeDisplay = (type: string): string => {
+const BookingConfirmation: React.FC<BookingConfirmationProps> = ({ booking, onClose }) => {
+  const formatBookingType = (type: string): string => {
     switch (type) {
-      case 'dj': return 'DJ para Evento';
-      case 'studio': return 'Sessão de Estúdio';
-      case 'consultation': return 'Consultoria';
-      default: return type;
+      case 'dj':
+        return 'DJ para Evento';
+      case 'studio':
+        return 'Sessão de Estúdio';
+      case 'consultation':
+        return 'Consultoria';
+      default:
+        return type;
     }
   };
 
   return (
-    <GlassCard className="p-6">
-      <div className="text-center mb-6">
-        <div className="mx-auto bg-green-500/20 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-4">
-          <CheckCircle className="h-10 w-10 text-green-500" />
-        </div>
-        <h3 className="text-2xl font-bold text-white">Reserva Confirmada!</h3>
-        <p className="text-white/70 mt-2">
-          Sua reserva foi realizada com sucesso.
+    <GlassCard className="p-6 text-center">
+      <div className="flex flex-col items-center">
+        <CheckCircle2 className="w-20 h-20 text-green-500 mb-4" />
+        
+        <h3 className="text-2xl font-bold text-white mb-2">Reserva Confirmada!</h3>
+        <p className="text-white/70 mb-6">
+          Sua reserva foi realizada com sucesso. Confira os detalhes abaixo.
         </p>
-      </div>
-      
-      <div className="space-y-4 mb-6">
-        <div className="p-4 bg-black/20 rounded-lg border border-white/10">
-          <h4 className="text-sm uppercase text-white/50 mb-1">Número da Reserva</h4>
-          <p className="text-white font-mono">{booking.id}</p>
+        
+        <div className="bg-white/5 rounded-lg p-4 mb-6 w-full">
+          <div className="grid grid-cols-2 gap-4 text-left">
+            <div>
+              <p className="text-white/60 text-sm">Número da Reserva:</p>
+              <p className="text-white font-medium">{booking.id}</p>
+            </div>
+            
+            <div>
+              <p className="text-white/60 text-sm">Status:</p>
+              <p className="text-green-400 font-medium capitalize">{booking.status}</p>
+            </div>
+            
+            <div>
+              <p className="text-white/60 text-sm">Tipo de Reserva:</p>
+              <p className="text-white font-medium">{formatBookingType(booking.type)}</p>
+            </div>
+            
+            <div>
+              <p className="text-white/60 text-sm">Data:</p>
+              <p className="text-white font-medium">{booking.date}</p>
+            </div>
+            
+            <div>
+              <p className="text-white/60 text-sm">Horário:</p>
+              <p className="text-white font-medium">{booking.timeSlot}</p>
+            </div>
+            
+            <div>
+              <p className="text-white/60 text-sm">Preço:</p>
+              <p className="text-white font-medium">
+                {booking.type === 'dj' ? 'R$ 1.500,00' : 
+                 booking.type === 'studio' ? 'R$ 200,00' : 
+                 booking.type === 'consultation' ? 'R$ 150,00' : 'A definir'}
+              </p>
+            </div>
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 bg-black/20 rounded-lg border border-white/10">
-            <h4 className="text-sm uppercase text-white/50 mb-1">Data</h4>
-            <p className="text-white">{formattedDate()}</p>
-          </div>
+        <p className="text-white/70 text-sm mb-6">
+          Um email de confirmação foi enviado para seu endereço de email cadastrado.
+          Você também pode acessar suas reservas pelo seu perfil.
+        </p>
+        
+        <div className="flex gap-4">
+          <Button 
+            onClick={onClose}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            Nova Reserva
+          </Button>
           
-          <div className="p-4 bg-black/20 rounded-lg border border-white/10">
-            <h4 className="text-sm uppercase text-white/50 mb-1">Horário</h4>
-            <p className="text-white">{booking.timeSlot}</p>
-          </div>
+          <Button
+            variant="outline"
+            className="bg-transparent border-white/20 text-white hover:bg-white/10"
+            onClick={() => window.location.href = '/dashboard'}
+          >
+            Ir para Dashboard
+          </Button>
         </div>
-        
-        <div className="p-4 bg-black/20 rounded-lg border border-white/10">
-          <h4 className="text-sm uppercase text-white/50 mb-1">Tipo de Reserva</h4>
-          <p className="text-white">{getBookingTypeDisplay(booking.type)}</p>
-        </div>
-        
-        <div className="p-4 bg-black/20 rounded-lg border border-white/10">
-          <h4 className="text-sm uppercase text-white/50 mb-1">Status</h4>
-          <div className="flex items-center">
-            <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-            <p className="text-white">{booking.status === 'confirmed' ? 'Confirmada' : booking.status}</p>
-          </div>
-        </div>
-      </div>
-      
-      <div className="text-center text-white/70 text-sm mb-6">
-        <p>Os detalhes da sua reserva foram enviados para o seu e-mail.</p>
-        <p className="mt-1">Em caso de dúvidas, entre em contato conosco.</p>
-      </div>
-      
-      <div className="flex justify-center">
-        <Button 
-          onClick={onClose}
-          className="bg-purple-600 hover:bg-purple-700"
-        >
-          Retornar ao Início
-        </Button>
       </div>
     </GlassCard>
   );

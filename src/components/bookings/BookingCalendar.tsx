@@ -52,7 +52,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                 type="button"
                 {...props}
                 className={cn(
-                  props.className,
+                  props.className as string,
                   !isAvailable && 'text-gray-400 cursor-not-allowed opacity-30',
                   isAvailable && 'hover:bg-purple-500/20'
                 )}
