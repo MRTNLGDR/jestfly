@@ -29,55 +29,37 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    const filteredResults = filterProducts(products, search);
-    const sortedResults = sortProducts(filteredResults, sortBy);
+    // Apply filters and sorting
+    let results = [...products];
     
-    if (limit && limit > 0 && sortedResults.length > limit) {
-      setFilteredProducts(sortedResults.slice(0, limit));
-    } else {
-      setFilteredProducts(sortedResults);
+    // Filter by search term
+    if (search && search.trim() !== '') {
+      const term = search.toLowerCase().trim();
+      results = results.filter(product => {
+        return product.title.toLowerCase().includes(term) || 
+               (product.description ? product.description.toLowerCase().includes(term) : false);
+      });
     }
+    
+    // Apply sorting
+    if (sortBy === 'price-low') {
+      results.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      results.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name-az') {
+      results.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      results.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    // For 'newest', we rely on the default sorting from the query
+    
+    // Apply limit if provided
+    if (limit && limit > 0 && results.length > limit) {
+      results = results.slice(0, limit);
+    }
+    
+    setFilteredProducts(results);
   }, [products, search, sortBy, limit]);
-
-  // Separate filter function to avoid excessive type instantiation
-  const filterProducts = (productsToFilter: Product[], searchTerm: string): Product[] => {
-    if (!searchTerm || searchTerm.trim() === '') {
-      return [...productsToFilter];
-    }
-    
-    const term = searchTerm.toLowerCase().trim();
-    return productsToFilter.filter(product => {
-      const titleMatch = product.title.toLowerCase().includes(term);
-      const descMatch = product.description ? 
-        product.description.toLowerCase().includes(term) : false;
-      return titleMatch || descMatch;
-    });
-  };
-
-  // Separate sort function
-  const sortProducts = (productsToSort: Product[], sortCriteria: string): Product[] => {
-    const sorted = [...productsToSort];
-    
-    switch (sortCriteria) {
-      case 'price-low':
-        sorted.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        sorted.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-az':
-        sorted.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-za':
-        sorted.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      default:
-        // 'newest' is default - already sorted by created_at in the query
-        break;
-    }
-    
-    return sorted;
-  };
 
   const fetchProducts = async () => {
     setLoading(true);
