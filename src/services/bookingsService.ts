@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -44,8 +43,14 @@ export const createBooking = async (booking: Booking): Promise<{ success: boolea
 
     if (error) throw error;
 
+    // Cast the booking_type to BookingType
+    const typedData = data ? {
+      ...data,
+      booking_type: data.booking_type as BookingType
+    } : undefined;
+
     toast.success('Reserva realizada com sucesso!');
-    return { success: true, data };
+    return { success: true, data: typedData };
   } catch (error: any) {
     console.error('Erro ao criar reserva:', error);
     toast.error(`Erro ao criar reserva: ${error.message}`);
@@ -63,7 +68,13 @@ export const getUserBookings = async (): Promise<{ data: Booking[]; error?: stri
 
     if (error) throw error;
 
-    return { data: data || [] };
+    // Cast the booking_type to BookingType for each booking
+    const typedData = (data || []).map(booking => ({
+      ...booking,
+      booking_type: booking.booking_type as BookingType
+    }));
+
+    return { data: typedData };
   } catch (error: any) {
     console.error('Erro ao buscar reservas:', error);
     return { data: [], error: error.message };
@@ -81,7 +92,13 @@ export const getBookingById = async (id: string): Promise<{ data?: Booking; erro
 
     if (error) throw error;
 
-    return { data };
+    // Cast the booking_type to BookingType
+    const typedData = data ? {
+      ...data,
+      booking_type: data.booking_type as BookingType
+    } : undefined;
+
+    return { data: typedData };
   } catch (error: any) {
     console.error(`Erro ao buscar reserva ${id}:`, error);
     return { error: error.message };
