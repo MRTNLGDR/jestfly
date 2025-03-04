@@ -3,14 +3,17 @@ import React from 'react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface BookingConfirmationProps {
   booking: {
     id: string;
     date: string;
-    timeSlot: string;
-    type: string;
+    time_slot: string;
+    booking_type: string;
     status: string;
+    notes?: string;
   };
   onClose: () => void;
 }
@@ -22,10 +25,32 @@ const BookingConfirmation: React.FC<BookingConfirmationProps> = ({ booking, onCl
         return 'DJ para Evento';
       case 'studio':
         return 'Sessão de Estúdio';
-      case 'consultation':
+      case 'consultoria':
         return 'Consultoria';
       default:
         return type;
+    }
+  };
+
+  const formatDate = (dateString: string): string => {
+    try {
+      const date = new Date(dateString);
+      return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const getBookingPrice = (type: string): string => {
+    switch (type) {
+      case 'dj':
+        return 'R$ 1.500,00';
+      case 'studio':
+        return 'R$ 800,00';
+      case 'consultoria':
+        return 'R$ 500,00';
+      default:
+        return 'A definir';
     }
   };
 
@@ -53,27 +78,30 @@ const BookingConfirmation: React.FC<BookingConfirmationProps> = ({ booking, onCl
             
             <div>
               <p className="text-white/60 text-sm">Tipo de Reserva:</p>
-              <p className="text-white font-medium">{formatBookingType(booking.type)}</p>
+              <p className="text-white font-medium">{formatBookingType(booking.booking_type)}</p>
             </div>
             
             <div>
               <p className="text-white/60 text-sm">Data:</p>
-              <p className="text-white font-medium">{booking.date}</p>
+              <p className="text-white font-medium">{formatDate(booking.date)}</p>
             </div>
             
             <div>
               <p className="text-white/60 text-sm">Horário:</p>
-              <p className="text-white font-medium">{booking.timeSlot}</p>
+              <p className="text-white font-medium">{booking.time_slot}</p>
             </div>
             
             <div>
               <p className="text-white/60 text-sm">Preço:</p>
-              <p className="text-white font-medium">
-                {booking.type === 'dj' ? 'R$ 1.500,00' : 
-                 booking.type === 'studio' ? 'R$ 200,00' : 
-                 booking.type === 'consultation' ? 'R$ 150,00' : 'A definir'}
-              </p>
+              <p className="text-white font-medium">{getBookingPrice(booking.booking_type)}</p>
             </div>
+            
+            {booking.notes && (
+              <div className="col-span-2">
+                <p className="text-white/60 text-sm">Notas:</p>
+                <p className="text-white font-medium">{booking.notes}</p>
+              </div>
+            )}
           </div>
         </div>
         

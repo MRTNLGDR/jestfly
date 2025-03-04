@@ -1,47 +1,269 @@
 
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuthState } from '@/hooks/auth/useAuthState';
-import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
-
-interface Booking {
-  id: string;
-  user_id: string;
-  booking_type: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  price: number;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-interface BookingFormData {
-  booking_type: string;
-  date: Date;
-  time_slot: string;
-  duration: number;
-  notes?: string;
-}
+import { 
+  fetchBookingTypes, 
+  fetchAvailableDates, 
+  fetchAvailableTimeSlots, 
+  createBooking as createBookingService,
+  fetchUserBookings,
+  cancelBooking as cancelBookingService,
+  BookingType
+} from '@/services/bookingsService';
+import { BookingFormData } from '@/components/bookings/BookingForm';
 
 export const useBookings = () => {
-  const { user } = useAuthState();
-  const queryClient = useQueryClient();
-  const activityLogger = useActivityLogger();
+  const { profile } = useAuth();
+  const { toast } = useToast();
+  const { logActivity } = useActivityLogger();
   
-  // Generate available dates (next 14 days)
-  const getAvailableDates = (): Date[] => {
+  const [bookingTypes, setBookingTypes] = useState<BookingType[]>([]);
+  const [availableDates, setAvailableDates] = useState<Date[]>([]);
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [userBookings, setUserBookings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isCancelling, setIsCancelling] = useState<boolean>(false);
+  
+  // Buscar tipos de reserva disponíveis
+  useEffect(() => {
+    const loadBookingTypes = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await fetchBookingTypes();
+        
+        if (error) {
+          console.error('Erro ao buscar tipos de reserva:', error);
+          toast({
+            title: 'Erro',
+            description: 'Não foi possível carregar os tipos de reserva.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        
+        if (data) {
+          setBookingTypes(data);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar tipos de reserva:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadBookingTypes();
+  }, [toast]);
+  
+  // Buscar datas disponíveis para um tipo de reserva
+  const loadAvailableDates = async (resourceType: string) => {
+    try {
+      setIsLoading(true);
+      
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + 30); // Buscar disponibilidade para os próximos 30 dias
+      
+      const { data, error } = await fetchAvailableDates(resourceType, startDate, endDate);
+      
+      if (error) {
+        console.error('Erro ao buscar datas disponíveis:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar as datas disponíveis.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (data) {
+        setAvailableDates(data);
+      } else {
+        // Se não houver dados disponíveis, gerar algumas datas para demonstração
+        const mockDates = getMockAvailableDates();
+        setAvailableDates(mockDates);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar datas disponíveis:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Buscar horários disponíveis para uma data específica
+  const loadAvailableTimeSlots = async (resourceType: string, date: Date) => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await fetchAvailableTimeSlots(resourceType, date);
+      
+      if (error) {
+        console.error('Erro ao buscar horários disponíveis:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar os horários disponíveis.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        setTimeSlots(data);
+      } else {
+        // Se não houver dados disponíveis, gerar alguns horários para demonstração
+        setTimeSlots([
+          '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'
+        ]);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar horários disponíveis:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Buscar reservas do usuário
+  const loadUserBookings = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await fetchUserBookings(profile.id);
+      
+      if (error) {
+        console.error('Erro ao buscar reservas do usuário:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar suas reservas.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (data) {
+        setUserBookings(data);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar reservas do usuário:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Criar uma nova reserva
+  const createBooking = async (formData: BookingFormData) => {
+    if (!profile?.id) {
+      toast({
+        title: 'Erro',
+        description: 'Você precisa estar logado para fazer uma reserva.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+    
+    try {
+      setIsCreating(true);
+      
+      const { data, error } = await createBookingService(profile.id, formData);
+      
+      if (error) {
+        console.error('Erro ao criar reserva:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível processar sua reserva. Tente novamente.',
+          variant: 'destructive',
+        });
+        return null;
+      }
+      
+      if (data) {
+        toast({
+          title: 'Reserva confirmada!',
+          description: 'Sua reserva foi realizada com sucesso.',
+        });
+        
+        // Log da atividade
+        logActivity('Realizou uma reserva', { booking_type: formData.type });
+        
+        // Atualizar lista de reservas do usuário
+        loadUserBookings();
+        
+        return data;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Erro ao criar reserva:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível processar sua reserva. Tente novamente.',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setIsCreating(false);
+    }
+  };
+  
+  // Cancelar uma reserva
+  const cancelBooking = async (bookingId: string) => {
+    try {
+      setIsCancelling(true);
+      
+      const { data, error } = await cancelBookingService(bookingId);
+      
+      if (error) {
+        console.error('Erro ao cancelar reserva:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível cancelar sua reserva. Tente novamente.',
+          variant: 'destructive',
+        });
+        return false;
+      }
+      
+      if (data) {
+        toast({
+          title: 'Reserva cancelada',
+          description: 'Sua reserva foi cancelada com sucesso.',
+        });
+        
+        // Log da atividade
+        logActivity('Cancelou uma reserva', { booking_id: bookingId });
+        
+        // Atualizar lista de reservas do usuário
+        loadUserBookings();
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Erro ao cancelar reserva:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível cancelar sua reserva. Tente novamente.',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+  
+  // Mock function to generate available dates (7 days from today)
+  const getMockAvailableDates = (): Date[] => {
     const dates: Date[] = [];
-    const now = new Date();
+    const today = new Date();
     
     for (let i = 1; i <= 14; i++) {
       const date = new Date();
-      date.setDate(now.getDate() + i);
+      date.setDate(today.getDate() + i);
       
-      // Skip weekends for this example
+      // Make some days unavailable (e.g., weekends)
       if (date.getDay() !== 0 && date.getDay() !== 6) {
         dates.push(date);
       }
@@ -49,142 +271,19 @@ export const useBookings = () => {
     
     return dates;
   };
-  
-  // Generate available time slots
-  const getTimeSlots = (): string[] => {
-    return [
-      '09:00 - 10:00',
-      '10:00 - 11:00',
-      '11:00 - 12:00',
-      '13:00 - 14:00',
-      '14:00 - 15:00',
-      '15:00 - 16:00',
-      '16:00 - 17:00',
-    ];
-  };
-  
-  // Get booking types
-  const getBookingTypes = (): { id: string; name: string; price: number }[] => {
-    return [
-      { id: 'dj', name: 'DJ para Evento', price: 1500 },
-      { id: 'studio', name: 'Sessão de Estúdio', price: 200 },
-      { id: 'consultation', name: 'Consultoria', price: 150 },
-    ];
-  };
-  
-  // Fetch user bookings
-  const { data: userBookings, isLoading: bookingsLoading, error: bookingsError, refetch: refetchBookings } = useQuery({
-    queryKey: ['user-bookings', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('start_time', { ascending: false });
-      
-      if (error) throw error;
-      return data as Booking[];
-    },
-    enabled: !!user,
-  });
-  
-  // Create a new booking
-  const { mutate: createBooking, isPending: isCreating } = useMutation({
-    mutationFn: async (formData: BookingFormData) => {
-      if (!user) throw new Error('Usuário não autenticado');
-      
-      // Convert date and time slot to start_time and end_time
-      const [startHour, startMinute] = formData.time_slot.split(' - ')[0].split(':').map(Number);
-      
-      const startTime = new Date(formData.date);
-      startTime.setHours(startHour, startMinute, 0, 0);
-      
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + formData.duration);
-      
-      // Get price from booking type
-      const bookingType = getBookingTypes().find(type => type.id === formData.booking_type);
-      const price = bookingType?.price || 0;
-      
-      const bookingData = {
-        user_id: user.id,
-        booking_type: formData.booking_type,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        price,
-        notes: formData.notes || null,
-        status: 'pending'
-      };
-      
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert(bookingData)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Log the activity
-      activityLogger.logSystemActivity(
-        'create.booking',
-        { entity_type: 'bookings', entity_id: data.id, booking_type: formData.booking_type }
-      );
-      
-      return data as Booking;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-bookings'] });
-      toast.success('Reserva criada com sucesso!');
-    },
-    onError: (error) => {
-      console.error('Error creating booking:', error);
-      toast.error('Erro ao criar reserva. Tente novamente.');
-    }
-  });
-  
-  // Cancel a booking
-  const { mutate: cancelBooking, isPending: isCancelling } = useMutation({
-    mutationFn: async (bookingId: string) => {
-      const { data, error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Log the activity
-      activityLogger.logSystemActivity(
-        'cancel.booking',
-        { entity_type: 'bookings', entity_id: bookingId }
-      );
-      
-      return data as Booking;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-bookings'] });
-      toast.success('Reserva cancelada com sucesso!');
-    },
-    onError: (error) => {
-      console.error('Error cancelling booking:', error);
-      toast.error('Erro ao cancelar reserva. Tente novamente.');
-    }
-  });
-  
+
   return {
+    bookingTypes,
+    availableDates,
+    timeSlots,
     userBookings,
-    bookingsLoading,
-    bookingsError,
-    refetchBookings,
-    createBooking,
+    isLoading,
     isCreating,
-    cancelBooking,
     isCancelling,
-    availableDates: getAvailableDates(),
-    timeSlots: getTimeSlots(),
-    bookingTypes: getBookingTypes(),
+    loadAvailableDates,
+    loadAvailableTimeSlots,
+    loadUserBookings,
+    createBooking,
+    cancelBooking
   };
 };

@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
+import { useBookings } from '@/hooks/bookings/useBookings';
 import Loading from '@/components/ui/loading';
-import BookingType, { BookingTypeItem } from '@/components/bookings/BookingType';
+import BookingType from '@/components/bookings/BookingType';
 import BookingCalendar from '@/components/bookings/BookingCalendar';
 import TimeSlots from '@/components/bookings/TimeSlots';
 import BookingForm, { BookingFormData } from '@/components/bookings/BookingForm';
@@ -12,74 +13,45 @@ import BookingConfirmation from '@/components/bookings/BookingConfirmation';
 
 type BookingStep = 'type' | 'date' | 'time' | 'form' | 'confirmation';
 
-// Mock function to generate available dates (7 days from today)
-const getMockAvailableDates = (): Date[] => {
-  const dates: Date[] = [];
-  const today = new Date();
-  
-  for (let i = 1; i <= 14; i++) {
-    const date = new Date();
-    date.setDate(today.getDate() + i);
-    
-    // Make some days unavailable (e.g., weekends)
-    if (date.getDay() !== 0 && date.getDay() !== 6) {
-      dates.push(date);
-    }
-  }
-  
-  return dates;
-};
-
-// Mock function to generate available time slots
-const getMockAvailableTimeSlots = (): string[] => {
-  return [
-    '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'
-  ];
-};
-
-// Mock booking types
-const mockBookingTypes: BookingTypeItem[] = [
-  {
-    id: 'dj',
-    name: 'DJ para Eventos',
-    icon: <div className="text-purple-400">🎵</div>,
-    description: 'Contrate DJs profissionais para seu evento, com equipamento de som incluso.',
-    price: 1500
-  },
-  {
-    id: 'studio',
-    name: 'Sessão de Estúdio',
-    icon: <div className="text-yellow-400">⭐</div>,
-    description: 'Reserve nosso estúdio profissional para gravações, mixagens e masterizações.',
-    price: 800
-  },
-  {
-    id: 'consultoria',
-    name: 'Consultoria Musical',
-    icon: <div className="text-blue-400">👥</div>,
-    description: 'Consultoria personalizada para artistas e produtores musicais.',
-    price: 500
-  }
-];
-
 const BookingsPage = () => {
   const { profile, loading: authLoading } = useAuth();
-  const { toast } = useToast();
   const { logSystemActivity } = useActivityLogger();
+  
+  const {
+    bookingTypes,
+    availableDates,
+    timeSlots,
+    loadAvailableDates,
+    loadAvailableTimeSlots,
+    createBooking,
+    isLoading,
+    isCreating
+  } = useBookings();
   
   const [currentStep, setCurrentStep] = useState<BookingStep>('type');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
-  const [availableDates, setAvailableDates] = useState<Date[]>([]);
-  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
-  const [isCreating, setIsCreating] = useState(false);
   
   // Log visit to this page
   useEffect(() => {
     logSystemActivity('Acessou página de reservas');
   }, [logSystemActivity]);
+  
+  // Load available dates when type is selected
+  useEffect(() => {
+    if (selectedType) {
+      loadAvailableDates(selectedType);
+    }
+  }, [selectedType, loadAvailableDates]);
+  
+  // Load available time slots when date is selected
+  useEffect(() => {
+    if (selectedDate && selectedType) {
+      loadAvailableTimeSlots(selectedType, selectedDate);
+    }
+  }, [selectedDate, selectedType, loadAvailableTimeSlots]);
   
   // Advance to the next step when selection is made
   useEffect(() => {
@@ -100,69 +72,17 @@ const BookingsPage = () => {
     }
   }, [selectedTimeSlot]);
   
-  // Generate mock available dates
-  useEffect(() => {
-    if (selectedType) {
-      // Simulate fetching available dates
-      setTimeout(() => {
-        setAvailableDates(getMockAvailableDates());
-      }, 500);
-    }
-  }, [selectedType]);
-  
-  // Get available time slots for selected date
-  useEffect(() => {
-    if (selectedDate && selectedType) {
-      // Simulate fetching available time slots
-      setTimeout(() => {
-        setAvailableTimeSlots(getMockAvailableTimeSlots());
-      }, 500);
-    }
-  }, [selectedDate, selectedType]);
-  
   // Handle booking submission
   const handleBookingSubmit = async (formData: BookingFormData) => {
-    try {
-      setIsCreating(true);
-      
-      // Simulate API call
-      await new Promise(r => setTimeout(r, 1500));
-      
-      const result = {
-        id: `booking-${Date.now()}`,
-        type: formData.type,
-        date: formData.date,
-        timeSlot: formData.timeSlot,
-        notes: formData.notes,
-        status: 'confirmed'
-      };
-      
+    const result = await createBooking(formData);
+    
+    if (result) {
       setConfirmedBooking(result);
       setCurrentStep('confirmation');
-      
-      toast({
-        title: "Reserva confirmada!",
-        description: "Sua reserva foi realizada com sucesso.",
-      });
-      
-      // Log the booking action
-      logSystemActivity(
-        'Realizou uma reserva', 
-        { booking_type: formData.type }
-      );
-      
-      setIsCreating(false);
       return result;
-    } catch (error) {
-      console.error('Error creating booking:', error);
-      toast({
-        title: "Erro na reserva",
-        description: "Não foi possível processar sua reserva. Tente novamente.",
-        variant: "destructive",
-      });
-      setIsCreating(false);
-      throw error;
     }
+    
+    return null;
   };
   
   // Reset booking flow
@@ -175,7 +95,7 @@ const BookingsPage = () => {
   };
   
   // Show loading state
-  if (authLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="container mx-auto py-12 px-4">
         <div className="flex justify-center items-center min-h-[50vh]">
@@ -207,6 +127,15 @@ const BookingsPage = () => {
       </div>
     );
   }
+  
+  // Create booking type items with required properties for the BookingType component
+  const enhancedBookingTypes = bookingTypes.map(type => ({
+    id: type.id,
+    name: type.name,
+    price: type.price,
+    icon: <span className="text-purple-400">📅</span>,
+    description: type.description
+  }));
   
   return (
     <div className="container mx-auto py-12 px-4">
@@ -254,7 +183,7 @@ const BookingsPage = () => {
         
         {currentStep === 'type' && (
           <BookingType 
-            bookingType={mockBookingTypes.find(type => type.id === selectedType)}
+            bookingType={enhancedBookingTypes.find(type => type.id === selectedType)}
             selectedType={selectedType} 
             onSelectType={setSelectedType} 
           />
@@ -263,7 +192,7 @@ const BookingsPage = () => {
         {currentStep === 'date' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <BookingType 
-              bookingType={mockBookingTypes.find(type => type.id === selectedType)}
+              bookingType={enhancedBookingTypes.find(type => type.id === selectedType)}
               selectedType={selectedType} 
               onSelectType={setSelectedType} 
             />
@@ -286,7 +215,7 @@ const BookingsPage = () => {
               />
               
               <TimeSlots 
-                availableSlots={availableTimeSlots}
+                availableSlots={timeSlots}
                 selectedSlot={selectedTimeSlot}
                 onSelectSlot={setSelectedTimeSlot}
                 disabled={!selectedDate}
