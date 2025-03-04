@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllDemoSubmissions, updateDemoStatus } from '../../services/demoService';
@@ -7,7 +6,7 @@ import { Badge } from '../ui/badge';
 import { Textarea } from '../ui/textarea';
 import { FileAudio, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { supabase } from '../../integrations/supabase/client';
-import { GlassAudioPlayer } from '../GlassAudioPlayer';
+import GlassAudioPlayer from '../GlassAudioPlayer';
 
 const AdminDemoReview: React.FC = () => {
   const [selectedDemo, setSelectedDemo] = useState<any>(null);

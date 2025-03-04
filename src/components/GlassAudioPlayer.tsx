@@ -3,13 +3,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Disc, Music } from 'lucide-react';
 
 interface GlassAudioPlayerProps {
-  isMinimized: boolean;
-  setIsMinimized: (value: boolean) => void;
+  isMinimized?: boolean;
+  setIsMinimized?: (value: boolean) => void;
+  trackUrl?: string;
+  trackName?: string;
+  trackAuthor?: string;
 }
 
 const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({ 
-  isMinimized, 
-  setIsMinimized 
+  isMinimized = false, 
+  setIsMinimized = () => {}, 
+  trackUrl = "/assets/sample-track.mp3",
+  trackName = "GLASS MUSIC PLAYER",
+  trackAuthor = ""
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0);
@@ -135,7 +141,7 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
           </button>
           
           <div className="text-xs text-white/80 font-medium tracking-wider">
-            GLASS MUSIC PLAYER
+            {trackName}
           </div>
           
           <button
@@ -154,7 +160,7 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
           {/* Hidden audio element */}
           <audio 
             ref={audioRef}
-            src="/assets/sample-track.mp3" 
+            src={trackUrl}
             loop
           />
           
@@ -162,6 +168,12 @@ const GlassAudioPlayer: React.FC<GlassAudioPlayerProps> = ({
             <span>1:23</span>
             <span>3:45</span>
           </div>
+          
+          {trackAuthor && (
+            <div className="mt-1 text-xs text-white/60 text-center">
+              {trackAuthor}
+            </div>
+          )}
         </div>
       </div>
     </div>
