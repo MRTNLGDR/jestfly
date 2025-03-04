@@ -101,6 +101,31 @@ export const useActivityLogger = () => {
     }
   };
 
+  // Log access attempt to protected routes
+  const logAccessAttempt = async (route: string, success: boolean) => {
+    try {
+      if (!profile) return;
+
+      const { error } = await supabase
+        .from('user_activity_logs')
+        .insert({
+          user_id: profile.id,
+          action: success ? 'Acesso à rota permitido' : 'Tentativa de acesso não autorizado',
+          entity_type: 'route',
+          entity_id: route,
+          success,
+          details: { route },
+          ip_address: await fetchIP()
+        });
+
+      if (error) {
+        console.error('Error logging access attempt:', error);
+      }
+    } catch (err) {
+      console.error('Failed to log access attempt:', err);
+    }
+  };
+
   // Helper to get IP address (in a real app, this could use an IP service)
   const fetchIP = async (): Promise<string> => {
     try {
@@ -117,6 +142,15 @@ export const useActivityLogger = () => {
     logLogin,
     logLogout,
     logProfileUpdate,
-    logSystemActivity
+    logSystemActivity,
+    logAccessAttempt
+  };
+};
+
+// Export utility for system logs (can be used outside of components)
+export const useSystemLogger = () => {
+  const logger = useActivityLogger();
+  return {
+    logSystemEvent: logger.logSystemActivity
   };
 };
