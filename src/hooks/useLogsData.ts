@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { LogEntry, SystemLogEntry, LogFilters } from '@/types/logs';
 
 export const useLogsData = (isAuthorized: boolean) => {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [logs, setLogs] = useState<LogEntry[] | SystemLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Filtros padrão
@@ -120,7 +120,7 @@ export const useLogsData = (isAuthorized: boolean) => {
     
     if (filters.activeTab === 'activity') {
       headers = ['Data', 'Ação', 'Usuário', 'Entidade', 'Status', 'Detalhes'];
-      csvData = logs.map((log: LogEntry) => [
+      csvData = (logs as LogEntry[]).map((log: LogEntry) => [
         new Date(log.created_at).toLocaleString(),
         log.action,
         log.user_id || 'Sistema',
@@ -130,7 +130,7 @@ export const useLogsData = (isAuthorized: boolean) => {
       ]);
     } else {
       headers = ['Data', 'Nível', 'Mensagem', 'Metadados'];
-      csvData = logs.map((log: SystemLogEntry) => [
+      csvData = (logs as SystemLogEntry[]).map((log: SystemLogEntry) => [
         new Date(log.created_at).toLocaleString(),
         log.level,
         log.message,
