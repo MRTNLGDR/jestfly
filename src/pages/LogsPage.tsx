@@ -15,12 +15,19 @@ const LogsPage = () => {
   const { 
     logs, 
     loading, 
-    filters, 
+    filters: logFilters, 
     updateFilter, 
     handleSearch, 
     handleReset, 
     handleExport 
   } = useLogsData(isAdminOrCollaborator);
+
+  const filters = {
+    search: logFilters.searchTerm || '',
+    type: logFilters.entityType || '',
+    dateRange: '',
+    activeTab: logFilters.activeTab || 'activity'
+  };
   
   if (!isAdminOrCollaborator) {
     return (
@@ -41,7 +48,7 @@ const LogsPage = () => {
         </h1>
         
         <LogsFilter 
-          filters={filters} 
+          filters={filters}
           onUpdateFilter={updateFilter}
           onSearch={handleSearch}
           onReset={handleReset}
@@ -49,7 +56,7 @@ const LogsPage = () => {
         />
         
         <LogsTabs 
-          activeTab={filters.activeTab} 
+          activeTab={filters.activeTab}
           onTabChange={(value) => updateFilter('activeTab', value)}
         >
           <GlassCard className="overflow-hidden">
@@ -62,7 +69,11 @@ const LogsPage = () => {
                 <p className="text-white/70">Nenhum log encontrado.</p>
               </div>
             ) : (
-              <LogsTable logs={logs} />
+              <LogsTable 
+                logs={logs} 
+                type={filters.activeTab as 'activity' | 'system'}
+                onViewDetails={(log) => console.log('View details:', log)}
+              />
             )}
           </GlassCard>
         </LogsTabs>
