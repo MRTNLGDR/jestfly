@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -38,7 +38,7 @@ const SettingsPage: React.FC = () => {
     }
   });
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (profile) {
       setProfileData({
         display_name: profile.display_name || '',

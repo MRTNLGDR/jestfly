@@ -21,7 +21,7 @@ export const useActivityLogger = () => {
           user_id: userId,
           action,
           details,
-          ip_address: 'client', // O IP real será capturado pelo RLS no Supabase
+          ip_address: 'client', // The real IP will be captured by RLS in Supabase
           user_agent: navigator.userAgent
         });
       
@@ -35,10 +35,10 @@ export const useActivityLogger = () => {
     }
   }, []);
 
-  // Fix the logSystemActivity function to use the correct structure for system_logs
+  // Fixed logSystemActivity function to use correct structure for system_logs
   const logSystemActivity = useCallback(async (
-    action: string,
-    details?: Record<string, any>,
+    message: string,
+    metadata?: Record<string, any>,
     success: boolean = true
   ) => {
     try {
@@ -48,8 +48,8 @@ export const useActivityLogger = () => {
         .from('system_logs')
         .insert({
           level: success ? 'info' : 'error',
-          message: action,
-          metadata: details
+          message,
+          metadata
         });
       
       if (error) {

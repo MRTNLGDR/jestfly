@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,7 +7,7 @@ import Loading from '@/components/ui/loading';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 
-// Componentes específicos para cada tipo de dashboard
+// Components for each dashboard type
 import AdminDashboardOverview from '@/components/admin/dashboard/AdminDashboardOverview';
 import AdminDashboardActivity from '@/components/admin/dashboard/AdminDashboardActivity';
 import ArtistDashboard from '@/components/dashboard/ArtistDashboard';
@@ -19,9 +20,9 @@ const DashboardPage: React.FC = () => {
   const { logAccessAttempt } = useActivityLogger();
   
   useEffect(() => {
-    // Registrar tentativa de acesso ao dashboard
+    // Log dashboard access attempt
     if (profile) {
-      logAccessAttempt(profile.id, 'dashboard', true);
+      logAccessAttempt(profile.id, 'dashboard');
     }
   }, [profile, logAccessAttempt]);
   
@@ -33,14 +34,14 @@ const DashboardPage: React.FC = () => {
     );
   }
   
-  // Redirecionar se não estiver autenticado
+  // Redirect if not authenticated
   if (!profile) {
-    // Salvar a URL atual para redirecionar de volta após o login
+    // Save current URL for redirect after login
     localStorage.setItem('redirectAfterLogin', '/dashboard');
     return <Navigate to="/auth" replace />;
   }
 
-  // Renderizar diferentes dashboards com base no tipo de perfil
+  // Render different dashboards based on profile type
   const renderDashboardContent = () => {
     switch (profile.profile_type) {
       case 'admin':
