@@ -2,116 +2,168 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllDemoSubmissions, updateDemoStatus } from '../../services/demoService';
-import { Badge } from '../ui/badge';
-import { supabase } from '../../integrations/supabase/client';
-import { GlassCard } from '../ui/glass-card';
-import Loading from '../ui/loading';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import DemoList from './DemoList';
 import DemoDetails from './DemoDetails';
 import ReviewForm from './ReviewForm';
 import EmptyDemoState from './EmptyDemoState';
+import { toast } from 'sonner';
+
+interface Demo {
+  id: string;
+  artist_name: string;
+  email: string;
+  file_path: string;
+  genre: string | null;
+  biography: string | null;
+  social_links: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  reviewer_notes: string | null;
+  created_at: string;
+}
 
 const AdminDemoReview: React.FC = () => {
-  const [selectedDemo, setSelectedDemo] = useState<any>(null);
+  const { user } = useAuth();
+  const [selectedDemo, setSelectedDemo] = useState<Demo | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [tabValue, setTabValue] = useState('all');
   
-  const { data: submissions, isLoading, error, refetch } = useQuery({
-    queryKey: ['demoSubmissions'],
+  // Buscar submissões de demos
+  const { data: demos = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['demo-submissions'],
     queryFn: getAllDemoSubmissions,
   });
 
+  // Quando selecionar uma demo, buscar a URL do áudio
+  useEffect(() => {
+    const getAudioUrl = async () => {
+      if (selectedDemo) {
+        try {
+          const { data, error } = await supabase.storage
+            .from('demos')
+            .createSignedUrl(selectedDemo.file_path, 300);
+          
+          if (error) throw error;
+          setAudioUrl(data.signedUrl);
+        } catch (error) {
+          console.error('Erro ao buscar URL do áudio:', error);
+          setAudioUrl(null);
+        }
+      } else {
+        setAudioUrl(null);
+      }
+    };
+    
+    getAudioUrl();
+  }, [selectedDemo]);
+  
+  // Inicializar notas de revisão quando selecionar uma demo
   useEffect(() => {
     if (selectedDemo) {
       setReviewNotes(selectedDemo.reviewer_notes || '');
-      getAudioUrl(selectedDemo.file_path);
     } else {
-      setAudioUrl(null);
+      setReviewNotes('');
     }
   }, [selectedDemo]);
-
-  const getAudioUrl = async (filePath: string) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('demos')
-        .createSignedUrl(filePath, 60 * 60); // URL válida por 1 hora
-        
-      if (error) throw error;
-      setAudioUrl(data?.signedUrl || null);
-    } catch (error) {
-      console.error('Erro ao obter URL do áudio:', error);
-      setAudioUrl(null);
-    }
-  };
-
+  
+  // Filtrar demos com base na aba selecionada
+  const filteredDemos = demos.filter((demo) => {
+    if (tabValue === 'all') return true;
+    if (tabValue === 'pending') return demo.status === 'pending';
+    if (tabValue === 'approved') return demo.status === 'approved';
+    if (tabValue === 'rejected') return demo.status === 'rejected';
+    return true;
+  });
+  
+  // Manipuladores para ações de revisão
   const handleApprove = async () => {
-    if (!selectedDemo) return;
+    if (!selectedDemo || !user) return;
     
-    const result = await updateDemoStatus(selectedDemo.id, 'approved', reviewNotes);
-    if (result.success) {
-      refetch();
-      setSelectedDemo(null);
+    try {
+      await updateDemoStatus(selectedDemo.id, 'approved', reviewNotes, user.id);
+      toast.success('Demo aprovada com sucesso');
+      await refetch();
+      // Atualizar a demo selecionada com o novo status
+      setSelectedDemo((prev) => prev ? { ...prev, status: 'approved' as const } : null);
+    } catch (error) {
+      console.error('Erro ao aprovar demo:', error);
+      toast.error('Erro ao aprovar demo');
     }
   };
-
+  
   const handleReject = async () => {
-    if (!selectedDemo) return;
+    if (!selectedDemo || !user) return;
     
-    const result = await updateDemoStatus(selectedDemo.id, 'rejected', reviewNotes);
-    if (result.success) {
-      refetch();
-      setSelectedDemo(null);
+    try {
+      await updateDemoStatus(selectedDemo.id, 'rejected', reviewNotes, user.id);
+      toast.success('Demo rejeitada com sucesso');
+      await refetch();
+      // Atualizar a demo selecionada com o novo status
+      setSelectedDemo((prev) => prev ? { ...prev, status: 'rejected' as const } : null);
+    } catch (error) {
+      console.error('Erro ao rejeitar demo:', error);
+      toast.error('Erro ao rejeitar demo');
     }
   };
-
-  if (isLoading) return <Loading text="Carregando submissões..." />;
-  if (error) return <div className="text-center py-10 text-red-500">Erro ao carregar submissões</div>;
-
-  const data = submissions?.data || [];
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-1 bg-black/30 rounded-lg border border-white/10 p-4 h-[calc(100vh-200px)] overflow-y-auto">
-        <h3 className="text-xl font-bold mb-4">Submissões de Demo</h3>
-        <DemoList 
-          demos={data} 
-          selectedDemoId={selectedDemo?.id || null}
-          onSelectDemo={setSelectedDemo}
-        />
-      </div>
+    <div className="h-full flex flex-col">
+      <h2 className="text-2xl font-bold mb-6">Revisão de Demos</h2>
       
-      <div className="lg:col-span-2">
-        {selectedDemo ? (
-          <GlassCard className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <div />
-              <Badge className={
-                selectedDemo.status === 'pending' ? 'bg-yellow-600' : 
-                selectedDemo.status === 'approved' ? 'bg-green-600' : 'bg-red-600'
-              }>
-                {selectedDemo.status === 'pending' ? 'Pendente' : 
-                selectedDemo.status === 'approved' ? 'Aprovado' : 'Rejeitado'}
-              </Badge>
-            </div>
-            
-            <DemoDetails demo={selectedDemo} audioUrl={audioUrl} />
-            
-            <ReviewForm 
-              reviewNotes={reviewNotes}
-              onNotesChange={setReviewNotes}
-              demoStatus={selectedDemo.status}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onCancel={() => {
-                setSelectedDemo(null);
-                setReviewNotes('');
-              }}
-            />
-          </GlassCard>
-        ) : (
-          <EmptyDemoState />
-        )}
-      </div>
+      <Tabs value={tabValue} onValueChange={setTabValue} className="w-full h-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="all">Todas</TabsTrigger>
+          <TabsTrigger value="pending">Pendentes</TabsTrigger>
+          <TabsTrigger value="approved">Aprovadas</TabsTrigger>
+          <TabsTrigger value="rejected">Rejeitadas</TabsTrigger>
+        </TabsList>
+        
+        <div className="flex flex-1 gap-6 h-[calc(100%-48px)] overflow-hidden">
+          {/* Lista de demos */}
+          <div className="w-1/3 overflow-y-auto pr-2">
+            <TabsContent value={tabValue} className="mt-0 h-full">
+              <DemoList 
+                demos={filteredDemos as Demo[]} 
+                selectedDemoId={selectedDemo?.id || null}
+                onSelectDemo={(demo) => setSelectedDemo(demo as Demo)}
+              />
+            </TabsContent>
+          </div>
+          
+          <Separator orientation="vertical" />
+          
+          {/* Detalhes e revisão */}
+          <div className="w-2/3 overflow-y-auto pl-2">
+            {selectedDemo ? (
+              <div className="space-y-6">
+                <DemoDetails 
+                  demo={selectedDemo}
+                  audioUrl={audioUrl}
+                />
+                
+                <Separator />
+                
+                <ReviewForm
+                  reviewNotes={reviewNotes}
+                  onNotesChange={setReviewNotes}
+                  demoStatus={selectedDemo.status}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onCancel={() => setSelectedDemo(null)}
+                />
+              </div>
+            ) : (
+              <EmptyDemoState />
+            )}
+          </div>
+        </div>
+      </Tabs>
     </div>
   );
 };
