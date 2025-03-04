@@ -17,7 +17,7 @@ import { BookingFormData } from '@/components/bookings/BookingForm';
 export const useBookings = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const { logActivity } = useActivityLogger();
+  const { logSystemActivity } = useActivityLogger();
   
   const [bookingTypes, setBookingTypes] = useState<BookingType[]>([]);
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
@@ -186,7 +186,7 @@ export const useBookings = () => {
         });
         
         // Log da atividade
-        logActivity('Realizou uma reserva', { booking_type: formData.type });
+        logSystemActivity('Realizou uma reserva', { booking_type: formData.type });
         
         // Atualizar lista de reservas do usuário
         loadUserBookings();
@@ -232,7 +232,7 @@ export const useBookings = () => {
         });
         
         // Log da atividade
-        logActivity('Cancelou uma reserva', { booking_id: bookingId });
+        logSystemActivity('Cancelou uma reserva', { booking_id: bookingId });
         
         // Atualizar lista de reservas do usuário
         loadUserBookings();

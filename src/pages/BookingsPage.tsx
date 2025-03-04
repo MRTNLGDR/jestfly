@@ -1,17 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { useBookings } from '@/hooks/bookings/useBookings';
 import Loading from '@/components/ui/loading';
-import BookingType from '@/components/bookings/BookingType';
-import BookingCalendar from '@/components/bookings/BookingCalendar';
-import TimeSlots from '@/components/bookings/TimeSlots';
-import BookingForm, { BookingFormData } from '@/components/bookings/BookingForm';
-import BookingConfirmation from '@/components/bookings/BookingConfirmation';
-
-type BookingStep = 'type' | 'date' | 'time' | 'form' | 'confirmation';
+import BookingProgress, { BookingStep } from '@/components/bookings/BookingProgress';
+import BookingSteps from '@/components/bookings/BookingSteps';
+import BookingLoginRequired from '@/components/bookings/BookingLoginRequired';
+import { BookingFormData } from '@/components/bookings/BookingForm';
 
 const BookingsPage = () => {
   const { profile, loading: authLoading } = useAuth();
@@ -109,21 +105,7 @@ const BookingsPage = () => {
   if (!profile) {
     return (
       <div className="container mx-auto py-12 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-6 text-white">Sistema de Reservas</h1>
-          <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-xl p-8">
-            <h2 className="text-xl font-semibold mb-4 text-white">Login Necessário</h2>
-            <p className="text-white/70 mb-6">
-              Para realizar reservas, é necessário estar logado no sistema.
-            </p>
-            <a 
-              href="/auth" 
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
-            >
-              Faça Login
-            </a>
-          </div>
-        </div>
+        <BookingLoginRequired />
       </div>
     );
   }
@@ -143,104 +125,24 @@ const BookingsPage = () => {
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-white">Sistema de Reservas</h1>
         
         {/* Progress Steps */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center relative">
-            <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-white/10 -z-10"></div>
-            
-            {['type', 'date', 'time', 'form', 'confirmation'].map((step, index) => (
-              <div 
-                key={step}
-                className={`flex flex-col items-center ${currentStep === step ? 'text-white' : (
-                  ['type', 'date', 'time', 'form'].indexOf(currentStep) >= ['type', 'date', 'time', 'form'].indexOf(step as BookingStep) 
-                    ? 'text-purple-400' 
-                    : 'text-white/40'
-                )}`}
-              >
-                <div 
-                  className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 
-                    ${currentStep === step 
-                      ? 'bg-purple-600 text-white' 
-                      : (
-                        ['type', 'date', 'time', 'form'].indexOf(currentStep) >= ['type', 'date', 'time', 'form'].indexOf(step as BookingStep) 
-                          ? 'bg-purple-900/50 text-white' 
-                          : 'bg-white/10 text-white/40'
-                      )
-                    }`}
-                >
-                  {index + 1}
-                </div>
-                <span className="text-sm hidden md:block">
-                  {step === 'type' && 'Tipo'}
-                  {step === 'date' && 'Data'}
-                  {step === 'time' && 'Horário'}
-                  {step === 'form' && 'Dados'}
-                  {step === 'confirmation' && 'Confirmação'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <BookingProgress currentStep={currentStep} />
         
-        {currentStep === 'type' && (
-          <BookingType 
-            bookingType={enhancedBookingTypes.find(type => type.id === selectedType)}
-            selectedType={selectedType} 
-            onSelectType={setSelectedType} 
-          />
-        )}
-        
-        {currentStep === 'date' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <BookingType 
-              bookingType={enhancedBookingTypes.find(type => type.id === selectedType)}
-              selectedType={selectedType} 
-              onSelectType={setSelectedType} 
-            />
-            
-            <BookingCalendar 
-              availableDates={availableDates}
-              selectedDate={selectedDate}
-              onSelectDate={setSelectedDate}
-            />
-          </div>
-        )}
-        
-        {currentStep === 'time' && (
-          <div className="grid grid-cols-1 gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <BookingCalendar 
-                availableDates={availableDates}
-                selectedDate={selectedDate}
-                onSelectDate={setSelectedDate}
-              />
-              
-              <TimeSlots 
-                availableSlots={timeSlots}
-                selectedSlot={selectedTimeSlot}
-                onSelectSlot={setSelectedTimeSlot}
-                disabled={!selectedDate}
-              />
-            </div>
-          </div>
-        )}
-        
-        {currentStep === 'form' && (
-          <div className="grid grid-cols-1 gap-6">
-            <BookingForm 
-              selectedDate={selectedDate}
-              selectedTimeSlot={selectedTimeSlot}
-              bookingType={selectedType}
-              onBookingSubmit={handleBookingSubmit}
-            />
-          </div>
-        )}
-        
-        {currentStep === 'confirmation' && confirmedBooking && (
-          <BookingConfirmation 
-            booking={confirmedBooking}
-            onClose={resetBooking}
-          />
-        )}
+        {/* Booking Steps Content */}
+        <BookingSteps
+          currentStep={currentStep}
+          bookingTypes={enhancedBookingTypes}
+          selectedType={selectedType}
+          selectedDate={selectedDate}
+          selectedTimeSlot={selectedTimeSlot}
+          availableDates={availableDates}
+          timeSlots={timeSlots}
+          confirmedBooking={confirmedBooking}
+          onSelectType={setSelectedType}
+          onSelectDate={setSelectedDate}
+          onSelectTimeSlot={setSelectedTimeSlot}
+          onBookingSubmit={handleBookingSubmit}
+          resetBooking={resetBooking}
+        />
       </div>
     </div>
   );
