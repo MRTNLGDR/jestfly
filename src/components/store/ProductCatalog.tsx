@@ -41,22 +41,17 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       });
     }
     
-    // Apply sorting
-    switch (sortBy) {
-      case 'price-low':
-        results.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        results.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-az':
-        results.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-za':
-        results.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      // For 'newest', we rely on the default sorting from the query
+    // Apply sorting - fix the "type instantiation is excessively deep" error
+    if (sortBy === 'price-low') {
+      results.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      results.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name-az') {
+      results.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      results.sort((a, b) => b.title.localeCompare(a.title));
     }
+    // For 'newest', we rely on the default sorting from the query
     
     // Apply limit if provided
     if (limit && limit > 0 && results.length > limit) {
