@@ -73,7 +73,7 @@ const SettingsPage: React.FC = () => {
         throw error;
       }
       
-      await logProfileUpdate(true, ['display_name', 'username', 'bio'], profile.id);
+      await logProfileUpdate(true, ['display_name', 'username', 'bio']);
       
       toast({
         title: "Perfil atualizado",
@@ -87,7 +87,7 @@ const SettingsPage: React.FC = () => {
         variant: "destructive"
       });
       
-      await logProfileUpdate(false, undefined, profile.id);
+      await logProfileUpdate(false);
     } finally {
       setUpdating(false);
     }
@@ -109,7 +109,7 @@ const SettingsPage: React.FC = () => {
         throw error;
       }
       
-      await logProfileUpdate(true, ['preferences'], profile.id);
+      await logProfileUpdate(true, ['preferences']);
       
       toast({
         title: "Preferências atualizadas",
@@ -123,7 +123,7 @@ const SettingsPage: React.FC = () => {
         variant: "destructive"
       });
       
-      await logProfileUpdate(false, undefined, profile.id);
+      await logProfileUpdate(false);
     } finally {
       setUpdating(false);
     }

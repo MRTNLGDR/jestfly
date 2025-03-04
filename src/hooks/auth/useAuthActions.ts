@@ -27,6 +27,7 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
           description: error.message,
           variant: "destructive",
         });
+        // Fix: Update to match expected parameters
         logLogin(false, email);
         setLoading(false);
         return { data, error };
@@ -42,7 +43,8 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
         // Navegar para a página solicitada (isso deve ser feito pelo componente chamador)
       }
       
-      logLogin(true, email, data.user?.id);
+      // Fix: Update to match expected parameters
+      logLogin(true, email);
       setLoading(false);
       return { data, error: null };
     } catch (error) {
@@ -97,7 +99,8 @@ export const useAuthActions = (setProfile: (profile: ProfileData | null) => void
     try {
       console.log('Deslogando usuário');
       const { data } = await supabase.auth.getUser();
-      await logLogout(data.user?.id);  // Registrar logout antes de efetivamente sair
+      // Fix: Update to match expected parameters
+      await logLogout();  // Removed user_id parameter
       const { error } = await supabase.auth.signOut();
       
       if (error) {
