@@ -12,8 +12,8 @@ import ShopPreview from '../components/ShopPreview';
 import { useAuth } from '../contexts/AuthContext';
 
 const Index: React.FC = () => {
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const authContext = useAuth();
 
   useEffect(() => {
     // Simulate loading time
@@ -54,7 +54,7 @@ const Index: React.FC = () => {
       </div>
       
       {/* Admin Link - only visible to admins */}
-      {user && user.email === "admin@example.com" && (
+      {authContext && authContext.user && authContext.user.email === "admin@example.com" && (
         <div className="fixed bottom-4 right-4 z-50">
           <Link 
             to="/admin" 
