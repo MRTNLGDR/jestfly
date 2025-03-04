@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -28,31 +29,32 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    applyFiltersAndSort();
+    const filteredResults = filterProducts(products, search);
+    const sortedResults = sortProducts(filteredResults, sortBy);
+    
+    if (limit && limit > 0 && sortedResults.length > limit) {
+      setFilteredProducts(sortedResults.slice(0, limit));
+    } else {
+      setFilteredProducts(sortedResults);
+    }
   }, [products, search, sortBy, limit]);
 
-  const applyFiltersAndSort = () => {
-    let result: Product[] = [...products];
-    
-    if (search && search.trim() !== '') {
-      const searchTerm = search.toLowerCase().trim();
-      result = result.filter(product => {
-        const titleMatch = product.title.toLowerCase().includes(searchTerm);
-        const descMatch = product.description ? 
-          product.description.toLowerCase().includes(searchTerm) : false;
-        return titleMatch || descMatch;
-      });
+  // Separate filter function to avoid excessive type instantiation
+  const filterProducts = (productsToFilter: Product[], searchTerm: string): Product[] => {
+    if (!searchTerm || searchTerm.trim() === '') {
+      return [...productsToFilter];
     }
     
-    const sortedResult = sortProducts(result, sortBy);
-    
-    if (limit && limit > 0 && sortedResult.length > limit) {
-      setFilteredProducts(sortedResult.slice(0, limit));
-    } else {
-      setFilteredProducts(sortedResult);
-    }
+    const term = searchTerm.toLowerCase().trim();
+    return productsToFilter.filter(product => {
+      const titleMatch = product.title.toLowerCase().includes(term);
+      const descMatch = product.description ? 
+        product.description.toLowerCase().includes(term) : false;
+      return titleMatch || descMatch;
+    });
   };
 
+  // Separate sort function
   const sortProducts = (productsToSort: Product[], sortCriteria: string): Product[] => {
     const sorted = [...productsToSort];
     
@@ -70,6 +72,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         sorted.sort((a, b) => b.title.localeCompare(a.title));
         break;
       default:
+        // 'newest' is default - already sorted by created_at in the query
         break;
     }
     
