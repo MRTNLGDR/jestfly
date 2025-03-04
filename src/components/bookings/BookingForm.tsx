@@ -1,153 +1,163 @@
 
-import React from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import React, { useState } from 'react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { useBookings } from '@/hooks/bookings/useBookings';
+import BookingCalendar from './BookingCalendar';
+import BookingType from './BookingType';
+import TimeSlots from './TimeSlots';
+import BookingConfirmation from './BookingConfirmation';
 
-// Define schema for form validation
-const bookingFormSchema = z.object({
-  notes: z.string().optional(),
-  type: z.string(),
-  date: z.date(),
-  timeSlot: z.string(),
-});
+const BookingForm: React.FC = () => {
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<string>('');
+  const [notes, setNotes] = useState<string>('');
+  const [step, setStep] = useState<number>(1);
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
+  const [booking, setBooking] = useState<any>(null);
 
-export type BookingFormData = z.infer<typeof bookingFormSchema>;
+  const {
+    availableDates,
+    timeSlots,
+    bookingTypes,
+    createBooking,
+    isCreating
+  } = useBookings();
 
-interface BookingFormProps {
-  selectedDate: Date | undefined;
-  selectedTimeSlot: string | null;
-  bookingType: string;
-  onBookingSubmit: (data: BookingFormData) => void;
-}
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedDate || !selectedTime || !selectedType) {
+      return;
+    }
 
-const BookingForm: React.FC<BookingFormProps> = ({
-  selectedDate,
-  selectedTimeSlot,
-  bookingType,
-  onBookingSubmit
-}) => {
-  // Create form
-  const form = useForm<BookingFormData>({
-    resolver: zodResolver(bookingFormSchema),
-    defaultValues: {
-      notes: '',
-      type: bookingType,
+    // Get booking type info
+    const bookingTypeInfo = bookingTypes.find(type => type.id === selectedType);
+    
+    // Create form data
+    const formData = {
+      booking_type: selectedType,
       date: selectedDate,
-      timeSlot: selectedTimeSlot || '',
-    },
-    values: {
-      notes: '',
-      type: bookingType,
-      date: selectedDate || new Date(),
-      timeSlot: selectedTimeSlot || '',
-    }
-  });
-
-  // Handle form submission
-  const onSubmit = (data: BookingFormData) => {
-    onBookingSubmit(data);
+      time_slot: selectedTime,
+      duration: 60, // Default to 1 hour
+      notes: notes
+    };
+    
+    // Submit the form
+    createBooking(formData, {
+      onSuccess: (data) => {
+        setBooking({
+          id: data.id,
+          date: selectedDate.toLocaleDateString('pt-BR'),
+          timeSlot: selectedTime,
+          type: selectedType,
+          status: data.status
+        });
+        setShowConfirmation(true);
+      }
+    });
   };
 
-  // Format booking type for display
-  const getBookingTypeLabel = (type: string): string => {
-    switch (type) {
-      case 'dj':
-        return 'DJ para Evento';
-      case 'studio':
-        return 'Sessão de Estúdio';
-      case 'consultation':
-        return 'Consultoria';
-      default:
-        return type;
+  const handleTypeSelect = (type: string) => {
+    setSelectedType(type);
+    setStep(2);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      setStep(3);
     }
   };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time);
+    setStep(4);
+  };
+
+  const handleReset = () => {
+    setSelectedDate(undefined);
+    setSelectedTime('');
+    setSelectedType('');
+    setNotes('');
+    setStep(1);
+    setShowConfirmation(false);
+    setBooking(null);
+  };
+
+  if (showConfirmation && booking) {
+    return <BookingConfirmation booking={booking} onClose={handleReset} />;
+  }
 
   return (
-    <GlassCard className="p-6">
-      <h3 className="text-xl font-bold text-white mb-4">Confirmar Reserva</h3>
-      
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="text-sm text-white/60">Tipo de Reserva</h4>
-                <p className="text-white font-medium">{getBookingTypeLabel(bookingType)}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="text-sm text-white/60">Preço</h4>
-                <p className="text-white font-medium">
-                  {bookingType === 'dj' ? 'R$ 1.500,00' : 
-                   bookingType === 'studio' ? 'R$ 200,00' : 
-                   bookingType === 'consultation' ? 'R$ 150,00' : 'A definir'}
-                </p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <h4 className="text-sm text-white/60">Data</h4>
-                <p className="text-white font-medium">
-                  {selectedDate ? format(selectedDate, 'PPP', { locale: ptBR }) : '-'}
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="text-sm text-white/60">Horário</h4>
-                <p className="text-white font-medium">
-                  {selectedTimeSlot || '-'}
-                </p>
-              </div>
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Observações</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Alguma informação adicional sobre a reserva..."
-                      className="resize-none bg-black/30 border-white/10 text-white"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Step 1: Select booking type */}
+        <div className={step === 1 ? "md:col-span-2 lg:col-span-3" : ""}>
+          <BookingType
+            bookingTypes={bookingTypes}
+            selectedType={selectedType}
+            onSelectType={handleTypeSelect}
+          />
+        </div>
+
+        {/* Step 2: Select date */}
+        {step >= 2 && (
+          <div>
+            <BookingCalendar
+              availableDates={availableDates}
+              selectedDate={selectedDate}
+              onSelectDate={handleDateSelect}
             />
           </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full bg-purple-600 hover:bg-purple-700"
-            disabled={!selectedDate || !selectedTimeSlot}
-          >
-            Confirmar Reserva
-          </Button>
-          
-          <p className="text-xs text-white/50 text-center mt-4">
-            Ao confirmar a reserva, você concorda com os termos e condições.
-          </p>
-        </form>
-      </Form>
-    </GlassCard>
+        )}
+
+        {/* Step 3: Select time slot */}
+        {step >= 3 && (
+          <div>
+            <TimeSlots
+              availableTimeSlots={timeSlots}
+              selectedTime={selectedTime}
+              onSelectTime={handleTimeSelect}
+            />
+          </div>
+        )}
+
+        {/* Step 4: Additional information */}
+        {step >= 4 && (
+          <div>
+            <GlassCard className="p-4">
+              <h3 className="text-xl font-bold text-white mb-4">Informações Adicionais</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="notes">Notas ou pedidos especiais</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Compartilhe detalhes importantes sobre sua reserva..."
+                    className="bg-black/20 border-white/10 text-white resize-none"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={5}
+                  />
+                </div>
+                
+                <Button
+                  type="submit"
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                  disabled={!selectedDate || !selectedTime || !selectedType || isCreating}
+                >
+                  {isCreating ? 'Processando...' : 'Confirmar Reserva'}
+                </Button>
+              </div>
+            </GlassCard>
+          </div>
+        )}
+      </div>
+    </form>
   );
 };
 

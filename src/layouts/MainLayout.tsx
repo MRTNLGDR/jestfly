@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { GlassHeader } from '../components/GlassHeader';
-import { Footer } from '../components/Footer';
+import GlassHeader from '../components/GlassHeader';
+import Footer from '../components/Footer';
 
 interface MainLayoutProps {
   children: React.ReactNode;
