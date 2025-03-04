@@ -42,23 +42,27 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     
     // Apply sorting - fix the "type instantiation is excessively deep" error
+    // The issue is with the complex conditional type inference in the sorting operations
+    // Let's simplify by using separate conditional blocks instead
+    let sortedResults = [...results];
+    
     if (sortBy === 'price-low') {
-      results.sort((a, b) => a.price - b.price);
+      sortedResults.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
-      results.sort((a, b) => b.price - a.price);
+      sortedResults.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'name-az') {
-      results.sort((a, b) => a.title.localeCompare(b.title));
+      sortedResults.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      results.sort((a, b) => b.title.localeCompare(a.title));
+      sortedResults.sort((a, b) => b.title.localeCompare(a.title));
     }
     // For 'newest', we rely on the default sorting from the query
     
     // Apply limit if provided
-    if (limit && limit > 0 && results.length > limit) {
-      results = results.slice(0, limit);
+    if (limit && limit > 0 && sortedResults.length > limit) {
+      sortedResults = sortedResults.slice(0, limit);
     }
     
-    setFilteredProducts(results);
+    setFilteredProducts(sortedResults);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
