@@ -28,8 +28,9 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
+  // This useEffect handles filtering and sorting separately to avoid type depth issues
   useEffect(() => {
-    // Apply filters and sorting
+    // Apply filters only first
     let results = [...products];
     
     // Filter by search term
@@ -41,21 +42,30 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       });
     }
     
-    // Apply sorting - fix the "type instantiation is excessively deep" error
-    // The issue is with the complex conditional type inference in the sorting operations
-    // Let's simplify by using separate conditional blocks instead
+    // Apply sorting based on sortBy value
+    applySort(results);
+    
+  }, [products, search, sortBy, limit]);
+
+  // Separate function for sorting to break up complex type inference
+  const applySort = (results: Product[]) => {
     let sortedResults = [...results];
     
-    if (sortBy === 'price-low') {
-      sortedResults.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-high') {
-      sortedResults.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'name-az') {
-      sortedResults.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      sortedResults.sort((a, b) => b.title.localeCompare(a.title));
+    switch (sortBy) {
+      case 'price-low':
+        sortedResults.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high':
+        sortedResults.sort((a, b) => b.price - a.price);
+        break;
+      case 'name-az':
+        sortedResults.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'name-za':
+        sortedResults.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      // For 'newest', we rely on the default sorting from the query
     }
-    // For 'newest', we rely on the default sorting from the query
     
     // Apply limit if provided
     if (limit && limit > 0 && sortedResults.length > limit) {
@@ -63,7 +73,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     
     setFilteredProducts(sortedResults);
-  }, [products, search, sortBy, limit]);
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
