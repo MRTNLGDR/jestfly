@@ -1,3 +1,4 @@
+
 // ActivityLog interface used in admin dashboard
 export interface ActivityLog {
   id: string;
@@ -5,7 +6,6 @@ export interface ActivityLog {
   action: string;
   entity_type?: string;
   entity_id?: string;
-  // Add created_at field to match Supabase data structure
   created_at?: string;
   timestamp: string;
   success: boolean;
@@ -13,7 +13,6 @@ export interface ActivityLog {
   details?: Record<string, any>;
   user_email?: string;
   user_display_name?: string;
-  // Add profile field to match Supabase joined data
   profile?: {
     username?: string;
     display_name?: string;
@@ -67,7 +66,7 @@ export const getActionColor = (action: string): string => {
   return 'text-blue-400';
 };
 
-// Update this function to accept ActivityLog instead of just entity strings
+// Function to get a friendly description of log entity types
 export const getLogEntityDescription = (log: ActivityLog | { entity_type?: string, entity_id?: string }): string => {
   const entityType = log.entity_type;
   const entityId = log.entity_id;
@@ -85,7 +84,28 @@ export const getLogEntityDescription = (log: ActivityLog | { entity_type?: strin
       return `Post ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
     case 'product':
       return `Produto ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'booking':
+      return `Reserva ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'note':
+      return `Nota ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'livestream':
+      return `Transmissão ao vivo ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'demo':
+      return `Demo ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'jestcoin':
+      return `JestCoin ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
+    case 'nft':
+      return `NFT ${entityId ? `(${entityId.substring(0, 8)}...)` : ''}`;
     default:
       return entityType.charAt(0).toUpperCase() + entityType.slice(1);
   }
+};
+
+// Function to get an icon for each entity type
+export const getLogEntityIcon = (entityType?: string): JSX.Element | null => {
+  if (!entityType) return null;
+  
+  // This will be implemented with appropriate icons once we add the import
+  // for Lucide icons at the top of this file
+  return null;
 };

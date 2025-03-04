@@ -1,25 +1,37 @@
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-// Versão modificada que não depende do useAuth inicialmente
 export const useActivityLogger = () => {
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
+  /**
+   * Log a user activity to the database
+   * @param action Description of the action
+   * @param entityType Type of entity (e.g., 'auth', 'profile', 'post')
+   * @param entityId ID of the entity (optional)
+   * @param success Whether the action was successful
+   * @param details Additional details about the action
+   */
   const logActivity = useCallback(async (
     action: string, 
-    userId?: string, 
     entityType?: string, 
     entityId?: string, 
     success: boolean = true,
     details?: Record<string, any>
   ) => {
-    if (!userId) return; // Não registra se não houver ID de usuário
+    const userId = user?.id;
+    if (!userId) {
+      console.warn('Cannot log activity: No authenticated user');
+      return;
+    }
     
     setLoading(true);
     try {
-      // Log para o console durante o desenvolvimento
+      // Development logging
       console.log('Activity Log:', { 
         action, 
         userId, 
@@ -29,7 +41,7 @@ export const useActivityLogger = () => {
         details 
       });
       
-      // Em produção, enviar para o Supabase
+      // Insert to Supabase
       const { error } = await supabase
         .from('user_activity_logs')
         .insert({
@@ -38,28 +50,32 @@ export const useActivityLogger = () => {
           entity_type: entityType,
           entity_id: entityId,
           success,
-          ip_address: null, // Seria coletado no servidor
-          details
+          details,
+          // IP address would be collected server-side
+          // Here we leave it empty
+          ip_address: null
         });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error logging activity:', error);
+        toast.error('Falha ao registrar atividade no sistema');
+      }
     } catch (error) {
-      console.error('Error logging activity:', error);
+      console.error('Exception logging activity:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
+  /**
+   * Log an access attempt to a protected resource
+   */
   const logAccessAttempt = useCallback((
     resource: string,
-    success: boolean,
-    userId?: string
+    success: boolean
   ) => {
-    if (!userId) return; // Não registra se não houver ID de usuário
-    
     logActivity(
       `Tentativa de acesso a ${resource}`,
-      userId,
       'resource',
       resource,
       success,
@@ -67,15 +83,15 @@ export const useActivityLogger = () => {
     );
   }, [logActivity]);
 
-  // Add the missing login and logout methods
+  /**
+   * Log a login event
+   */
   const logLogin = useCallback((
     success: boolean,
-    email?: string,
-    userId?: string
+    email?: string
   ) => {
     logActivity(
       success ? 'Login bem-sucedido' : 'Falha no login',
-      userId,
       'auth',
       undefined,
       success,
@@ -83,24 +99,164 @@ export const useActivityLogger = () => {
     );
   }, [logActivity]);
 
-  const logLogout = useCallback(async (userId?: string) => {
-    logActivity('Logout', userId, 'auth');
+  /**
+   * Log a logout event
+   */
+  const logLogout = useCallback(() => {
+    logActivity('Logout', 'auth');
   }, [logActivity]);
 
-  // Add profile update logging
+  /**
+   * Log profile update events
+   */
   const logProfileUpdate = useCallback((
     success: boolean,
-    fields?: string[],
-    userId?: string
+    fields?: string[]
   ) => {
     logActivity(
       success ? 'Perfil atualizado' : 'Falha ao atualizar perfil',
-      userId,
       'profile',
-      userId,
+      user?.id,
       success,
       fields ? { updated_fields: fields } : undefined
     );
+  }, [logActivity, user]);
+
+  /**
+   * Log community post activity
+   */
+  const logPostActivity = useCallback((
+    action: 'criar' | 'editar' | 'excluir' | 'curtir' | 'comentar',
+    postId: string,
+    success: boolean,
+    details?: Record<string, any>
+  ) => {
+    const actionMap = {
+      criar: 'Post criado',
+      editar: 'Post editado',
+      excluir: 'Post excluído',
+      curtir: 'Post curtido',
+      comentar: 'Comentário adicionado ao post'
+    };
+    
+    logActivity(actionMap[action], 'post', postId, success, details);
+  }, [logActivity]);
+
+  /**
+   * Log product/store activity
+   */
+  const logProductActivity = useCallback((
+    action: 'visualizar' | 'adicionar' | 'remover' | 'comprar',
+    productId: string,
+    success: boolean,
+    details?: Record<string, any>
+  ) => {
+    const actionMap = {
+      visualizar: 'Produto visualizado',
+      adicionar: 'Produto adicionado ao carrinho',
+      remover: 'Produto removido do carrinho',
+      comprar: 'Produto comprado'
+    };
+    
+    logActivity(actionMap[action], 'product', productId, success, details);
+  }, [logActivity]);
+
+  /**
+   * Log booking activity
+   */
+  const logBookingActivity = useCallback((
+    action: 'criar' | 'editar' | 'cancelar' | 'confirmar',
+    bookingId: string,
+    success: boolean,
+    details?: Record<string, any>
+  ) => {
+    const actionMap = {
+      criar: 'Reserva criada',
+      editar: 'Reserva editada',
+      cancelar: 'Reserva cancelada',
+      confirmar: 'Reserva confirmada'
+    };
+    
+    logActivity(actionMap[action], 'booking', bookingId, success, details);
+  }, [logActivity]);
+
+  /**
+   * Log note activity
+   */
+  const logNoteActivity = useCallback((
+    action: 'criar' | 'editar' | 'excluir' | 'arquivar' | 'restaurar',
+    noteId: string,
+    success: boolean,
+    details?: Record<string, any>
+  ) => {
+    const actionMap = {
+      criar: 'Nota criada',
+      editar: 'Nota editada',
+      excluir: 'Nota excluída',
+      arquivar: 'Nota arquivada',
+      restaurar: 'Nota restaurada'
+    };
+    
+    logActivity(actionMap[action], 'note', noteId, success, details);
+  }, [logActivity]);
+
+  /**
+   * Log JestCoin transaction activity
+   */
+  const logJestCoinActivity = useCallback((
+    action: 'enviar' | 'receber' | 'comprar' | 'vender' | 'resgatar',
+    transactionId: string,
+    success: boolean,
+    details?: Record<string, any>
+  ) => {
+    const actionMap = {
+      enviar: 'JestCoin enviado',
+      receber: 'JestCoin recebido',
+      comprar: 'JestCoin comprado',
+      vender: 'JestCoin vendido',
+      resgatar: 'Recompensa resgatada'
+    };
+    
+    logActivity(actionMap[action], 'jestcoin', transactionId, success, details);
+  }, [logActivity]);
+
+  /**
+   * Log NFT activity
+   */
+  const logNftActivity = useCallback((
+    action: 'criar' | 'comprar' | 'vender' | 'transferir' | 'visualizar',
+    nftId: string,
+    success: boolean,
+    details?: Record<string, any>
+  ) => {
+    const actionMap = {
+      criar: 'NFT criado',
+      comprar: 'NFT comprado',
+      vender: 'NFT vendido',
+      transferir: 'NFT transferido',
+      visualizar: 'NFT visualizado'
+    };
+    
+    logActivity(actionMap[action], 'nft', nftId, success, details);
+  }, [logActivity]);
+
+  /**
+   * Log demo submission activity
+   */
+  const logDemoActivity = useCallback((
+    action: 'enviar' | 'avaliar' | 'aprovar' | 'rejeitar',
+    demoId: string,
+    success: boolean,
+    details?: Record<string, any>
+  ) => {
+    const actionMap = {
+      enviar: 'Demo enviada',
+      avaliar: 'Demo avaliada',
+      aprovar: 'Demo aprovada',
+      rejeitar: 'Demo rejeitada'
+    };
+    
+    logActivity(actionMap[action], 'demo', demoId, success, details);
   }, [logActivity]);
 
   return {
@@ -109,6 +265,57 @@ export const useActivityLogger = () => {
     logAccessAttempt,
     logLogin,
     logLogout,
-    logProfileUpdate
+    logProfileUpdate,
+    logPostActivity,
+    logProductActivity,
+    logBookingActivity,
+    logNoteActivity,
+    logJestCoinActivity,
+    logNftActivity,
+    logDemoActivity
+  };
+};
+
+// Version for non-authenticated contexts
+export const useSystemLogger = () => {
+  const [loading, setLoading] = useState(false);
+
+  /**
+   * Log system-level events that don't require a user context
+   */
+  const logSystemEvent = useCallback(async (
+    level: 'info' | 'warning' | 'error' | 'debug',
+    module: string,
+    message: string,
+    details?: Record<string, any>
+  ) => {
+    setLoading(true);
+    try {
+      // Development logging
+      console[level](`[${module}] ${message}`, details);
+      
+      // Insert to Supabase
+      const { error } = await supabase
+        .from('system_logs')
+        .insert({
+          level,
+          message,
+          metadata: details || {},
+          created_at: new Date().toISOString()
+        });
+        
+      if (error) {
+        console.error('Error logging system event:', error);
+      }
+    } catch (error) {
+      console.error('Exception logging system event:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    loading,
+    logSystemEvent
   };
 };

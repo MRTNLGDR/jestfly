@@ -2,6 +2,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LogsPage from '@/pages/LogsPage';
+import LogsViewer from '@/pages/LogsViewer';
 import HomePage from '@/pages/HomePage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
 import DashboardPage from '@/pages/DashboardPage';
@@ -58,7 +59,7 @@ function App() {
           path="/system/logs" 
           element={
             <ProtectedRoute allowedProfiles={['admin', 'collaborator']}>
-              <LogsPage />
+              <LogsViewer />
             </ProtectedRoute>
           } 
         />
