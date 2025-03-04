@@ -29,16 +29,27 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    // We'll completely rework this to avoid deep type instantiation issues
-    let result = [...products];
+    // Create a mutable copy to avoid deep type instantiation
+    const result: Product[] = [];
     
-    // Filter by search
-    if (search.trim() !== '') {
+    // First, filter products by search term
+    if (search.trim() === '') {
+      // If no search, add all products
+      for (let i = 0; i < products.length; i++) {
+        result.push(products[i]);
+      }
+    } else {
+      // With search term, only add matching products
       const searchLower = search.toLowerCase().trim();
-      result = result.filter(product => 
-        product.title.toLowerCase().includes(searchLower) || 
-        (product.description && product.description.toLowerCase().includes(searchLower))
-      );
+      for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        if (
+          product.title.toLowerCase().includes(searchLower) || 
+          (product.description && product.description.toLowerCase().includes(searchLower))
+        ) {
+          result.push(product);
+        }
+      }
     }
     
     // Sort the results
@@ -53,11 +64,14 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     
     // Apply limit if needed
+    let finalResult: Product[];
     if (limit && result.length > limit) {
-      result = result.slice(0, limit);
+      finalResult = result.slice(0, limit);
+    } else {
+      finalResult = result;
     }
     
-    setFilteredProducts(result);
+    setFilteredProducts(finalResult);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
