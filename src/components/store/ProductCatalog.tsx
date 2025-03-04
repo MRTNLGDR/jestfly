@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -41,8 +40,19 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       );
     }
     
-    // Apply sorting using simple dedicated sort functions to avoid deep type instantiation
-    const sortedResult = applySorting(result, sortBy);
+    // Apply sorting - use manual array copy approach to avoid TypeScript complexity
+    let sortedResult = [...result];
+    
+    if (sortBy === 'price-low') {
+      sortedResult.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sortBy === 'price-high') {
+      sortedResult.sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (sortBy === 'name-az') {
+      sortedResult.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      sortedResult.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    // For 'newest', we keep the original order
     
     // Apply limit if provided
     if (limit && sortedResult.length > limit) {
@@ -51,28 +61,6 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       setFilteredProducts(sortedResult);
     }
   }, [products, search, sortBy, limit]);
-
-  // Separate the sorting logic to simplify type inference
-  const applySorting = (items: Product[], sortType: string): Product[] => {
-    const itemsCopy = [...items];
-    
-    switch (sortType) {
-      case 'price-low':
-        return itemsCopy.sort((a, b) => {
-          return Number(a.price) - Number(b.price);
-        });
-      case 'price-high':
-        return itemsCopy.sort((a, b) => {
-          return Number(b.price) - Number(a.price);
-        });
-      case 'name-az':
-        return itemsCopy.sort((a, b) => a.title.localeCompare(b.title));
-      case 'name-za':
-        return itemsCopy.sort((a, b) => b.title.localeCompare(a.title));
-      default:
-        return itemsCopy; // 'newest' - keep original order
-    }
-  };
 
   const fetchProducts = async () => {
     setLoading(true);
