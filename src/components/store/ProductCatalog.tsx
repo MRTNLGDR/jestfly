@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -42,22 +41,16 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     
     // Apply sorting
-    switch (sortBy) {
-      case 'newest':
-        // Assuming products are already sorted by newest first from the API
-        break;
-      case 'price-low':
-        result.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        result.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-az':
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-za':
-        result.sort((a, b) => b.title.localeCompare(a.title));
-        break;
+    if (sortBy === 'newest') {
+      // Assuming products are already sorted by newest first from the API
+    } else if (sortBy === 'price-low') {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name-az') {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      result.sort((a, b) => b.title.localeCompare(a.title));
     }
     
     // Apply limit if provided

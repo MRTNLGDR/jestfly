@@ -1,5 +1,4 @@
-
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -36,7 +35,7 @@ interface AuthContextProps {
   uploadAvatar: (file: File) => Promise<{avatarUrl: string}>;
 }
 
-const AuthContext = createContext<AuthContextProps>({
+export const AuthContext = createContext<AuthContextProps>({
   session: null,
   user: null,
   profile: null,
@@ -56,7 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Fetch user profile data
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -124,7 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
-      // Fetch user profile after successful login
       if (data.user) {
         const profileData = await fetchProfile(data.user.id);
         setProfile(profileData);
@@ -141,7 +138,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, userData?: Partial<ProfileData>) => {
     setIsLoading(true);
     try {
-      // Ensure profile_type is one of the allowed values
       const profileType = userData?.profile_type || 'fan';
       
       const { data, error } = await supabase.auth.signUp({ 
@@ -190,7 +186,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setIsLoading(true);
     try {
-      // Create a new object with the correct typings for profile_type
       const updateData: {
         display_name?: string;
         username?: string;
@@ -201,7 +196,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updated_at?: string;
       } = { ...data };
       
-      // Ensure profile_type is one of the allowed values if it exists
       if (data.profile_type && !['fan', 'artist', 'admin', 'collaborator'].includes(data.profile_type)) {
         throw new Error('Invalid profile type');
       }
@@ -215,7 +209,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      // Update local profile state
       setProfile({ ...profile, ...data });
       toast.success('Perfil atualizado com sucesso!');
     } catch (error: any) {
@@ -231,11 +224,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      // Create a unique file name
       const fileExt = file.name.split('.').pop();
       const filePath = `avatars/${user.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-      // Upload file to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
@@ -244,12 +235,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw uploadError;
       }
 
-      // Get the public URL
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Update profile with new avatar URL
       if (data) {
         await updateProfile({ avatar: data.publicUrl });
         return { avatarUrl: data.publicUrl };
@@ -280,8 +269,4 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {!isLoading && children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  return useContext(AuthContext);
 };

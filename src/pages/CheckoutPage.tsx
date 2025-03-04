@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
@@ -12,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import GlassHeader from '@/components/GlassHeader';
 import Footer from '@/components/Footer';
-import { ShoppingBag, CreditCard, Lock, ArrowLeft, Check } from 'lucide-react';
+import { ShoppingBag, CreditCard, Lock, ArrowLeft } from 'lucide-react';
 
 interface CheckoutFormData {
   firstName: string;
@@ -123,7 +122,6 @@ const CheckoutPage = () => {
         return;
       }
       
-      // Create or update the order
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -138,7 +136,6 @@ const CheckoutPage = () => {
         throw orderError;
       }
       
-      // Add order items
       for (const item of cartItems) {
         const { error: itemError } = await supabase
           .from('order_items')
@@ -154,9 +151,6 @@ const CheckoutPage = () => {
         }
       }
       
-      // In a real app, you would integrate with a payment processor here
-      
-      // Update order status to completed
       const { error: updateError } = await supabase
         .from('orders')
         .update({ status: 'completed' })
@@ -166,7 +160,6 @@ const CheckoutPage = () => {
         throw updateError;
       }
       
-      // Clear cart and navigate to success page
       clearCart();
       
       toast({
