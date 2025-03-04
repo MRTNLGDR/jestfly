@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from '@/components/ui/loading';
@@ -75,6 +75,7 @@ const LogsViewer = () => {
                 <p className="text-white/70">Nenhum log encontrado.</p>
               </div>
             ) : (
+              // Pass logs of either type to the updated LogsTable component
               <LogsTable logs={logs} />
             )}
           </GlassCard>
