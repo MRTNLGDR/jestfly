@@ -1,5 +1,28 @@
 import { createRoot } from 'react-dom/client'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App.tsx'
 import './index.css'
+import NotFound from './pages/NotFound.tsx';
+import LogsPage from './pages/LogsPage.tsx';
+import LogsViewer from './pages/LogsViewer.tsx';
 
-createRoot(document.getElementById("root")!).render(<App />);
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <App />,
+    errorElement: <NotFound />,
+  },
+  {
+    path: "/logs",
+    element: <LogsPage />,
+  },
+  {
+    path: "/logs/:resourceType/:resourceId",
+    element: <LogsViewer />,
+  },
+  // Other routes...
+]);
+
+createRoot(document.getElementById("root")!).render(
+  <RouterProvider router={router} />
+);
