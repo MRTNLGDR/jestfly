@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -12,21 +13,22 @@ interface ProductCatalogProps {
   limit?: number;
 }
 
-// Helper function to handle product sorting with explicit type annotation
+// Simple sorting function with explicit types
 const sortProducts = (products: Product[], sortBy: string): Product[] => {
-  const productsCopy = [...products]; // Create a copy to avoid mutations
+  // Create a new array to avoid mutating the original
+  const result = [...products];
   
   switch (sortBy) {
     case 'price-low':
-      return productsCopy.sort((a, b) => Number(a.price) - Number(b.price));
+      return result.sort((a, b) => Number(a.price) - Number(b.price));
     case 'price-high':
-      return productsCopy.sort((a, b) => Number(b.price) - Number(a.price));
+      return result.sort((a, b) => Number(b.price) - Number(a.price));
     case 'name-az':
-      return productsCopy.sort((a, b) => a.title.localeCompare(b.title));
+      return result.sort((a, b) => a.title.localeCompare(b.title));
     case 'name-za':
-      return productsCopy.sort((a, b) => b.title.localeCompare(a.title));
+      return result.sort((a, b) => b.title.localeCompare(a.title));
     default:
-      return productsCopy; // 'newest' or any other value
+      return result; // 'newest' or any other value
   }
 };
 
@@ -45,29 +47,29 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
+  // Separate function to filter products by search term
+  const filterProductsBySearch = (products: Product[], searchTerm: string): Product[] => {
+    if (!searchTerm) return [...products];
+    
+    const searchLower = searchTerm.toLowerCase();
+    return products.filter(product => 
+      product.title.toLowerCase().includes(searchLower) || 
+      (product.description && product.description.toLowerCase().includes(searchLower))
+    );
+  };
+
+  // Effect to handle filtering and sorting
   useEffect(() => {
-    // Apply search and sorting in steps to avoid deep type nesting
-    // 1. First create a filtered array based on search
-    let filtered: Product[] = [];
+    // Step 1: Filter products by search term
+    const filtered = filterProductsBySearch(products, search);
     
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = products.filter(product => 
-        product.title.toLowerCase().includes(searchLower) || 
-        (product.description && product.description.toLowerCase().includes(searchLower))
-      );
-    } else {
-      // Explicitly create a new array to avoid TypeScript tracking mutations
-      filtered = Array.from(products);
-    }
-    
-    // 2. Sort the filtered array
+    // Step 2: Sort the filtered products
     const sorted = sortProducts(filtered, sortBy);
     
-    // 3. Apply limit if provided
+    // Step 3: Apply limit if needed
     const result = limit ? sorted.slice(0, limit) : sorted;
     
-    // 4. Update state with the final result
+    // Step 4: Update state
     setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
