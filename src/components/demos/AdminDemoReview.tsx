@@ -35,11 +35,14 @@ const AdminDemoReview: React.FC = () => {
   const [tabValue, setTabValue] = useState('all');
   
   // Buscar submissões de demos
-  const { data: demos = [], isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['demo-submissions'],
     queryFn: getAllDemoSubmissions,
   });
 
+  // Extract demos array from the response
+  const demos = data?.success && Array.isArray(data.data) ? data.data : [];
+  
   // Quando selecionar uma demo, buscar a URL do áudio
   useEffect(() => {
     const getAudioUrl = async () => {
@@ -86,7 +89,7 @@ const AdminDemoReview: React.FC = () => {
     if (!selectedDemo || !user) return;
     
     try {
-      await updateDemoStatus(selectedDemo.id, 'approved', reviewNotes, user.id);
+      await updateDemoStatus(selectedDemo.id, 'approved', reviewNotes);
       toast.success('Demo aprovada com sucesso');
       await refetch();
       // Atualizar a demo selecionada com o novo status
@@ -101,7 +104,7 @@ const AdminDemoReview: React.FC = () => {
     if (!selectedDemo || !user) return;
     
     try {
-      await updateDemoStatus(selectedDemo.id, 'rejected', reviewNotes, user.id);
+      await updateDemoStatus(selectedDemo.id, 'rejected', reviewNotes);
       toast.success('Demo rejeitada com sucesso');
       await refetch();
       // Atualizar a demo selecionada com o novo status

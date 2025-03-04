@@ -105,13 +105,16 @@ export const getUserDemoSubmissions = async (email: string) => {
  */
 export const updateDemoStatus = async (id: string, status: string, reviewerNotes?: string) => {
   try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+
     const { data, error } = await supabase
       .from('demo_submissions')
       .update({
         status,
         reviewer_notes: reviewerNotes,
         reviewed_at: new Date().toISOString(),
-        reviewed_by: (await supabase.auth.getUser()).data.user?.id
+        reviewed_by: userId
       })
       .eq('id', id)
       .select()
