@@ -1,104 +1,98 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import LogsPage from '@/pages/LogsPage';
-import LogsViewer from '@/pages/LogsViewer';
-import HomePage from '@/pages/HomePage';
-import AdminDashboardPage from '@/pages/AdminDashboardPage';
-import DashboardPage from '@/pages/DashboardPage';
-import SettingsPage from '@/pages/SettingsPage';
-import { Toaster } from '@/components/ui/toaster';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
+
+// Import pages
+import Index from './pages/Index';
+import AuthPage from './pages/AuthPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import ResetPasswordConfirmPage from './pages/ResetPasswordConfirmPage';
+import DashboardPage from './pages/DashboardPage';
+import SettingsPage from './pages/SettingsPage';
+import CommunityPage from './pages/CommunityPage';
+import AdminPanel from './pages/AdminPanel';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import StorePage from './pages/StorePage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import ModerationPage from './pages/ModerationPage';
+import AirdropPage from './pages/AirdropPage';
+import Admin from './pages/Admin';
+import NotFound from './pages/NotFound';
+import ProfilePage from './pages/ProfilePage';
+import LogsPage from './pages/LogsPage';
+import LogsViewer from './pages/LogsViewer';
 import BookingsPage from './pages/BookingsPage';
-import MainLayout from './layouts/MainLayout';
+import NotesPage from './pages/NotesPage';
+import DemoSubmissionPage from './pages/DemoSubmissionPage';
+import PressKitPage from './pages/PressKitPage';
+import LiveStreamPage from './pages/LiveStreamPage';
+import JestCoinPage from './pages/JestCoinPage';
+
+// Import components
+import ProtectedRoute from './components/ProtectedRoute';
+import AssetUploader from './components/AssetUploader';
+import AdminAuthPage from './pages/AdminAuthPage';
+import NotificationsPage from './pages/NotificationsPage';
+
+// Import contexts
+import { AuthProvider } from './contexts/AuthContext';
+
+const queryClient = new QueryClient();
 
 function App() {
-  // Creating default props for HomePage
-  const homePageProps = {
-    crystalParams: {
-      preset: 'crystal',
-      color: '#8A2BE2',
-      roughness: 0.2,
-      metalness: 0.8,
-      emissive: '#4B0082',
-      emissiveIntensity: 0.5
-    },
-    galleryImages: [
-      '/textures/presets/crystal.jpg',
-      '/textures/presets/holographic.jpg',
-      '/textures/presets/glass.jpg'
-    ]
-  };
-  
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black to-purple-900">
-      <Routes>
-        <Route path="/" element={<HomePage {...homePageProps} />} />
-        
-        {/* Rotas públicas */}
-        
-        {/* Rotas protegidas */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/settings" 
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Rotas administrativas */}
-        <Route 
-          path="/system/logs" 
-          element={
-            <ProtectedRoute allowedProfiles={['admin', 'collaborator']}>
-              <LogsViewer />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/admin/logs" 
-          element={
-            <ProtectedRoute allowedProfiles={['admin', 'collaborator']}>
-              <LogsPage />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/admin/dashboard" 
-          element={
-            <ProtectedRoute allowedProfiles={['admin']}>
-              <AdminDashboardPage />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Adicionar outras rotas aqui conforme necessário */}
-        
-        {/* Add the /bookings route */}
-        <Route 
-          path="/bookings" 
-          element={
-            <ProtectedRoute>
-              <MainLayout>
-                <BookingsPage />
-              </MainLayout>
-            </ProtectedRoute>
-          } 
-        />
-      </Routes>
-      <Toaster />
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to="/index" />} />
+            <Route path="/index" element={<Index />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/community/*" element={<CommunityPage />} />
+              <Route path="/admin-auth" element={<AdminAuthPage />} />
+              <Route path="/assets" element={<AssetUploader />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/logs" element={<LogsPage />} />
+              <Route path="/logs-viewer" element={<LogsViewer />} />
+              <Route path="/bookings" element={<BookingsPage />} />
+              <Route path="/notes" element={<NotesPage />} />
+              <Route path="/demo-submission" element={<DemoSubmissionPage />} />
+              <Route path="/press-kit" element={<PressKitPage />} />
+              <Route path="/live-stream" element={<LiveStreamPage />} />
+              <Route path="/jestcoin" element={<JestCoinPage />} />
+            </Route>
+            <Route path="/admin-panel" element={
+              <ProtectedRoute requiredProfileType="admin">
+                <AdminPanel />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin-dashboard" element={
+              <ProtectedRoute requiredProfileType="admin">
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/store" element={<StorePage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/moderation" element={<ModerationPage />} />
+            <Route path="/airdrop" element={<AirdropPage />} />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
