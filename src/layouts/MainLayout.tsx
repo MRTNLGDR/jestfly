@@ -4,6 +4,7 @@ import GlassHeader from '../components/GlassHeader';
 import Footer from '../components/Footer';
 import JestCoinTicker from '../components/JestCoinTicker';
 import { useAuth } from '@/contexts/AuthContext';
+import { menuItems } from '@/constants/menuItems';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -14,7 +15,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <GlassHeader />
+      <GlassHeader menuItems={menuItems} />
       
       {user && (
         <div className="fixed top-20 right-4 z-30 hidden md:block">

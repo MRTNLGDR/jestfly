@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -31,7 +32,6 @@ import JestCoinPage from './pages/JestCoinPage';
 
 // Import components
 import ProtectedRoute from './components/ProtectedRoute';
-import AssetUploader from './components/AssetUploader';
 import AdminAuthPage from './pages/AdminAuthPage';
 import NotificationsPage from './pages/NotificationsPage';
 
