@@ -30,34 +30,35 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Apply filtering and sorting logic
   useEffect(() => {
-    let result = [...products];
+    // Create a new array to avoid mutation
+    const searchFiltered = [...products];
     
     // Filter by search term
+    let result = searchFiltered;
     if (search.trim()) {
       const searchLower = search.toLowerCase();
-      result = result.filter(product => 
+      result = searchFiltered.filter(product => 
         product.title.toLowerCase().includes(searchLower) || 
         (product.description && product.description.toLowerCase().includes(searchLower))
       );
     }
     
     // Sort products
+    let sortedResult = [...result];
     if (sortBy === 'price-low') {
-      result = [...result].sort((a, b) => Number(a.price) - Number(b.price));
+      sortedResult.sort((a, b) => Number(a.price) - Number(b.price));
     } else if (sortBy === 'price-high') {
-      result = [...result].sort((a, b) => Number(b.price) - Number(a.price));
+      sortedResult.sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sortBy === 'name-az') {
-      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+      sortedResult.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+      sortedResult.sort((a, b) => b.title.localeCompare(a.title));
     }
     
     // Apply limit if needed
-    if (limit && result.length > limit) {
-      result = result.slice(0, limit);
-    }
+    const finalResult = limit ? sortedResult.slice(0, limit) : sortedResult;
     
-    setFilteredProducts(result);
+    setFilteredProducts(finalResult);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
