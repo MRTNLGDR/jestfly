@@ -1,67 +1,85 @@
 
 import React from 'react';
-import { Calendar, Music, Mic, Headphones } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { GlassCard } from '@/components/ui/glass-card';
-import { cn } from '@/lib/utils';
+import { Check, Music, Star, Users } from 'lucide-react';
+
+export interface BookingTypeItem {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  price: number;
+}
 
 interface BookingTypeProps {
+  bookingType?: BookingTypeItem;
   selectedType: string;
   onSelectType: (type: string) => void;
 }
 
-interface BookingTypeOption {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-}
-
-const BookingType: React.FC<BookingTypeProps> = ({ selectedType, onSelectType }) => {
-  const bookingTypes: BookingTypeOption[] = [
+const BookingType: React.FC<BookingTypeProps> = ({
+  bookingType,
+  selectedType,
+  onSelectType
+}) => {
+  // Default booking types if not provided externally
+  const defaultBookingTypes: BookingTypeItem[] = [
     {
       id: 'dj',
-      title: 'DJ para Evento',
-      description: 'Contrate um DJ para o seu evento ou festa',
-      icon: <Headphones className="h-8 w-8 text-purple-400" />
+      name: 'DJ para Eventos',
+      icon: <Music className="h-6 w-6 text-purple-400" />,
+      description: 'Contrate DJs profissionais para seu evento, com equipamento de som incluso.',
+      price: 1500
     },
     {
       id: 'studio',
-      title: 'Sessão de Estúdio',
-      description: 'Reserve o estúdio para gravação ou produção',
-      icon: <Mic className="h-8 w-8 text-purple-400" />
+      name: 'Sessão de Estúdio',
+      icon: <Star className="h-6 w-6 text-yellow-400" />,
+      description: 'Reserve nosso estúdio profissional para gravações, mixagens e masterizações.',
+      price: 800
     },
     {
-      id: 'consultation',
-      title: 'Consultoria',
-      description: 'Agende uma sessão de consultoria musical',
-      icon: <Music className="h-8 w-8 text-purple-400" />
+      id: 'consultoria',
+      name: 'Consultoria Musical',
+      icon: <Users className="h-6 w-6 text-blue-400" />,
+      description: 'Consultoria personalizada para artistas e produtores musicais.',
+      price: 500
     }
   ];
 
+  // Use the provided booking type or default ones
+  const bookingTypes = bookingType ? [bookingType] : defaultBookingTypes;
+
   return (
-    <GlassCard className="p-6">
-      <h3 className="text-xl font-bold text-white mb-4">Selecione o Tipo de Reserva</h3>
+    <GlassCard className="p-4">
+      <h3 className="text-xl font-bold text-white mb-4">Tipo de Reserva</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
         {bookingTypes.map((type) => (
           <div
             key={type.id}
-            className={cn(
-              "p-4 cursor-pointer rounded-lg transition-all border",
+            className={`p-4 rounded-lg border transition-all cursor-pointer ${
               selectedType === type.id
-                ? "border-purple-500 bg-purple-950/30"
-                : "border-white/10 hover:border-purple-500/70 hover:bg-purple-950/10"
-            )}
+                ? 'bg-purple-900/30 border-purple-500'
+                : 'bg-black/30 border-white/10 hover:border-white/30'
+            }`}
             onClick={() => onSelectType(type.id)}
           >
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-3 p-3 rounded-full bg-black/30 border border-purple-500/30">
+            <div className="flex items-center justify-between mb-2">
+              <div className="p-2 rounded-full bg-black/30">
                 {type.icon}
               </div>
-              <h4 className="text-lg font-medium text-white mb-2">{type.title}</h4>
-              <p className="text-sm text-white/70">{type.description}</p>
+              
+              {selectedType === type.id && (
+                <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center">
+                  <Check className="h-4 w-4 text-white" />
+                </div>
+              )}
             </div>
+            
+            <h4 className="font-medium text-white mt-2">{type.name}</h4>
+            <p className="text-sm text-white/60 mt-1">{type.description}</p>
+            <p className="text-lg text-white mt-2">R$ {type.price.toFixed(2)}</p>
           </div>
         ))}
       </div>

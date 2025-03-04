@@ -13,6 +13,12 @@ const JestWallet: React.FC = () => {
   const { user } = useAuth();
   const { wallet, isLoading, claimDailyReward, isClaiming } = useJestCoin();
 
+  const handleClaimReward = () => {
+    if (claimDailyReward) {
+      claimDailyReward();
+    }
+  };
+
   if (!user) {
     return (
       <GlassCard className="p-6">
@@ -58,7 +64,7 @@ const JestWallet: React.FC = () => {
         <Button 
           variant="outline" 
           className="border-purple-500/30 hover:border-purple-500 text-white" 
-          onClick={claimDailyReward}
+          onClick={handleClaimReward}
           disabled={isClaiming || isLoading}
         >
           <Award className="h-4 w-4 mr-2 text-yellow-400" />

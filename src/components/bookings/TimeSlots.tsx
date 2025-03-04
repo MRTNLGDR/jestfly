@@ -1,67 +1,59 @@
 
 import React from 'react';
-import { Clock } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Clock } from 'lucide-react';
 
 interface TimeSlotsProps {
   availableSlots: string[];
   selectedSlot: string | null;
   onSelectSlot: (slot: string) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 const TimeSlots: React.FC<TimeSlotsProps> = ({
   availableSlots,
   selectedSlot,
   onSelectSlot,
-  disabled
+  disabled = false
 }) => {
-  if (disabled) {
-    return (
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-bold text-white mb-4">Horários Disponíveis</h3>
-        <div className="text-center text-white/70 py-4">
-          <Clock className="w-12 h-12 mx-auto mb-2 text-white/40" />
-          <p>Selecione uma data para ver os horários disponíveis.</p>
-        </div>
-      </GlassCard>
-    );
-  }
+  // Default time slots if none are provided
+  const defaultTimeSlots = [
+    '09:00', '10:00', '11:00', '12:00', '13:00', 
+    '14:00', '15:00', '16:00', '17:00', '18:00'
+  ];
 
-  if (availableSlots.length === 0) {
-    return (
-      <GlassCard className="p-6">
-        <h3 className="text-xl font-bold text-white mb-4">Horários Disponíveis</h3>
-        <div className="text-center text-white/70 py-4">
-          <Clock className="w-12 h-12 mx-auto mb-2 text-white/40" />
-          <p>Nenhum horário disponível para esta data.</p>
-          <p className="text-sm mt-2">Por favor, selecione outra data.</p>
-        </div>
-      </GlassCard>
-    );
-  }
+  const slots = availableSlots?.length > 0 ? availableSlots : defaultTimeSlots;
 
   return (
-    <GlassCard className="p-6">
-      <h3 className="text-xl font-bold text-white mb-4">Horários Disponíveis</h3>
+    <GlassCard className="p-4">
+      <h3 className="text-xl font-bold text-white mb-4">Selecione um Horário</h3>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {availableSlots.map((slot) => (
-          <div
-            key={slot}
-            className={cn(
-              "flex items-center justify-center p-3 rounded-lg border cursor-pointer text-center",
-              selectedSlot === slot
-                ? "border-purple-500 bg-purple-950/30 text-white"
-                : "border-white/10 text-white/70 hover:border-purple-500/70 hover:text-white hover:bg-purple-950/10"
-            )}
-            onClick={() => onSelectSlot(slot)}
-          >
-            {slot}
-          </div>
-        ))}
-      </div>
+      {disabled ? (
+        <div className="text-center py-4 text-white/60">
+          Selecione uma data primeiro
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {slots.map((time) => (
+            <Button
+              key={time}
+              variant={selectedSlot === time ? "default" : "outline"}
+              className={`
+                w-full justify-start ${
+                  selectedSlot === time
+                    ? "bg-purple-600 hover:bg-purple-700"
+                    : "bg-black/20 border-white/10 hover:border-white/30 text-white"
+                }
+              `}
+              onClick={() => onSelectSlot(time)}
+            >
+              <Clock className="h-4 w-4 mr-2" />
+              {time}
+            </Button>
+          ))}
+        </div>
+      )}
     </GlassCard>
   );
 };

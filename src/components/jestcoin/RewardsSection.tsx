@@ -10,6 +10,12 @@ import { toast } from 'sonner';
 const RewardsSection: React.FC = () => {
   const { claimDailyReward, isClaiming, hasClaimedToday } = useJestCoin();
 
+  const handleClaimReward = () => {
+    if (claimDailyReward) {
+      claimDailyReward();
+    }
+  };
+
   const handleShareClick = () => {
     // Implementação futura para integração de compartilhamento
     navigator.clipboard.writeText('https://jestfly.com/?ref=sharing')
@@ -46,7 +52,7 @@ const RewardsSection: React.FC = () => {
           <Button 
             variant="default" 
             className="w-full bg-yellow-600 hover:bg-yellow-700"
-            onClick={claimDailyReward}
+            onClick={handleClaimReward}
             disabled={isClaiming || hasClaimedToday}
           >
             {isClaiming ? 'Processando...' : hasClaimedToday ? 'Já coletado hoje' : 'Coletar 10 JestCoins'}

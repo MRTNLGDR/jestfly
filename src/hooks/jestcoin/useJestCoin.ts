@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthState } from '@/hooks/auth/useAuthState';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 
@@ -26,12 +26,48 @@ interface Transaction {
 }
 
 export const useJestCoin = () => {
-  const { user } = useAuthState();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { logActivity } = useActivityLogger();
+  const { logSystemActivity } = useActivityLogger();
   const [hasClaimedToday, setHasClaimedToday] = useState<boolean>(false);
   
-  // Buscar carteira do usuário
+  // Mock data for now - in a real app, this would be fetched from Supabase
+  const mockWallet: Wallet = {
+    id: user?.id || 'mock-wallet-id',
+    user_id: user?.id || 'mock-user-id',
+    balance: 100,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+  
+  const mockTransactions: Transaction[] = [
+    {
+      id: '1',
+      wallet_id: mockWallet.id,
+      amount: 10,
+      transaction_type: 'reward',
+      description: 'Recompensa diária',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: '2',
+      wallet_id: mockWallet.id,
+      amount: 50,
+      transaction_type: 'deposit',
+      description: 'Recompensa por compartilhamento',
+      created_at: new Date(Date.now() - 86400000).toISOString() // yesterday
+    },
+    {
+      id: '3',
+      wallet_id: mockWallet.id,
+      amount: -20,
+      transaction_type: 'purchase',
+      description: 'Compra na loja',
+      created_at: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+    }
+  ];
+  
+  // Mock query for wallet
   const { 
     data: wallet, 
     isLoading, 
@@ -39,112 +75,62 @@ export const useJestCoin = () => {
   } = useQuery({
     queryKey: ['wallet', user?.id],
     queryFn: async () => {
-      if (!user) return null;
-      
-      // Verificar se o usuário já tem uma carteira
-      const { data: existingWallet, error: walletError } = await supabase
-        .from('wallets')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (walletError && walletError.code !== 'PGRST116') {
-        throw walletError;
-      }
-      
-      // Se não tiver uma carteira, criar uma nova
-      if (!existingWallet) {
-        const { data: newWallet, error: createError } = await supabase
-          .from('wallets')
-          .insert({
-            user_id: user.id,
-            balance: 0
-          })
-          .select()
-          .single();
-        
-        if (createError) throw createError;
-        return newWallet as Wallet;
-      }
-      
-      return existingWallet as Wallet;
+      // This is mock data - in real implementation this would fetch from Supabase
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      return mockWallet;
     },
     enabled: !!user,
   });
   
-  // Buscar transações do usuário
+  // Mock query for transactions
   const { 
     data: transactions, 
     isLoading: isLoadingTransactions 
   } = useQuery({
     queryKey: ['transactions', wallet?.id],
     queryFn: async () => {
-      if (!wallet?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('wallet_id', wallet.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
-      
-      if (error) throw error;
-      return data as Transaction[];
+      // This is mock data - in real implementation this would fetch from Supabase
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+      return mockTransactions;
     },
     enabled: !!wallet?.id,
   });
   
-  // Mutation para adicionar saldo à carteira
+  // Mock mutation for adding balance
   const { mutate: addBalance, isPending: isAdding } = useMutation({
-    mutationFn: async ({ amount, type, description, referenceId, referenceType }: { 
+    mutationFn: async ({ amount, type, description }: { 
       amount: number, 
       type: string, 
-      description?: string,
-      referenceId?: string,
-      referenceType?: string
+      description?: string 
     }) => {
-      if (!user || !wallet) {
-        throw new Error('Usuário não autenticado ou carteira não encontrada');
-      }
+      // This is mock data - in real implementation this would update Supabase
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
       
-      // Criar transação
-      const { data: transaction, error: transactionError } = await supabase
-        .from('transactions')
-        .insert({
-          wallet_id: wallet.id,
+      // Log the activity
+      await logSystemActivity(
+        'add.jestcoin',
+        {
+          amount,
+          type,
+          description
+        }
+      );
+      
+      return {
+        transaction: {
+          id: Date.now().toString(),
+          wallet_id: wallet?.id || '',
           amount,
           transaction_type: type,
-          reference_id: referenceId,
-          reference_type: referenceType,
-          description: description || `${type} de ${amount} JestCoins`
-        })
-        .select()
-        .single();
-      
-      if (transactionError) throw transactionError;
-      
-      // Atualizar saldo da carteira
-      const { data: updatedWallet, error: updateError } = await supabase
-        .from('wallets')
-        .update({ 
-          balance: wallet.balance + amount,
+          description: description || `${type} of ${amount} JestCoins`,
+          created_at: new Date().toISOString()
+        },
+        wallet: {
+          ...wallet,
+          balance: (wallet?.balance || 0) + amount,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', wallet.id)
-        .select()
-        .single();
-      
-      if (updateError) throw updateError;
-      
-      // Log da atividade
-      logActivity({
-        action: 'add.balance',
-        entity_type: 'wallets',
-        entity_id: wallet.id,
-        details: { amount, type },
-      });
-      
-      return { transaction, wallet: updatedWallet };
+        }
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
@@ -156,35 +142,20 @@ export const useJestCoin = () => {
     }
   });
   
-  // Verificar se o usuário já coletou a recompensa diária
+  // Mock function to check if daily reward is already claimed
   useEffect(() => {
     const checkDailyReward = async () => {
+      // This is mock data - in real implementation this would check from Supabase
       if (!user || !wallet?.id) return;
       
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('wallet_id', wallet.id)
-        .eq('transaction_type', 'reward')
-        .ilike('description', '%recompensa diária%')
-        .gte('created_at', today.toISOString())
-        .limit(1);
-      
-      if (error) {
-        console.error('Erro ao verificar recompensa diária:', error);
-        return;
-      }
-      
-      setHasClaimedToday(data && data.length > 0);
+      // Randomly set hasClaimedToday for demo purposes
+      setHasClaimedToday(false);
     };
     
     checkDailyReward();
   }, [user, wallet?.id, transactions]);
   
-  // Função para coletar recompensa diária
+  // Mock function to claim daily reward
   const { mutate: claimDailyReward, isPending: isClaiming } = useMutation({
     mutationFn: async () => {
       if (!user || !wallet) {
@@ -195,6 +166,8 @@ export const useJestCoin = () => {
         throw new Error('Você já coletou sua recompensa diária hoje');
       }
       
+      // This is mock data - in real implementation this would update Supabase
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network delay
       return addBalance({ 
         amount: 10, 
         type: 'reward', 

@@ -1,40 +1,47 @@
-import React, { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+
+import React from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import Loading from '@/components/ui/loading';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  requiredProfileType?: string;
   allowedProfiles?: string[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
+  requiredProfileType,
   allowedProfiles 
 }) => {
   const { profile, loading } = useAuth();
   const location = useLocation();
   const { logSystemActivity } = useActivityLogger();
   
-  useEffect(() => {
+  // Check if we should log route access
+  React.useEffect(() => {
     const handleAccessAttempt = async () => {
       if (!loading) {
         // If user is logged in but not allowed
-        if (profile && allowedProfiles && !allowedProfiles.includes(profile.profile_type)) {
+        if (profile && 
+          ((requiredProfileType && profile.profile_type !== requiredProfileType) || 
+          (allowedProfiles && !allowedProfiles.includes(profile.profile_type)))) {
           // Log unauthorized access attempt
           await logSystemActivity(
             'Tentativa de acesso não autorizado',
             { 
               route: location.pathname,
-              requiredProfiles: allowedProfiles,
+              requiredProfile: requiredProfileType || 'any',
+              allowedProfiles: allowedProfiles || [],
               userProfile: profile.profile_type
             },
             false
           );
         }
         // If user is allowed, log successful access
-        else if (profile && (!allowedProfiles || allowedProfiles.includes(profile.profile_type))) {
+        else if (profile) {
           await logSystemActivity(
             'Acessou rota protegida',
             { route: location.pathname },
@@ -45,7 +52,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     };
     
     handleAccessAttempt();
-  }, [profile, loading, location.pathname, allowedProfiles, logSystemActivity]);
+  }, [profile, loading, location.pathname, allowedProfiles, requiredProfileType, logSystemActivity]);
   
   if (loading) {
     return (
@@ -62,13 +69,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
   
-  // If specific profile types are required
+  // If specific profile type is required and user doesn't have it
+  if (requiredProfileType && profile.profile_type !== requiredProfileType) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // If specific profile types are allowed and user doesn't have one
   if (allowedProfiles && !allowedProfiles.includes(profile.profile_type)) {
     return <Navigate to="/dashboard" replace />;
   }
   
-  // If all checks pass, render the children
-  return <>{children}</>;
+  // If all checks pass, render the children or outlet
+  return <>{children || <Outlet />}</>;
 };
 
 export default ProtectedRoute;

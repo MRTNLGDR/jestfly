@@ -10,18 +10,37 @@ import BookingType from './BookingType';
 import TimeSlots from './TimeSlots';
 import BookingConfirmation from './BookingConfirmation';
 
-const BookingForm: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>();
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedType, setSelectedType] = useState<string>('');
+export interface BookingFormData {
+  type: string;
+  date: Date;
+  timeSlot: string;
+  notes?: string;
+}
+
+interface BookingFormProps {
+  selectedDate?: Date;
+  selectedTimeSlot?: string | null;
+  bookingType?: string;
+  onBookingSubmit: (formData: BookingFormData) => void;
+}
+
+const BookingForm: React.FC<BookingFormProps> = ({
+  selectedDate: initialDate,
+  selectedTimeSlot: initialTimeSlot,
+  bookingType: initialType,
+  onBookingSubmit
+}) => {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(initialDate);
+  const [selectedTime, setSelectedTime] = useState<string>(initialTimeSlot || '');
+  const [selectedType, setSelectedType] = useState<string>(initialType || '');
   const [notes, setNotes] = useState<string>('');
-  const [step, setStep] = useState<number>(1);
+  const [step, setStep] = useState<number>(initialType ? (initialDate ? (initialTimeSlot ? 4 : 3) : 2) : 1);
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [booking, setBooking] = useState<any>(null);
 
   const {
     availableDates,
-    timeSlots,
+    availableTimeSlots,
     bookingTypes,
     createBooking,
     isCreating
@@ -34,31 +53,16 @@ const BookingForm: React.FC = () => {
       return;
     }
 
-    // Get booking type info
-    const bookingTypeInfo = bookingTypes.find(type => type.id === selectedType);
-    
-    // Create form data
-    const formData = {
-      booking_type: selectedType,
+    // Prepare form data
+    const formData: BookingFormData = {
+      type: selectedType,
       date: selectedDate,
-      time_slot: selectedTime,
-      duration: 60, // Default to 1 hour
+      timeSlot: selectedTime,
       notes: notes
     };
     
     // Submit the form
-    createBooking(formData, {
-      onSuccess: (data) => {
-        setBooking({
-          id: data.id,
-          date: selectedDate.toLocaleDateString('pt-BR'),
-          timeSlot: selectedTime,
-          type: selectedType,
-          status: data.status
-        });
-        setShowConfirmation(true);
-      }
-    });
+    onBookingSubmit(formData);
   };
 
   const handleTypeSelect = (type: string) => {
@@ -78,27 +82,13 @@ const BookingForm: React.FC = () => {
     setStep(4);
   };
 
-  const handleReset = () => {
-    setSelectedDate(undefined);
-    setSelectedTime('');
-    setSelectedType('');
-    setNotes('');
-    setStep(1);
-    setShowConfirmation(false);
-    setBooking(null);
-  };
-
-  if (showConfirmation && booking) {
-    return <BookingConfirmation booking={booking} onClose={handleReset} />;
-  }
-
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Step 1: Select booking type */}
         <div className={step === 1 ? "md:col-span-2 lg:col-span-3" : ""}>
           <BookingType
-            bookingTypes={bookingTypes}
+            bookingType={bookingTypes.find(t => t.id === selectedType)}
             selectedType={selectedType}
             onSelectType={handleTypeSelect}
           />
@@ -119,9 +109,9 @@ const BookingForm: React.FC = () => {
         {step >= 3 && (
           <div>
             <TimeSlots
-              availableTimeSlots={timeSlots}
-              selectedTime={selectedTime}
-              onSelectTime={handleTimeSelect}
+              availableSlots={availableTimeSlots}
+              selectedSlot={selectedTime}
+              onSelectSlot={handleTimeSelect}
             />
           </div>
         )}

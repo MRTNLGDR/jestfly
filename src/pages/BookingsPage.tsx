@@ -2,18 +2,65 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { format, addDays } from 'date-fns';
-import { pt } from 'date-fns/locale';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 import Loading from '@/components/ui/loading';
-import BookingType from '@/components/bookings/BookingType';
+import BookingType, { BookingTypeItem } from '@/components/bookings/BookingType';
 import BookingCalendar from '@/components/bookings/BookingCalendar';
 import TimeSlots from '@/components/bookings/TimeSlots';
 import BookingForm, { BookingFormData } from '@/components/bookings/BookingForm';
 import BookingConfirmation from '@/components/bookings/BookingConfirmation';
-import { useBookings } from '@/hooks/bookings/useBookings';
-import { useActivityLogger } from '@/hooks/useActivityLogger';
 
 type BookingStep = 'type' | 'date' | 'time' | 'form' | 'confirmation';
+
+// Mock function to generate available dates (7 days from today)
+const getMockAvailableDates = (): Date[] => {
+  const dates: Date[] = [];
+  const today = new Date();
+  
+  for (let i = 1; i <= 14; i++) {
+    const date = new Date();
+    date.setDate(today.getDate() + i);
+    
+    // Make some days unavailable (e.g., weekends)
+    if (date.getDay() !== 0 && date.getDay() !== 6) {
+      dates.push(date);
+    }
+  }
+  
+  return dates;
+};
+
+// Mock function to generate available time slots
+const getMockAvailableTimeSlots = (): string[] => {
+  return [
+    '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'
+  ];
+};
+
+// Mock booking types
+const mockBookingTypes: BookingTypeItem[] = [
+  {
+    id: 'dj',
+    name: 'DJ para Eventos',
+    icon: <div className="text-purple-400">🎵</div>,
+    description: 'Contrate DJs profissionais para seu evento, com equipamento de som incluso.',
+    price: 1500
+  },
+  {
+    id: 'studio',
+    name: 'Sessão de Estúdio',
+    icon: <div className="text-yellow-400">⭐</div>,
+    description: 'Reserve nosso estúdio profissional para gravações, mixagens e masterizações.',
+    price: 800
+  },
+  {
+    id: 'consultoria',
+    name: 'Consultoria Musical',
+    icon: <div className="text-blue-400">👥</div>,
+    description: 'Consultoria personalizada para artistas e produtores musicais.',
+    price: 500
+  }
+];
 
 const BookingsPage = () => {
   const { profile, loading: authLoading } = useAuth();
@@ -25,15 +72,9 @@ const BookingsPage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
-  
-  const { 
-    createBooking, 
-    getAvailableDates,
-    getAvailableTimeSlots,
-    loading,
-    availableDates,
-    availableTimeSlots
-  } = useBookings();
+  const [availableDates, setAvailableDates] = useState<Date[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [isCreating, setIsCreating] = useState(false);
   
   // Log visit to this page
   useEffect(() => {
@@ -59,30 +100,42 @@ const BookingsPage = () => {
     }
   }, [selectedTimeSlot]);
   
-  // Generate mock available dates (7 days from today)
+  // Generate mock available dates
   useEffect(() => {
     if (selectedType) {
-      // In a real app, this would fetch from API
-      getAvailableDates(selectedType);
+      // Simulate fetching available dates
+      setTimeout(() => {
+        setAvailableDates(getMockAvailableDates());
+      }, 500);
     }
   }, [selectedType]);
   
   // Get available time slots for selected date
   useEffect(() => {
     if (selectedDate && selectedType) {
-      getAvailableTimeSlots(selectedType, selectedDate);
+      // Simulate fetching available time slots
+      setTimeout(() => {
+        setAvailableTimeSlots(getMockAvailableTimeSlots());
+      }, 500);
     }
   }, [selectedDate, selectedType]);
   
   // Handle booking submission
   const handleBookingSubmit = async (formData: BookingFormData) => {
     try {
-      const result = await createBooking({
-        bookingType: formData.type,
+      setIsCreating(true);
+      
+      // Simulate API call
+      await new Promise(r => setTimeout(r, 1500));
+      
+      const result = {
+        id: `booking-${Date.now()}`,
+        type: formData.type,
         date: formData.date,
         timeSlot: formData.timeSlot,
-        notes: formData.notes
-      });
+        notes: formData.notes,
+        status: 'confirmed'
+      };
       
       setConfirmedBooking(result);
       setCurrentStep('confirmation');
@@ -95,8 +148,11 @@ const BookingsPage = () => {
       // Log the booking action
       logSystemActivity(
         'Realizou uma reserva', 
-        { booking_id: result.id, booking_type: formData.type }
+        { booking_type: formData.type }
       );
+      
+      setIsCreating(false);
+      return result;
     } catch (error) {
       console.error('Error creating booking:', error);
       toast({
@@ -104,6 +160,8 @@ const BookingsPage = () => {
         description: "Não foi possível processar sua reserva. Tente novamente.",
         variant: "destructive",
       });
+      setIsCreating(false);
+      throw error;
     }
   };
   
@@ -196,6 +254,7 @@ const BookingsPage = () => {
         
         {currentStep === 'type' && (
           <BookingType 
+            bookingType={mockBookingTypes.find(type => type.id === selectedType)}
             selectedType={selectedType} 
             onSelectType={setSelectedType} 
           />
@@ -204,6 +263,7 @@ const BookingsPage = () => {
         {currentStep === 'date' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <BookingType 
+              bookingType={mockBookingTypes.find(type => type.id === selectedType)}
               selectedType={selectedType} 
               onSelectType={setSelectedType} 
             />
@@ -237,31 +297,12 @@ const BookingsPage = () => {
         
         {currentStep === 'form' && (
           <div className="grid grid-cols-1 gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <div className="mb-6">
-                  <BookingCalendar 
-                    availableDates={availableDates}
-                    selectedDate={selectedDate}
-                    onSelectDate={setSelectedDate}
-                  />
-                </div>
-                
-                <TimeSlots 
-                  availableSlots={availableTimeSlots}
-                  selectedSlot={selectedTimeSlot}
-                  onSelectSlot={setSelectedTimeSlot}
-                  disabled={!selectedDate}
-                />
-              </div>
-              
-              <BookingForm 
-                selectedDate={selectedDate}
-                selectedTimeSlot={selectedTimeSlot}
-                bookingType={selectedType}
-                onBookingSubmit={handleBookingSubmit}
-              />
-            </div>
+            <BookingForm 
+              selectedDate={selectedDate}
+              selectedTimeSlot={selectedTimeSlot}
+              bookingType={selectedType}
+              onBookingSubmit={handleBookingSubmit}
+            />
           </div>
         )}
         

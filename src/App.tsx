@@ -32,6 +32,7 @@ import JestCoinPage from './pages/JestCoinPage';
 
 // Import components
 import ProtectedRoute from './components/ProtectedRoute';
+import AssetUploader from './pages/AssetUploader';
 import AdminAuthPage from './pages/AdminAuthPage';
 import NotificationsPage from './pages/NotificationsPage';
 
@@ -55,7 +56,7 @@ function App() {
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/reset-password-confirm" element={<ResetPasswordConfirmPage />} />
-            <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/community/*" element={<CommunityPage />} />
