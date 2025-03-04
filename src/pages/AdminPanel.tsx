@@ -3,7 +3,7 @@ import React from 'react';
 import { Sidebar, SidebarContent, SidebarProvider } from '../components/ui/sidebar';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import ModelEditor from '../components/admin/ModelEditor';
-import LightingEditor from '../components/admin/LightingEditor';
+import LightingEditor from '../components/admin/lighting'; // Updated import path to point to the index file
 import TextureEditor from '../components/admin/TextureEditor';
 import ModelGallery from '../components/admin/ModelGallery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
