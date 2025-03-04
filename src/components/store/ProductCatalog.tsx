@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -28,42 +27,32 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Apply filtering and sorting logic
   useEffect(() => {
-    // Create a new filtered array based on search term
-    const searchLower = search.toLowerCase().trim();
+    let result = products;
     
-    // Create a copy of the products array for manipulation
-    const filtered: Product[] = searchLower 
-      ? products.filter(product => 
-          product.title.toLowerCase().includes(searchLower) || 
-          (product.description && product.description.toLowerCase().includes(searchLower))
-        )
-      : [...products];
-    
-    // Apply sorting
-    let sorted: Product[] = [...filtered];
-    
-    switch(sortBy) {
-      case 'price-low':
-        sorted.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        sorted.sort((a, b) => b.price - a.price);
-        break;
-      case 'name-az':
-        sorted.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-za':
-        sorted.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      // 'newest' is the default, already sorted in the fetch
+    if (search.trim() !== '') {
+      const searchLower = search.toLowerCase().trim();
+      result = result.filter(product => 
+        product.title.toLowerCase().includes(searchLower) || 
+        (product.description && product.description.toLowerCase().includes(searchLower))
+      );
     }
     
-    // Apply limit if needed
-    const limitedResult = limit ? sorted.slice(0, limit) : sorted;
+    if (sortBy === 'price-low') {
+      result = [...result].sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      result = [...result].sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name-az') {
+      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+    }
     
-    setFilteredProducts(limitedResult);
+    if (limit && result.length > limit) {
+      result = result.slice(0, limit);
+    }
+    
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
