@@ -42,7 +42,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
     return (
       <div
         className={cn(
-          props.dayProps?.className,
+          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20",
           !isAvailable && 'text-gray-400 cursor-not-allowed opacity-30',
           isAvailable && 'hover:bg-purple-500/20'
         )}
