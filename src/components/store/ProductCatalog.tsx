@@ -56,13 +56,17 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   useEffect(() => {
     // Apply search filter
-    const filtered = search 
-      ? products.filter(product => {
-          const searchLower = search.toLowerCase();
-          return product.title.toLowerCase().includes(searchLower) || 
-                 (product.description && product.description.toLowerCase().includes(searchLower));
-        })
-      : [...products];
+    let filtered: Product[] = [];
+    
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filtered = products.filter(product => 
+        product.title.toLowerCase().includes(searchLower) || 
+        (product.description && product.description.toLowerCase().includes(searchLower))
+      );
+    } else {
+      filtered = [...products];
+    }
     
     // Apply sorting
     const sorted = sortProducts(filtered, sortBy);
