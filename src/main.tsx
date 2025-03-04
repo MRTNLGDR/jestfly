@@ -140,7 +140,6 @@ createRoot(document.getElementById("root")!).render(
   <LanguageProvider>
     <AuthProvider>
       <RouterProvider router={router} />
-      <Toaster />
     </AuthProvider>
   </LanguageProvider>
 );
