@@ -19,3 +19,12 @@ export interface SystemLogEntry extends BaseLogEntry {
 }
 
 export type AnyLogEntry = LogEntry | SystemLogEntry;
+
+// Type guards to check log entry types
+export const isSystemLogEntry = (log: AnyLogEntry): log is SystemLogEntry => {
+  return 'level' in log && 'source' in log;
+};
+
+export const isLogEntry = (log: AnyLogEntry): log is LogEntry => {
+  return 'action' in log && 'user_id' in log;
+};
