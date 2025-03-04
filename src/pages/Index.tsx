@@ -11,34 +11,19 @@ import CrystalGallery from '../components/CrystalGallery';
 import ConnectionSection from '../components/ConnectionSection';
 import ShopPreview from '../components/ShopPreview';
 import { useAuth } from '../contexts/AuthContext';
-import Loading from '../components/ui/loading';
 
 const Index: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const authContext = useAuth();
 
   useEffect(() => {
-    // Simulação de tempo de carregamento
+    // Simulate loading time
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2500);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);
-
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
-        <div className="w-32 h-32 mb-8">
-          <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 animate-pulse blur-xl"></div>
-        </div>
-        <Loading size="lg" text="Carregando o ecossistema ORBVIR..." fullScreen={false} />
-        <p className="mt-6 text-white/60 text-sm max-w-md text-center px-4">
-          Conectando artistas, criadores e fãs em uma experiência digital única
-        </p>
-      </div>
-    );
-  }
 
   return (
     <MainLayout>

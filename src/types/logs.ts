@@ -1,3 +1,4 @@
+
 export interface LogEntry {
   id: string;
   created_at: string;
