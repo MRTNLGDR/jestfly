@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -27,53 +28,58 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Função separada para filtragem por termo de busca
-  const filterBySearch = (products: Product[], searchTerm: string): Product[] => {
-    if (searchTerm.trim() === '') {
-      return [...products];
-    }
-    
-    const searchLower = searchTerm.toLowerCase().trim();
-    return products.filter(product => 
-      product.title.toLowerCase().includes(searchLower) || 
-      (product.description && product.description.toLowerCase().includes(searchLower))
-    );
-  };
-
-  // Função separada para ordenação
-  const sortProducts = (products: Product[], sortMethod: string): Product[] => {
-    const sorted = [...products];
-    
-    switch (sortMethod) {
-      case 'price-low':
-        return sorted.sort((a, b) => a.price - b.price);
-      case 'price-high':
-        return sorted.sort((a, b) => b.price - a.price);
-      case 'name-az':
-        return sorted.sort((a, b) => a.title.localeCompare(b.title));
-      case 'name-za':
-        return sorted.sort((a, b) => b.title.localeCompare(a.title));
-      default:
-        return sorted; // 'newest' é o padrão, já ordenado na query
-    }
-  };
-
-  // Função para aplicar limite (se necessário)
-  const applyLimit = (products: Product[], limit?: number): Product[] => {
-    if (limit && products.length > limit) {
-      return products.slice(0, limit);
-    }
-    return products;
-  };
-
-  // Efeito para processar os produtos quando os filtros ou produtos mudam
+  // Process products when original array, search, or sort criteria change
   useEffect(() => {
-    const filtered = filterBySearch(products, search);
-    const sorted = sortProducts(filtered, sortBy);
-    const limited = applyLimit(sorted, limit);
-    
-    setFilteredProducts(limited);
+    const processedProducts = processProducts(products, search, sortBy, limit);
+    setFilteredProducts(processedProducts);
   }, [products, search, sortBy, limit]);
+
+  // Combined function to process products (filter, sort, limit)
+  const processProducts = (
+    productsList: Product[], 
+    searchTerm: string, 
+    sortMethod: string, 
+    limitCount?: number
+  ): Product[] => {
+    // Step 1: Filter by search term
+    let result: Product[] = [];
+    if (searchTerm.trim() === '') {
+      // No search filtering needed
+      result = [...productsList];
+    } else {
+      // Apply search filtering
+      const searchLower = searchTerm.toLowerCase().trim();
+      result = [];
+      for (let i = 0; i < productsList.length; i++) {
+        const product = productsList[i];
+        if (
+          product.title.toLowerCase().includes(searchLower) || 
+          (product.description && product.description.toLowerCase().includes(searchLower))
+        ) {
+          result.push(product);
+        }
+      }
+    }
+    
+    // Step 2: Sort the filtered products
+    if (sortMethod === 'price-low') {
+      result.sort((a, b) => a.price - b.price);
+    } else if (sortMethod === 'price-high') {
+      result.sort((a, b) => b.price - a.price);
+    } else if (sortMethod === 'name-az') {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortMethod === 'name-za') {
+      result.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    // 'newest' is default - already sorted in query by created_at
+    
+    // Step 3: Apply limit if specified
+    if (limitCount && result.length > limitCount) {
+      result = result.slice(0, limitCount);
+    }
+    
+    return result;
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
