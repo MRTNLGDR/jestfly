@@ -30,7 +30,7 @@ interface BookingFormData {
 export const useBookings = () => {
   const { user } = useAuthState();
   const queryClient = useQueryClient();
-  const { logActivity } = useActivityLogger();
+  const activityLogger = useActivityLogger();
   
   // Generate available dates (next 14 days)
   const getAvailableDates = (): Date[] => {
@@ -127,12 +127,10 @@ export const useBookings = () => {
       if (error) throw error;
       
       // Log the activity
-      logActivity({
-        action: 'create.booking',
-        entity_type: 'bookings',
-        entity_id: data.id,
-        details: { booking_type: formData.booking_type },
-      });
+      activityLogger.logSystemActivity(
+        'create.booking',
+        { entity_type: 'bookings', entity_id: data.id, booking_type: formData.booking_type }
+      );
       
       return data as Booking;
     },
@@ -159,11 +157,10 @@ export const useBookings = () => {
       if (error) throw error;
       
       // Log the activity
-      logActivity({
-        action: 'cancel.booking',
-        entity_type: 'bookings',
-        entity_id: bookingId,
-      });
+      activityLogger.logSystemActivity(
+        'cancel.booking',
+        { entity_type: 'bookings', entity_id: bookingId }
+      );
       
       return data as Booking;
     },

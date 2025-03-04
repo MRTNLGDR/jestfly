@@ -40,7 +40,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
 
   const {
     availableDates,
-    availableTimeSlots,
+    timeSlots,
     bookingTypes,
     createBooking,
     isCreating
@@ -82,15 +82,24 @@ const BookingForm: React.FC<BookingFormProps> = ({
     setStep(4);
   };
 
+  // Create booking type items with required properties
+  const enhancedBookingTypes = bookingTypes.map(type => ({
+    id: type.id,
+    name: type.name,
+    price: type.price,
+    icon: <span className="text-purple-400">📅</span>,
+    description: `Reserva do tipo ${type.name}`
+  }));
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Step 1: Select booking type */}
         <div className={step === 1 ? "md:col-span-2 lg:col-span-3" : ""}>
           <BookingType
-            bookingType={bookingTypes.find(t => t.id === selectedType)}
             selectedType={selectedType}
             onSelectType={handleTypeSelect}
+            bookingType={enhancedBookingTypes.find(t => t.id === selectedType)}
           />
         </div>
 
@@ -109,7 +118,7 @@ const BookingForm: React.FC<BookingFormProps> = ({
         {step >= 3 && (
           <div>
             <TimeSlots
-              availableSlots={availableTimeSlots}
+              availableSlots={timeSlots}
               selectedSlot={selectedTime}
               onSelectSlot={handleTimeSelect}
             />
