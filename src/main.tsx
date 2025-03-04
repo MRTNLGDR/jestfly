@@ -21,11 +21,53 @@ import { AuthProvider } from './contexts/AuthContext.tsx';
 import LanguageProvider from './contexts/LanguageContext.tsx';
 import ProtectedRoute from './components/auth/ProtectedRoute.tsx';
 import { Toaster } from '@/components/ui/toaster';
+import { defaultModelParams } from './types/model';
+
+// Default gallery images for HomePage
+const galleryImages = [
+  {
+    src: "/placeholder.svg",
+    alt: "Gallery Image 1",
+    crystalPosition: 'top-right' as const
+  },
+  {
+    src: "/placeholder.svg",
+    alt: "Gallery Image 2",
+    crystalPosition: 'bottom-left' as const
+  },
+  {
+    src: "/placeholder.svg",
+    alt: "Gallery Image 3",
+    crystalPosition: 'center' as const
+  }
+];
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: <HomePage 
+      crystalParams={{
+        ...defaultModelParams,
+        color: "#ffffff",
+        metalness: 0.2,
+        roughness: 0.01,
+        transmission: 0.98,
+        thickness: 0.8,
+        envMapIntensity: 5.0,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.0,
+        ior: 2.5,
+        iridescence: 1.0,
+        iridescenceIOR: 2.0,
+        transparent: true,
+        opacity: 0.8,
+        reflectivity: 1.0,
+        emissiveIntensity: 0.08,
+        emissiveColor: "#8B5CF6",
+        lightIntensity: 5.0
+      }}
+      galleryImages={galleryImages}
+    />,
     errorElement: <NotFound />,
   },
   {
