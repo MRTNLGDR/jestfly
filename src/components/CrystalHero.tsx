@@ -15,8 +15,8 @@ interface CrystalHeroProps {
 }
 
 const CrystalHero: React.FC<CrystalHeroProps> = ({
-  title = "JESTFLY",
-  subtitle = "Descubra efeitos de vidro hiper-realista",
+  title = "ORBVIR",
+  subtitle = "Descubra o ecossistema digital do futuro",
   crystalParams = defaultModelParams,
   className = "",
 }) => {
@@ -46,19 +46,19 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       {/* Side captions - hidden on mobile */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
         <div className="p-3 rounded-lg mb-3">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">bangers only</h2>
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">ecossistema digital</h2>
           <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
-            <p>IT'S ALWAYS TIME</p>
-            <p>TO ENJOY</p>
+            <p>CONECTANDO ARTISTAS</p>
+            <p>E CRIADORES</p>
           </div>
         </div>
       </div>
       
       <div className="absolute top-1/3 right-4 sm:right-8 z-30 text-right hidden md:block">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">inspired</h2>
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1">inovação</h2>
         <div className="space-y-0 uppercase text-xs tracking-wider text-white/70">
-          <p>FROM 10:00</p>
-          <p>TO 19:00</p>
+          <p>TECNOLOGIA</p>
+          <p>WEB3</p>
         </div>
         
         {/* JestCoin ticker positioned near "inspired" */}
@@ -94,12 +94,12 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       <div className="absolute bottom-6 left-0 right-0 px-4 sm:px-6 z-30 flex justify-between items-center text-xs text-white/70">
         <div className="flex items-center space-x-2">
           <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-          <span className="text-xs">5/15/2023</span>
+          <span className="text-xs">ORBVIR © 2024</span>
         </div>
         
-        <div className="hidden md:block uppercase">BUS® ©2023</div>
+        <div className="hidden md:block uppercase">ECOSSISTEMA DIGITAL</div>
         
-        <div className="hidden md:block">50°05'36.2"N 14°26'51.3"E</div>
+        <div className="hidden md:block">FUTURO • INOVAÇÃO • TECNOLOGIA</div>
       </div>
     </section>
   );

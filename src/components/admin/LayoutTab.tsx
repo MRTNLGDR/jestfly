@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Monitor, Smartphone, Tablet, ArrowDownUp, ArrowLeftRight, Eye } from "lucide-react";
@@ -22,7 +21,6 @@ const LayoutTab = ({ titleText, subtitleText, modelParams }: LayoutTabProps) => 
 
   // Função simulada para reordenar elementos
   const onDragEnd = (result: any) => {
-    // Implementar funcionalidade de arrastar e soltar aqui
     console.log("Reordenação:", result);
   };
   
@@ -184,7 +182,6 @@ const LayoutPreview = ({
   modelParams: ModelParameters,
   layoutMode: string
 }) => {
-  // Dimensões baseadas no dispositivo
   const dimensions = {
     mobile: { width: '320px', height: '640px' },
     tablet: { width: '600px', height: '800px' },
@@ -198,7 +195,6 @@ const LayoutPreview = ({
         height: dimensions[device].height 
       }}
     >
-      {/* Sobreposição de grid para modo de edição */}
       {layoutMode === "edit" && (
         <div className="absolute inset-0 z-10 pointer-events-none">
           <div className="h-full w-full grid grid-cols-4 grid-rows-6 gap-1">
@@ -211,12 +207,10 @@ const LayoutPreview = ({
         </div>
       )}
       
-      {/* Simulação do modelo 3D */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="w-56 h-56 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-purple-500/30 to-blue-500/30 animate-pulse blur-xl"></div>
       </div>
       
-      {/* Título centralizado */}
       <div className="absolute inset-0 flex items-center justify-center">
         <h1 className={`
           font-bold tracking-tighter text-red-600 leading-none opacity-90 text-center px-4
@@ -226,7 +220,6 @@ const LayoutPreview = ({
         </h1>
       </div>
       
-      {/* Texto inferior */}
       <div className={`
         absolute ${device === 'mobile' ? 'bottom-16 mx-6' : 'bottom-8 left-8'} max-w-xs
       `}>
@@ -238,7 +231,6 @@ const LayoutPreview = ({
         </p>
       </div>
       
-      {/* Admin link */}
       <div className={`
         absolute top-4 right-4
       `}>
