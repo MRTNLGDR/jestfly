@@ -5,6 +5,7 @@ import './index.css'
 import NotFound from './pages/NotFound.tsx';
 import LogsPage from './pages/LogsPage.tsx';
 import LogsViewer from './pages/LogsViewer.tsx';
+import BookingsPage from './pages/BookingsPage.tsx';
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
   {
     path: "/logs/:resourceType/:resourceId",
     element: <LogsViewer />,
+  },
+  {
+    path: "/bookings",
+    element: <BookingsPage />,
   },
   // Other routes...
 ]);

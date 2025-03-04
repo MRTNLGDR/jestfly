@@ -9,14 +9,51 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      availability: {
+        Row: {
+          created_at: string | null
+          end_time: string
+          id: string
+          is_available: boolean | null
+          resource_id: string
+          resource_type: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_time: string
+          id?: string
+          is_available?: boolean | null
+          resource_id: string
+          resource_type: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string | null
+          end_time?: string
+          id?: string
+          is_available?: boolean | null
+          resource_id?: string
+          resource_type?: string
+          start_time?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_type: string
           created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          details: string | null
           end_time: string
           id: string
+          location: string | null
           notes: string | null
           price: number
+          resource_id: string | null
+          resource_type: string | null
           start_time: string
           status: string
           updated_at: string | null
@@ -25,10 +62,17 @@ export type Database = {
         Insert: {
           booking_type: string
           created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          details?: string | null
           end_time: string
           id?: string
+          location?: string | null
           notes?: string | null
           price: number
+          resource_id?: string | null
+          resource_type?: string | null
           start_time: string
           status?: string
           updated_at?: string | null
@@ -37,10 +81,17 @@ export type Database = {
         Update: {
           booking_type?: string
           created_at?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          details?: string | null
           end_time?: string
           id?: string
+          location?: string | null
           notes?: string | null
           price?: number
+          resource_id?: string | null
+          resource_type?: string | null
           start_time?: string
           status?: string
           updated_at?: string | null
