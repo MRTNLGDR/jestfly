@@ -45,8 +45,8 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
           today: 'bg-white/10 text-white',
         }}
         components={{
-          Day: ({ date, ...props }) => {
-            const isAvailable = isDateAvailable(date);
+          Day: ({ day, ...props }) => {
+            const isAvailable = isDateAvailable(day);
             return (
               <button
                 type="button"
@@ -58,7 +58,7 @@ const BookingCalendar: React.FC<BookingCalendarProps> = ({
                 )}
                 disabled={!isAvailable}
               >
-                {formatDay(date)}
+                {formatDay(day)}
               </button>
             );
           },
