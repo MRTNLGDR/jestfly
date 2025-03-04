@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -28,31 +29,35 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    let result = products;
+    // Create a filtered copy of products based on search
+    let filtered = [...products];
     
+    // Apply search filtering
     if (search.trim() !== '') {
       const searchLower = search.toLowerCase().trim();
-      result = result.filter(product => 
+      filtered = filtered.filter(product => 
         product.title.toLowerCase().includes(searchLower) || 
         (product.description && product.description.toLowerCase().includes(searchLower))
       );
     }
     
+    // Apply sorting
     if (sortBy === 'price-low') {
-      result = [...result].sort((a, b) => a.price - b.price);
+      filtered.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
-      result = [...result].sort((a, b) => b.price - a.price);
+      filtered.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'name-az') {
-      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+      filtered.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
+      filtered.sort((a, b) => b.title.localeCompare(a.title));
     }
     
-    if (limit && result.length > limit) {
-      result = result.slice(0, limit);
+    // Apply limit if specified
+    if (limit && filtered.length > limit) {
+      filtered = filtered.slice(0, limit);
     }
     
-    setFilteredProducts(result);
+    setFilteredProducts(filtered);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
