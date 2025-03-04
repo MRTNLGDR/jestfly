@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -11,6 +12,32 @@ interface ProductCatalogProps {
   featuredOnly?: boolean;
   limit?: number;
 }
+
+// Helper function to sort products
+const sortProducts = (products: Product[], sortType: string): Product[] => {
+  const result = [...products];
+  
+  switch (sortType) {
+    case 'price-low':
+      return result.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
+        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
+        return priceA - priceB;
+      });
+    case 'price-high':
+      return result.sort((a, b) => {
+        const priceA = typeof a.price === 'number' ? a.price : parseFloat(String(a.price));
+        const priceB = typeof b.price === 'number' ? b.price : parseFloat(String(b.price));
+        return priceB - priceA;
+      });
+    case 'name-az':
+      return result.sort((a, b) => a.title.localeCompare(b.title));
+    case 'name-za':
+      return result.sort((a, b) => b.title.localeCompare(a.title));
+    default:
+      return result; // 'newest' or any other value
+  }
+};
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
   category, 
@@ -28,10 +55,9 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    // Filter and sort products whenever products, search, or sortBy changes
+    // Apply search filter first
     let result = [...products];
     
-    // Apply search filter
     if (search) {
       const searchLower = search.toLowerCase();
       result = result.filter(product => 
@@ -40,29 +66,8 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       );
     }
     
-    // Create a new array for sorting to avoid TypeScript complexity
-    const resultToSort = [...result];
-    let sortedResult: Product[] = resultToSort;
-    
-    // Apply sorting with explicit typing
-    if (sortBy === 'price-low') {
-      sortedResult = resultToSort.sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
-        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
-        return priceA - priceB;
-      });
-    } else if (sortBy === 'price-high') {
-      sortedResult = resultToSort.sort((a, b) => {
-        const priceA = typeof a.price === 'number' ? a.price : Number(a.price);
-        const priceB = typeof b.price === 'number' ? b.price : Number(b.price);
-        return priceB - priceA;
-      });
-    } else if (sortBy === 'name-az') {
-      sortedResult = resultToSort.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      sortedResult = resultToSort.sort((a, b) => b.title.localeCompare(a.title));
-    }
-    // For 'newest', we keep the original order
+    // Then sort the filtered results
+    const sortedResult = sortProducts(result, sortBy);
     
     // Apply limit if provided
     if (limit && sortedResult.length > limit) {
