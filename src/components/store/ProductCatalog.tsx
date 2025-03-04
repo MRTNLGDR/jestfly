@@ -29,49 +29,39 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   }, [category, featuredOnly]);
 
   useEffect(() => {
-    applyFiltersAndSort();
-  }, [products, search, sortBy, limit]);
-
-  // Separate the filtering and sorting logic to avoid deep type instantiations
-  const applyFiltersAndSort = () => {
-    // Step 1: Filter by search term
-    let result = products;
+    if (products.length === 0) return;
     
+    // Apply filters and sorting as separate operations
+    let filtered = [...products];
+    
+    // 1. Apply search filter
     if (search && search.trim() !== '') {
       const term = search.toLowerCase().trim();
-      result = products.filter(product => {
-        return product.title.toLowerCase().includes(term) || 
-              (product.description ? product.description.toLowerCase().includes(term) : false);
-      });
+      filtered = filtered.filter(product => 
+        product.title.toLowerCase().includes(term) || 
+        (product.description ? product.description.toLowerCase().includes(term) : false)
+      );
     }
     
-    // Step 2: Sort the filtered results
-    switch (sortBy) {
-      case 'price-low':
-        result = [...result].sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        result = [...result].sort((a, b) => b.price - a.price);
-        break;
-      case 'name-az':
-        result = [...result].sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-za':
-        result = [...result].sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case 'newest':
-      default:
-        // Already sorted by created_at in the query
-        break;
+    // 2. Apply sorting
+    if (sortBy === 'price-low') {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-high') {
+      filtered.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'name-az') {
+      filtered.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      filtered.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    // No need for 'newest' case - already sorted by created_at in query
+    
+    // 3. Apply limit if needed
+    if (limit && limit > 0 && filtered.length > limit) {
+      filtered = filtered.slice(0, limit);
     }
     
-    // Step 3: Apply limit if specified
-    if (limit && limit > 0 && result.length > limit) {
-      result = result.slice(0, limit);
-    }
-    
-    setFilteredProducts(result);
-  };
+    setFilteredProducts(filtered);
+  }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
     setLoading(true);
