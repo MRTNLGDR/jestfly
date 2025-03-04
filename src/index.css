@@ -124,6 +124,102 @@
     animation: holographic-scan 3s linear infinite;
   }
 
+  /* Novos efeitos de iluminação sutil */
+  .soft-light-beam {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .soft-light-beam::before {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    height: 300%;
+    width: 150%;
+    background: linear-gradient(
+      45deg,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    transform: rotate(45deg);
+    animation: light-sweep 8s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  .card-highlight {
+    position: relative;
+  }
+
+  .card-highlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      to bottom right,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  .card-highlight:hover::after {
+    opacity: 1;
+  }
+
+  .subtle-pulse {
+    animation: subtle-pulse 3s ease-in-out infinite;
+  }
+
+  .floating-light {
+    position: relative;
+  }
+
+  .floating-light::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 20px;
+    bottom: -20px;
+    left: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .floating-light:hover::after {
+    opacity: 1;
+  }
+
+  /* Estilos de botão com gradiente sutil */
+  .btn-gradient {
+    background: linear-gradient(to right, rgba(110, 72, 170, 0.8), rgba(77, 58, 159, 0.8));
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .btn-gradient::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.7s;
+    z-index: -1;
+  }
+
+  .btn-gradient:hover::before {
+    left: 100%;
+  }
+
   @keyframes holographic-scan {
     0% {
       transform: translateX(-100%);
@@ -132,13 +228,23 @@
       transform: translateX(100%);
     }
   }
-  
-  .nike-gradient {
-    @apply bg-gradient-to-br from-purple-500 via-blue-400 to-cyan-300;
+
+  @keyframes light-sweep {
+    0%, 100% {
+      transform: translateX(-100%) rotate(45deg);
+    }
+    50% {
+      transform: translateX(100%) rotate(45deg);
+    }
   }
-  
-  .futuristic-border {
-    @apply relative after:absolute after:inset-0 after:p-[1px] after:rounded-md after:bg-gradient-to-r after:from-white/20 after:via-white/40 after:to-white/20 after:-z-10 after:pointer-events-none;
+
+  @keyframes subtle-pulse {
+    0%, 100% {
+      opacity: 0.7;
+    }
+    50% {
+      opacity: 1;
+    }
   }
   
   .animate-float {
@@ -152,6 +258,41 @@
     50% {
       transform: translateY(-10px);
     }
+  }
+
+  /* Novos gradientes inspirados nas imagens de referência */
+  .gradient-space {
+    background: linear-gradient(135deg, rgba(16, 20, 34, 0.95) 0%, rgba(6, 11, 25, 0.95) 100%);
+  }
+
+  .gradient-cosmic {
+    background: linear-gradient(135deg, rgba(10, 10, 20, 0.9) 0%, rgba(30, 15, 60, 0.9) 100%);
+  }
+
+  .gradient-dark-purple {
+    background: linear-gradient(135deg, #20124d 0%, #341a83 100%);
+  }
+
+  .gradient-highlight {
+    position: relative;
+  }
+
+  .gradient-highlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(102, 51, 153, 0.1),
+      transparent
+    );
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+
+  .gradient-highlight:hover::after {
+    opacity: 1;
   }
 }
 
