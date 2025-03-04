@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuth';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,7 +122,6 @@ const Footer: React.FC = () => {
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
             
-            {/* Botão de acesso admin com aparência mais profissional */}
             <Button 
               variant="outline" 
               size="sm"
@@ -137,7 +135,6 @@ const Footer: React.FC = () => {
         </div>
       </div>
       
-      {/* Admin Login Dialog */}
       <Dialog open={isAdminDialogOpen} onOpenChange={setIsAdminDialogOpen}>
         <DialogContent className="bg-black/90 border-gray-800 text-white">
           <DialogHeader>
@@ -194,7 +191,6 @@ const Footer: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Decorative elements */}
       <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-900/10 rounded-full blur-[100px]"></div>
       <div className="absolute top-20 right-0 w-60 h-60 bg-blue-900/10 rounded-full blur-[100px]"></div>
     </footer>

@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCommunityPosts } from '@/hooks/useCommunity';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -20,7 +19,6 @@ const NewPostPage: React.FC = () => {
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<PostCategory>('discussion');
   
-  // Redirecionar se o usuário não estiver logado
   React.useEffect(() => {
     if (!user) {
       navigate('/auth', { state: { from: '/community/new-post' } });

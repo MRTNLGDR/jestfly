@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
-import { useAuth, ProfileData } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { ProfileData } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

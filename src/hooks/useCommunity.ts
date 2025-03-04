@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -11,7 +10,7 @@ import {
   CreatePostLikeInput,
   CreateCommentLikeInput
 } from '@/types/community';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuth';
 
 export const useCommunityPosts = (category?: string) => {
   const queryClient = useQueryClient();
@@ -25,7 +24,6 @@ export const useCommunityPosts = (category?: string) => {
         user:profiles(username, display_name, avatar)
       `);
 
-    // Filtrar por categoria se especificada
     if (category && category !== 'all') {
       query = query.eq('category', category);
     }
@@ -40,7 +38,6 @@ export const useCommunityPosts = (category?: string) => {
       throw new Error(error.message);
     }
 
-    // Need to explicitly cast the data to our CommunityPost type
     return (data || []) as CommunityPost[];
   };
 
@@ -94,7 +91,6 @@ export const useCommunityPosts = (category?: string) => {
         throw new Error('Você precisa estar logado para curtir um post');
       }
 
-      // Verificar se já existe um like
       const { data: existingLike, error: checkError } = await supabase
         .from('post_likes')
         .select('id')
@@ -107,7 +103,6 @@ export const useCommunityPosts = (category?: string) => {
       }
 
       if (existingLike) {
-        // Se já curtiu, remove a curtida
         const { error: deleteError } = await supabase
           .from('post_likes')
           .delete()
@@ -121,13 +116,12 @@ export const useCommunityPosts = (category?: string) => {
         return { action: 'unliked', postId };
       }
 
-      // Se não curtiu, adiciona a curtida
       const { error: insertError } = await supabase
         .from('post_likes')
         .insert({
           post_id: postId,
           user_id: user.id
-        } as any); // Use type assertion to bypass type checking
+        } as any);
 
       if (insertError) {
         throw new Error(insertError.message);
@@ -233,7 +227,7 @@ export const usePostComments = (postId: string) => {
 
       const { data, error } = await supabase
         .from('post_comments')
-        .insert(commentData as any) // Use type assertion to bypass type checking
+        .insert(commentData as any)
         .select();
 
       if (error) {
@@ -285,7 +279,6 @@ export const usePostComments = (postId: string) => {
         throw new Error('Você precisa estar logado para curtir um comentário');
       }
 
-      // Verificar se já existe um like
       const { data: existingLike, error: checkError } = await supabase
         .from('comment_likes')
         .select('id')
@@ -298,7 +291,6 @@ export const usePostComments = (postId: string) => {
       }
 
       if (existingLike) {
-        // Se já curtiu, remove a curtida
         const { error: deleteError } = await supabase
           .from('comment_likes')
           .delete()
@@ -312,13 +304,12 @@ export const usePostComments = (postId: string) => {
         return { action: 'unliked', commentId };
       }
 
-      // Se não curtiu, adiciona a curtida
       const { error: insertError } = await supabase
         .from('comment_likes')
         .insert({
           comment_id: commentId,
           user_id: user.id
-        } as any); // Use type assertion to bypass type checking
+        } as any);
 
       if (insertError) {
         throw new Error(insertError.message);

@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useCommunityPosts, usePostComments } from '@/hooks/useCommunity';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -23,7 +23,6 @@ const PostDetailPage: React.FC = () => {
   const { comments, isLoading: commentsLoading, createComment, deleteComment, likeComment } = usePostComments(postId || '');
   const { likePost, deletePost } = useCommunityPosts();
   
-  // Fetch post details
   const fetchPostDetails = async (): Promise<CommunityPost> => {
     if (!postId) throw new Error('Post ID não fornecido');
 
@@ -54,7 +53,6 @@ const PostDetailPage: React.FC = () => {
     enabled: !!postId
   });
 
-  // Função para obter o nome formatado da categoria
   const formatCategoryName = (category: string) => {
     switch (category) {
       case 'announcement':
@@ -72,7 +70,6 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  // Função para obter o ícone da categoria
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'announcement':
@@ -90,7 +87,6 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  // Função para lidar com a criação de comentários
   const handleCreateComment = async () => {
     if (!commentContent.trim()) return;
     
@@ -102,7 +98,6 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  // Função para deletar um post
   const handleDeletePost = async () => {
     if (!post || !user || user.id !== post.user_id) return;
     
@@ -114,7 +109,6 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  // Função para deletar um comentário
   const handleDeleteComment = async (commentId: string) => {
     try {
       await deleteComment.mutateAsync(commentId);
@@ -123,7 +117,6 @@ const PostDetailPage: React.FC = () => {
     }
   };
 
-  // Loading state
   if (postLoading) {
     return (
       <div className="flex justify-center items-center h-96">
@@ -132,7 +125,6 @@ const PostDetailPage: React.FC = () => {
     );
   }
 
-  // Error state
   if (postError || !post) {
     return (
       <div className="max-w-4xl mx-auto pt-24 px-6">
@@ -154,7 +146,6 @@ const PostDetailPage: React.FC = () => {
         Voltar para a Comunidade
       </Button>
       
-      {/* Post Details */}
       <Card className="bg-black/40 backdrop-blur-md border-white/10 mb-8">
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -217,11 +208,9 @@ const PostDetailPage: React.FC = () => {
         </CardFooter>
       </Card>
       
-      {/* Comments Section */}
       <div className="space-y-6">
         <h2 className="text-xl font-bold text-white">Comentários</h2>
         
-        {/* Comment Form */}
         {user ? (
           <div className="mb-8">
             <Textarea
@@ -253,7 +242,6 @@ const PostDetailPage: React.FC = () => {
           </div>
         )}
         
-        {/* Comments List */}
         {commentsLoading ? (
           <div className="flex justify-center items-center h-24">
             <Loader2 className="h-6 w-6 animate-spin text-purple-500" />

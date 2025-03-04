@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/auth/useAuth';
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -45,7 +44,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-8">
