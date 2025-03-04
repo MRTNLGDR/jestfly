@@ -26,6 +26,7 @@ import LogsViewer from './pages/LogsViewer';
 import BookingsPage from './pages/BookingsPage';
 import NotesPage from './pages/NotesPage';
 import DemoSubmissionPage from './pages/DemoSubmissionPage';
+import DemoReviewPage from './pages/DemoReviewPage';
 import PressKitPage from './pages/PressKitPage';
 import LiveStreamPage from './pages/LiveStreamPage';
 import JestCoinPage from './pages/JestCoinPage';
@@ -72,6 +73,11 @@ function App() {
               <Route path="/press-kit" element={<PressKitPage />} />
               <Route path="/live-stream" element={<LiveStreamPage />} />
               <Route path="/jestcoin" element={<JestCoinPage />} />
+              <Route path="/demo-review" element={
+                <ProtectedRoute requiredProfileType="admin">
+                  <DemoReviewPage />
+                </ProtectedRoute>
+              } />
             </Route>
             <Route path="/admin-panel" element={
               <ProtectedRoute requiredProfileType="admin">
