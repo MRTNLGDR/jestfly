@@ -30,34 +30,35 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
   // Apply filtering and sorting logic
   useEffect(() => {
-    // Convert search to lowercase once
+    // First filter by search term
+    let result = [];
     const searchLower = search.toLowerCase().trim();
     
-    // Apply search filter
-    const filtered = searchLower 
-      ? products.filter(product => 
-          product.title.toLowerCase().includes(searchLower) || 
-          (product.description && product.description.toLowerCase().includes(searchLower))
-        )
-      : products;
+    if (searchLower) {
+      result = products.filter(product => 
+        product.title.toLowerCase().includes(searchLower) || 
+        (product.description && product.description.toLowerCase().includes(searchLower))
+      );
+    } else {
+      result = [...products];
+    }
     
-    // Create a new array for sorting to break the reference
-    const sorted = [...filtered];
-    
-    // Sort based on the selected option
+    // Then sort based on the selected option
     if (sortBy === 'price-low') {
-      sorted.sort((a, b) => a.price - b.price);
+      result.sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
-      sorted.sort((a, b) => b.price - a.price);
+      result.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'name-az') {
-      sorted.sort((a, b) => a.title.localeCompare(b.title));
+      result.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      sorted.sort((a, b) => b.title.localeCompare(a.title));
+      result.sort((a, b) => b.title.localeCompare(a.title));
     }
     // 'newest' is default, already sorted by created_at in the fetch
     
-    // Apply limit if specified
-    const result = limit ? sorted.slice(0, limit) : sorted;
+    // Finally, apply limit if specified
+    if (limit && result.length > limit) {
+      result = result.slice(0, limit);
+    }
     
     setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
