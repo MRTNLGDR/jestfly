@@ -1,185 +1,164 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { LogEntry, LogFilters } from '@/types/logs';
-import { useToast } from '@/hooks/use-toast';
+import { LogEntry, SystemLogEntry, LogFilters } from '@/types/logs';
 
-const DEFAULT_FILTERS: LogFilters = {
-  limit: 50,
-  page: 1,
-  activeTab: 'all',
-  searchTerm: null,
-  entityType: null,
-  success: null,
-  startDate: null,
-  endDate: null
-};
-
-export const useLogsData = (hasAccess: boolean = false) => {
+export const useLogsData = (isAuthorized: boolean) => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<LogFilters>(DEFAULT_FILTERS);
-  const [totalCount, setTotalCount] = useState(0);
-  const { toast } = useToast();
-
-  const fetchLogs = async () => {
+  
+  // Filtros padrão
+  const [filters, setFilters] = useState<LogFilters>({
+    activeTab: 'activity',
+    searchTerm: null,
+    entityType: null,
+    success: null,
+    startDate: null,
+    endDate: null,
+    page: 1,
+    limit: 50
+  });
+  
+  // Função para atualizar filtros
+  const updateFilter = useCallback((key: keyof LogFilters, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+  
+  // Buscar logs com os filtros atuais
+  const fetchLogs = useCallback(async () => {
+    if (!isAuthorized) return;
+    
+    setLoading(true);
+    
     try {
-      if (!hasAccess) {
-        setLogs([]);
-        setLoading(false);
-        return;
+      let query;
+      
+      // Determinar qual tabela consultar com base na aba ativa
+      if (filters.activeTab === 'activity') {
+        query = supabase
+          .from('user_activity_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(filters.limit);
+      } else if (filters.activeTab === 'system' || filters.activeTab === 'errors') {
+        query = supabase
+          .from('system_logs')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (filters.activeTab === 'errors') {
+          query = query.eq('level', 'error');
+        }
+        
+        query = query.limit(filters.limit);
       }
-
-      setLoading(true);
-
-      // Build the query
-      let query = supabase
-        .from('user_activity_logs')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .limit(filters.limit);
-
-      // Apply filters
-      if (filters.activeTab && filters.activeTab !== 'all') {
-        query = query.eq('entity_type', filters.activeTab);
+      
+      // Aplicar filtros se houver
+      if (filters.searchTerm) {
+        if (filters.activeTab === 'activity') {
+          query = query.or(`action.ilike.%${filters.searchTerm}%,entity_type.ilike.%${filters.searchTerm}%`);
+        } else {
+          query = query.or(`message.ilike.%${filters.searchTerm}%,level.ilike.%${filters.searchTerm}%`);
+        }
       }
-
-      if (filters.entityType) {
+      
+      if (filters.entityType && filters.activeTab === 'activity') {
         query = query.eq('entity_type', filters.entityType);
       }
-
-      if (filters.success !== null) {
+      
+      if (filters.success !== null && filters.activeTab === 'activity') {
         query = query.eq('success', filters.success);
       }
-
-      if (filters.searchTerm) {
-        query = query.or(`action.ilike.%${filters.searchTerm}%,details.ilike.%${filters.searchTerm}%`);
-      }
-
-      if (filters.startDate) {
-        query = query.gte('created_at', filters.startDate);
-      }
-
-      if (filters.endDate) {
-        query = query.lte('created_at', filters.endDate);
-      }
-
-      // Execute the query
-      const { data, error, count } = await query;
-
+      
+      // Executar a consulta
+      const { data, error } = await query;
+      
       if (error) {
-        console.error('Error fetching logs:', error);
-        toast({
-          title: 'Erro ao carregar logs',
-          description: error.message,
-          variant: 'destructive',
-        });
+        console.error('Erro ao buscar logs:', error);
         setLogs([]);
-        setTotalCount(0);
       } else {
-        setLogs(data as LogEntry[]);
-        setTotalCount(count || 0);
+        setLogs(data as any);
       }
-    } catch (err) {
-      console.error('Exception while fetching logs:', err);
-      toast({
-        title: 'Erro ao carregar logs',
-        description: 'Ocorreu um erro ao buscar os logs de atividade.',
-        variant: 'destructive',
-      });
+    } catch (error) {
+      console.error('Exceção ao buscar logs:', error);
       setLogs([]);
-      setTotalCount(0);
     } finally {
       setLoading(false);
     }
-  };
-
-  // Update a single filter
-  const updateFilter = (key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
-
-  // Handle search
-  const handleSearch = () => {
-    fetchLogs();
-  };
-
-  // Reset filters to default
-  const handleReset = () => {
-    setFilters(DEFAULT_FILTERS);
-  };
-
-  // Export logs to CSV
-  const handleExport = () => {
-    try {
-      // Convert logs to CSV
-      const headers = [
-        'Data/Hora',
-        'Ação',
-        'Tipo',
-        'Usuário',
-        'Status',
-        'IP',
-        'Detalhes'
-      ];
-
-      const csvRows = logs.map(log => [
-        new Date(log.created_at).toLocaleString('pt-BR'),
-        log.action,
-        log.entity_type || '-',
-        log.user_id || '-',
-        log.success === true ? 'Sucesso' : log.success === false ? 'Falha' : 'Info',
-        log.ip_address || '-',
-        log.details ? JSON.stringify(log.details) : '-'
-      ]);
-
-      const csvContent = [
-        headers.join(','),
-        ...csvRows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-      ].join('\n');
-
-      // Create download link
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `logs_${new Date().toISOString().slice(0, 10)}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: 'Exportação concluída',
-        description: 'Logs exportados com sucesso.',
-      });
-    } catch (err) {
-      console.error('Error exporting logs:', err);
-      toast({
-        title: 'Erro na exportação',
-        description: 'Ocorreu um erro ao exportar os logs.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Fetch logs when filters change or component mounts
+  }, [isAuthorized, filters]);
+  
+  // Efeito para buscar logs quando os filtros mudarem
   useEffect(() => {
-    if (hasAccess) {
-      fetchLogs();
+    fetchLogs();
+  }, [fetchLogs]);
+  
+  // Função para limpar filtros
+  const handleReset = useCallback(() => {
+    setFilters({
+      ...filters,
+      searchTerm: null,
+      entityType: null,
+      success: null,
+      startDate: null,
+      endDate: null,
+      page: 1,
+    });
+  }, [filters]);
+  
+  // Função para buscar com os filtros atuais
+  const handleSearch = useCallback(() => {
+    fetchLogs();
+  }, [fetchLogs]);
+  
+  // Função para exportar logs como CSV
+  const handleExport = useCallback(() => {
+    if (logs.length === 0) return;
+    
+    // Determinar cabeçalhos com base no tipo de log
+    let headers: string[];
+    let csvData: any[];
+    
+    if (filters.activeTab === 'activity') {
+      headers = ['Data', 'Ação', 'Usuário', 'Entidade', 'Status', 'Detalhes'];
+      csvData = logs.map((log: LogEntry) => [
+        new Date(log.created_at).toLocaleString(),
+        log.action,
+        log.user_id || 'Sistema',
+        log.entity_type && log.entity_id ? `${log.entity_type}: ${log.entity_id}` : '',
+        log.success === undefined ? '-' : log.success ? 'Sucesso' : 'Falha',
+        JSON.stringify(log.details)
+      ]);
+    } else {
+      headers = ['Data', 'Nível', 'Mensagem', 'Metadados'];
+      csvData = logs.map((log: SystemLogEntry) => [
+        new Date(log.created_at).toLocaleString(),
+        log.level,
+        log.message,
+        JSON.stringify(log.metadata)
+      ]);
     }
-  }, [
-    hasAccess,
-    filters.activeTab,
-    filters.limit,
-    filters.page
-  ]);
-
+    
+    // Criar o conteúdo CSV
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+    
+    // Criar o arquivo para download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `logs-${filters.activeTab}-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [logs, filters.activeTab]);
+  
   return {
     logs,
     loading,
     filters,
-    totalCount,
     updateFilter,
     handleSearch,
     handleReset,
