@@ -28,56 +28,37 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Simple function to filter products by search term
-  const filterBySearch = (products: Product[], searchTerm: string): Product[] => {
-    if (!searchTerm || searchTerm.trim() === '') {
-      return products;
-    }
-    
-    const term = searchTerm.toLowerCase().trim();
-    return products.filter(product => {
-      const titleMatch = product.title.toLowerCase().includes(term);
-      const descriptionMatch = product.description ? product.description.toLowerCase().includes(term) : false;
-      return titleMatch || descriptionMatch;
-    });
-  };
-
-  // Simple function to sort products
-  const sortProducts = (products: Product[], sortMethod: string): Product[] => {
-    const productsCopy = [...products];
-    
-    switch (sortMethod) {
-      case 'price-low':
-        return productsCopy.sort((a, b) => Number(a.price) - Number(b.price));
-      case 'price-high':
-        return productsCopy.sort((a, b) => Number(b.price) - Number(a.price));
-      case 'name-az':
-        return productsCopy.sort((a, b) => a.title.localeCompare(b.title));
-      case 'name-za':
-        return productsCopy.sort((a, b) => b.title.localeCompare(a.title));
-      default:
-        return productsCopy; // 'newest' is default and already sorted in the query
-    }
-  };
-
-  // Apply limit to products
-  const applyLimit = (products: Product[], maxItems?: number): Product[] => {
-    if (maxItems && maxItems > 0) {
-      return products.slice(0, maxItems);
-    }
-    return products;
-  };
-
-  // Process products when they change or when filters change
   useEffect(() => {
     if (products.length === 0) return;
     
-    // Apply operations in sequence with explicit intermediate variables
-    const searchFiltered = filterBySearch(products, search);
-    const sorted = sortProducts(searchFiltered, sortBy);
-    const limited = applyLimit(sorted, limit);
+    // Step 1: Apply search filter
+    let result = [...products];
     
-    setFilteredProducts(limited);
+    if (search && search.trim() !== '') {
+      const searchTerm = search.toLowerCase().trim();
+      result = result.filter(product => {
+        return product.title.toLowerCase().includes(searchTerm) || 
+               (product.description ? product.description.toLowerCase().includes(searchTerm) : false);
+      });
+    }
+    
+    // Step 2: Apply sorting
+    if (sortBy === 'price-low') {
+      result.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sortBy === 'price-high') {
+      result.sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (sortBy === 'name-az') {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      result.sort((a, b) => b.title.localeCompare(a.title));
+    }
+    
+    // Step 3: Apply limit
+    if (limit && limit > 0) {
+      result = result.slice(0, limit);
+    }
+    
+    setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
