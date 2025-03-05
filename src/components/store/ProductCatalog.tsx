@@ -31,29 +31,32 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   useEffect(() => {
     if (products.length === 0) return;
     
-    // Step 1: Apply search filter
-    let result = [...products];
+    // Apply filters in separate steps to avoid deep type instantiation
+    let filtered = [...products];
     
+    // Step 1: Apply search filter
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
-      result = result.filter(product => {
-        return product.title.toLowerCase().includes(searchTerm) || 
-               (product.description ? product.description.toLowerCase().includes(searchTerm) : false);
-      });
+      filtered = filtered.filter(product => 
+        product.title.toLowerCase().includes(searchTerm) || 
+        (product.description ? product.description.toLowerCase().includes(searchTerm) : false)
+      );
     }
     
     // Step 2: Apply sorting
+    const sorted = [...filtered];
     if (sortBy === 'price-low') {
-      result.sort((a, b) => Number(a.price) - Number(b.price));
+      sorted.sort((a, b) => Number(a.price) - Number(b.price));
     } else if (sortBy === 'price-high') {
-      result.sort((a, b) => Number(b.price) - Number(a.price));
+      sorted.sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sortBy === 'name-az') {
-      result.sort((a, b) => a.title.localeCompare(b.title));
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      result.sort((a, b) => b.title.localeCompare(a.title));
+      sorted.sort((a, b) => b.title.localeCompare(a.title));
     }
     
     // Step 3: Apply limit
+    let result = sorted;
     if (limit && limit > 0) {
       result = result.slice(0, limit);
     }
