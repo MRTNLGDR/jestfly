@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -31,32 +30,29 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   useEffect(() => {
     if (products.length === 0) return;
     
-    // Apply filters in separate steps to avoid deep type instantiation
-    let filtered = [...products];
+    // Filter products by search term
+    let result: Product[] = products;
     
-    // Step 1: Apply search filter
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
-      filtered = filtered.filter(product => 
+      result = result.filter(product => 
         product.title.toLowerCase().includes(searchTerm) || 
         (product.description ? product.description.toLowerCase().includes(searchTerm) : false)
       );
     }
     
-    // Step 2: Apply sorting
-    const sorted = [...filtered];
+    // Apply sorting
     if (sortBy === 'price-low') {
-      sorted.sort((a, b) => Number(a.price) - Number(b.price));
+      result.sort((a, b) => Number(a.price) - Number(b.price));
     } else if (sortBy === 'price-high') {
-      sorted.sort((a, b) => Number(b.price) - Number(a.price));
+      result.sort((a, b) => Number(b.price) - Number(a.price));
     } else if (sortBy === 'name-az') {
-      sorted.sort((a, b) => a.title.localeCompare(b.title));
+      result.sort((a, b) => a.title.localeCompare(b.title));
     } else if (sortBy === 'name-za') {
-      sorted.sort((a, b) => b.title.localeCompare(a.title));
+      result.sort((a, b) => b.title.localeCompare(a.title));
     }
     
-    // Step 3: Apply limit
-    let result = sorted;
+    // Apply limit if provided
     if (limit && limit > 0) {
       result = result.slice(0, limit);
     }
