@@ -1,8 +1,8 @@
+
 import React, { createContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
-import { toast } from 'sonner';
+import { useAuthActions } from '@/hooks/auth/useAuthActions';
 
 // Update the ProfileData interface with the specific profile_type values
 export interface ProfileData {
@@ -53,27 +53,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-
-      return data as ProfileData;
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      return null;
-    }
-  };
+  
+  const { 
+    fetchProfile, 
+    signIn: authSignIn, 
+    signUp: authSignUp, 
+    signOut: authSignOut,
+    updateProfile: authUpdateProfile,
+    uploadAvatar: authUploadAvatar
+  } = useAuthActions();
 
   useEffect(() => {
     supabase.auth.getSession()
@@ -114,141 +102,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        return { error };
-      }
-
-      if (data.user) {
-        const profileData = await fetchProfile(data.user.id);
-        setProfile(profileData);
-      }
-
-      return { error: undefined };
-    } catch (error: any) {
-      return { error: new Error(error.message || 'Error during sign in') };
-    } finally {
-      setIsLoading(false);
+    const result = await authSignIn(email, password);
+    if (result.profile) {
+      setProfile(result.profile);
     }
+    return { error: result.error };
   };
 
   const signUp = async (email: string, password: string, userData?: Partial<ProfileData>) => {
-    setIsLoading(true);
-    try {
-      const profileType = userData?.profile_type || 'fan';
-      
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
-        password,
-        options: {
-          data: {
-            display_name: userData?.display_name,
-            username: userData?.username,
-            profileType: profileType as 'fan' | 'artist' | 'admin' | 'collaborator'
-          }
-        }
-      });
-
-      if (error) {
-        return { error };
-      }
-
-      toast.success('Registro realizado com sucesso! Verifique seu email.');
-      return { error: undefined };
-    } catch (error: any) {
-      return { error: new Error(error.message || 'Error during sign up') };
-    } finally {
-      setIsLoading(false);
-    }
+    return await authSignUp(email, password, userData);
   };
 
   const signOut = async () => {
-    setIsLoading(true);
-    try {
-      await supabase.auth.signOut();
+    const success = await authSignOut();
+    if (success) {
       setProfile(null);
-      navigate('/auth');
-    } catch (error: any) {
-      toast.error(error.message || 'Erro ao sair');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const updateProfile = async (data: Partial<ProfileData>) => {
-    if (!user || !profile) {
-      toast.error('Você precisa estar logado para atualizar seu perfil');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const updateData: {
-        display_name?: string;
-        username?: string;
-        profile_type?: 'fan' | 'artist' | 'admin' | 'collaborator';
-        bio?: string;
-        avatar?: string;
-        wallet_address?: string;
-        updated_at?: string;
-      } = { ...data };
-      
-      if (data.profile_type && !['fan', 'artist', 'admin', 'collaborator'].includes(data.profile_type)) {
-        throw new Error('Invalid profile type');
-      }
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
+    if (!user || !profile) return;
+    
+    const success = await authUpdateProfile(data, user.id, profile);
+    if (success) {
       setProfile({ ...profile, ...data });
-      toast.success('Perfil atualizado com sucesso!');
-    } catch (error: any) {
-      toast.error(`Erro ao atualizar perfil: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const uploadAvatar = async (file: File) => {
-    if (!user) {
-      throw new Error('Você precisa estar logado para fazer upload de avatar');
+    if (!user) throw new Error('Você precisa estar logado para fazer upload de avatar');
+    
+    const result = await authUploadAvatar(file, user.id);
+    if (result.avatarUrl) {
+      await updateProfile({ avatar: result.avatarUrl });
     }
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `avatars/${user.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      if (data) {
-        await updateProfile({ avatar: data.publicUrl });
-        return { avatarUrl: data.publicUrl };
-      }
-
-      throw new Error('Erro ao obter URL do avatar');
-    } catch (error: any) {
-      toast.error(`Erro ao fazer upload do avatar: ${error.message}`);
-      throw error;
-    }
+    return result;
   };
 
   const value: AuthContextProps = { 
