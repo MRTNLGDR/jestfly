@@ -1,5 +1,12 @@
 
 import type { Config } from "tailwindcss";
+import { 
+  getTailwindThemeColors, 
+  getTailwindTypography, 
+  getTailwindBorders, 
+  getTailwindEffects, 
+  getTailwindTransitions 
+} from "./src/lib/theme-utils";
 
 export default {
 	darkMode: ["class"],
@@ -81,12 +88,25 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				...getTailwindThemeColors(),
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			boxShadow: {
+				...getTailwindEffects().boxShadow,
+			},
+			backdropBlur: {
+				...getTailwindEffects().backdropBlur,
+			},
+			transitionDuration: {
+				...getTailwindTransitions().transitionDuration,
+			},
+			transitionTimingFunction: {
+				...getTailwindTransitions().transitionTimingFunction,
 			},
 			keyframes: {
 				'accordion-down': {
@@ -126,6 +146,14 @@ export default {
         'float': {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' }
+        },
+        'pulse': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.7' }
+        },
+        'glow': {
+          '0%': { boxShadow: '0 0 5px rgba(139, 92, 246, 0.5)' },
+          '100%': { boxShadow: '0 0 20px rgba(139, 92, 246, 0.8), 0 0 30px rgba(139, 92, 246, 0.6)' }
         }
 			},
 			animation: {
@@ -133,7 +161,9 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
 				'rotate-diamond': 'rotate-diamond 30s linear infinite',
-				'float': 'float 4s ease-in-out infinite'
+				'float': 'float 4s ease-in-out infinite',
+				'pulse-slow': 'pulse 3s ease-in-out infinite',
+				'glow': 'glow 2s ease-in-out infinite alternate'
 			}
 		}
 	},

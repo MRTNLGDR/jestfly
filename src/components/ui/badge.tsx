@@ -18,6 +18,14 @@ const badgeVariants = cva(
         outline: "text-foreground",
         warning:
           "border-transparent bg-orange-500 text-white hover:bg-orange-500/80",
+        success:
+          "border-transparent bg-success text-white hover:bg-success/80",
+        info:
+          "border-transparent bg-info text-white hover:bg-info/80",
+        glass: 
+          "backdrop-blur-md bg-white/10 border border-white/20 text-white",
+        gradient:
+          "border-transparent bg-gradient-to-r from-primary-500 to-accent-500 text-white",
       },
     },
     defaultVariants: {

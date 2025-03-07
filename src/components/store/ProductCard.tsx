@@ -2,9 +2,11 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ShoppingCart, Eye } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
+import { useTheme } from '@/styles/theme';
 
 export interface Product {
   id: string;
@@ -23,20 +25,36 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const theme = useTheme();
   const { id, title, price, image_url, type } = product;
 
   const getGradient = (productType: string) => {
     switch (productType) {
       case 'nft':
-        return 'from-purple-700 to-indigo-900';
+        return theme.colors.gradients.purple;
       case 'music':
-        return 'from-blue-700 to-cyan-900';
+        return theme.colors.gradients.blue;
       case 'merch':
-        return 'from-red-700 to-orange-900';
+        return theme.colors.gradients.primary;
       case 'collectible':
-        return 'from-green-700 to-emerald-900';
+        return theme.colors.gradients.green;
       default:
         return 'from-gray-700 to-gray-900';
+    }
+  };
+
+  const getTypeColor = (productType: string) => {
+    switch (productType) {
+      case 'nft':
+        return 'gradient';
+      case 'music':
+        return 'info';
+      case 'merch':
+        return 'secondary';
+      case 'collectible':
+        return 'success';
+      default:
+        return 'default';
     }
   };
 
@@ -56,13 +74,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   };
 
   return (
-    <Card className="overflow-hidden border-white/10 bg-black/40 backdrop-blur-sm hover:border-white/20 transition-all group">
+    <Card 
+      variant="glass" 
+      className="overflow-hidden transition-all hover-scale group"
+    >
       <div className="relative">
-        <div className={`aspect-square bg-gradient-to-br ${getGradient(type)} flex items-center justify-center overflow-hidden`}>
+        <div className="aspect-square overflow-hidden">
           {image_url ? (
-            <img src={image_url} alt={title} className="w-full h-full object-cover" />
+            <img 
+              src={image_url} 
+              alt={title} 
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
           ) : (
-            <span className="text-6xl">{getIcon(type)}</span>
+            <div 
+              className="w-full h-full flex items-center justify-center text-6xl"
+              style={{ background: getGradient(type) }}
+            >
+              {getIcon(type)}
+            </div>
           )}
         </div>
         
@@ -70,8 +100,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className="flex gap-2">
             <Button 
               size="sm" 
-              variant="default" 
-              className="rounded-full bg-white text-black hover:bg-gray-200"
+              variant="gradient" 
+              rounded="full"
               onClick={(e) => {
                 e.preventDefault();
                 addToCart(product);
@@ -84,8 +114,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <Link to={`/store/product/${id}`}>
               <Button 
                 size="icon" 
-                variant="outline" 
-                className="rounded-full border-white/50 bg-transparent text-white hover:bg-white/20"
+                variant="glass" 
+                rounded="full"
               >
                 <Eye className="h-4 w-4" />
               </Button>
@@ -93,18 +123,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         </div>
         
-        <div className="absolute top-2 left-2">
-          <span className="px-2 py-1 text-xs rounded-full bg-black/60 backdrop-blur-sm text-white uppercase">
+        <div className="absolute top-3 left-3">
+          <Badge variant={getTypeColor(type) as any} className="uppercase">
             {type}
-          </span>
+          </Badge>
         </div>
       </div>
       
       <CardContent className="p-4">
-        <h3 className="font-medium text-white truncate">{title}</h3>
+        <h3 className="font-medium text-white truncate mb-2">{title}</h3>
         
-        <div className="flex justify-between items-center mt-2">
-          <span className="font-mono text-white/80">${price.toFixed(2)}</span>
+        <div className="flex justify-between items-center">
+          <span className="font-mono text-gradient-primary font-medium">${price.toFixed(2)}</span>
           
           <Button 
             size="sm" 
