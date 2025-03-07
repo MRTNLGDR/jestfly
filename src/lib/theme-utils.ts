@@ -1,38 +1,52 @@
 
-import { themeColors, borders, effects, transitions } from '../styles/theme.tsx';
+import { theme } from '../styles/theme';
+import type { ThemeType } from '../styles/theme-types';
 
-// Function to get Tailwind theme colors
-export function getTailwindThemeColors() {
-  const { primary, secondary, accent } = themeColors;
+export const getTailwindThemeColors = () => {
+  const colors = theme.colors;
+  
   return {
-    primary, 
-    secondary,
-    accent
+    'primary-color': colors.primary.DEFAULT,
+    'secondary-color': colors.secondary.DEFAULT,
+    'accent-color': colors.accent.DEFAULT,
   };
-}
+};
 
-// Function to get Tailwind typography
-export function getTailwindTypography() {
-  return {};
-}
+export const getTailwindTypography = () => {
+  const typography = theme.typography;
+  
+  return {
+    fontFamily: typography.fontFamily,
+    fontSize: typography.fontSize,
+    lineHeight: typography.lineHeight,
+    letterSpacing: typography.letterSpacing,
+  };
+};
 
-// Function to get Tailwind borders
-export function getTailwindBorders() {
-  return { borderRadius: borders.radius };
-}
+export const getTailwindBorders = () => {
+  const borders = theme.borders;
+  
+  return {
+    borderRadius: borders.radius,
+    borderWidth: borders.width,
+  };
+};
 
-// Function to get Tailwind effects
-export function getTailwindEffects() {
+export const getTailwindEffects = () => {
+  const effects = theme.effects;
+  
   return {
     boxShadow: effects.shadows,
-    backdropBlur: effects.blurs
+    backdropBlur: effects.blurs,
+    glassmorphism: effects.glassmorphism,
   };
-}
+};
 
-// Function to get Tailwind transitions
-export function getTailwindTransitions() {
+export const getTailwindTransitions = () => {
+  const transitions = theme.transitions;
+  
   return {
     transitionDuration: transitions.duration,
-    transitionTimingFunction: transitions.timing
+    transitionTimingFunction: transitions.timing,
   };
-}
+};

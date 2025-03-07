@@ -1,72 +1,89 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ShoppingCart } from 'lucide-react';
-import { ProductType } from './ProductCatalog';
-
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  type: ProductType;
-  rating?: number;
-  isNew?: boolean;
-  isFeatured?: boolean;
-  stock?: number;
-  createdAt: string;
-}
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Product, ProductType } from '@/types/product';
 
 interface ProductCardProps {
   product: Product;
+  onAddToCart?: () => void;
+  showAddToCart?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onAddToCart,
+  showAddToCart = true,
+}) => {
+  // Helper function to get product type badge color
+  const getProductTypeBadge = (type: ProductType) => {
+    switch (type) {
+      case ProductType.NFT:
+        return 'bg-accent text-white';
+      case ProductType.MUSIC:
+        return 'bg-primary text-white';
+      case ProductType.MERCH:
+        return 'bg-secondary text-secondary-foreground';
+      case ProductType.COLLECTIBLE:
+        return 'bg-destructive text-destructive-foreground';
+      default:
+        return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  // Helper function to format price
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(price);
+  };
+
+  const productName = product.name || product.title || 'Unnamed Product';
+  const productImage = product.image || product.image_url || '/placeholder.svg';
+
   return (
-    <Card className="glass-morphism overflow-hidden transition-all duration-300 hover:shadow-lg group">
-      <Link to={`/store/${product.id}`}>
-        <div className="relative overflow-hidden h-48">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-card border border-white/10 backdrop-blur-sm relative">
+      {/* Product Type Badge */}
+      <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs ${getProductTypeBadge(product.type)}`}>
+        {product.type}
+      </div>
+      
+      <Link to={`/product/${product.id}`}>
+        <div className="aspect-square overflow-hidden">
           <img 
-            src={product.image} 
-            alt={product.name} 
-            className="object-cover w-full h-full transform transition-transform duration-500 group-hover:scale-110"
+            src={productImage} 
+            alt={productName}
+            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />
-          {product.isNew && (
-            <Badge className="absolute top-2 right-2 bg-secondary text-secondary-foreground">
-              New
-            </Badge>
-          )}
         </div>
-        
-        <CardHeader className="p-4 pb-0">
-          <div className="flex justify-between items-start">
-            <h3 className="font-medium text-lg line-clamp-1">{product.name}</h3>
-            <span className="text-xl font-bold text-gradient-blue">${product.price.toFixed(2)}</span>
-          </div>
-          <div className="flex items-center mt-1 mb-2">
-            <Badge variant="outline" className="text-xs">
-              {product.type}
-            </Badge>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="p-4 pt-0">
-          <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
-        </CardContent>
       </Link>
       
-      <CardFooter className="p-4 pt-0 flex justify-between">
-        <Button size="sm" variant="ghost" asChild>
-          <Link to={`/store/${product.id}`}>Details</Link>
-        </Button>
-        <Button size="sm" variant="primary">
-          <ShoppingCart className="w-4 h-4 mr-2" />
-          Add to Cart
-        </Button>
+      <CardHeader className="p-4 pb-0">
+        <Link to={`/product/${product.id}`} className="hover:underline">
+          <h3 className="text-lg font-medium line-clamp-1">{productName}</h3>
+        </Link>
+      </CardHeader>
+      
+      <CardContent className="p-4 pt-2">
+        <p className="text-muted-foreground line-clamp-2 text-sm h-10">
+          {product.description}
+        </p>
+      </CardContent>
+      
+      <CardFooter className="p-4 pt-0 flex justify-between items-center">
+        <div className="text-lg font-bold">{formatPrice(product.price)}</div>
+        
+        {showAddToCart && (
+          <Button 
+            variant="secondary"
+            size="sm" 
+            onClick={onAddToCart}
+          >
+            Add to Cart
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

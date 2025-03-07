@@ -1,223 +1,157 @@
 
 import React, { useState, useMemo } from 'react';
+import { Product, ProductType } from '@/types/product';
+import { ProductCard } from './ProductCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ProductCard } from './ProductCard';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-// Define a more specific Product type to match both components
-export type ProductType = "nft" | "music" | "merch" | "collectible";
+// Define a specific type for sort functions to avoid type inference issues
+type SortFunction = (a: Product, b: Product) => number;
 
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  type: ProductType;
-  rating?: number;
-  isNew?: boolean;
-  isFeatured?: boolean;
-  stock?: number;
-  createdAt: string;
+// Available sort options
+enum SortOption {
+  PriceLowToHigh = 'price-asc',
+  PriceHighToLow = 'price-desc',
+  Newest = 'newest',
+  Alphabetical = 'alphabetical'
 }
 
 interface ProductCatalogProps {
   products: Product[];
+  onAddToCart?: (product: Product) => void;
   showFilters?: boolean;
-  featured?: boolean;
-  limit?: number;
+  initialType?: ProductType | 'all';
+  showAddToCart?: boolean;
 }
-
-type SortOption = 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc' | 'newest';
-
-type FilterState = {
-  search: string;
-  type: string;
-  priceRange: [number, number];
-  sort: SortOption;
-};
-
-const initialPriceRange: [number, number] = [0, 1000];
-
-// Dedicated sort function type to prevent infinite type recursion
-type SortFunction = (a: Product, b: Product) => number;
-
-// Helper to get the appropriate sort function
-const getSortFunction = (sortOption: SortOption): SortFunction => {
-  switch (sortOption) {
-    case 'price-asc':
-      return (a, b) => a.price - b.price;
-    case 'price-desc':
-      return (a, b) => b.price - a.price;
-    case 'name-asc':
-      return (a, b) => a.name.localeCompare(b.name);
-    case 'name-desc':
-      return (a, b) => b.name.localeCompare(a.name);
-    case 'newest':
-      return (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    default:
-      return (a, b) => 0;
-  }
-};
 
 export const ProductCatalog: React.FC<ProductCatalogProps> = ({
   products,
+  onAddToCart,
   showFilters = true,
-  featured = false,
-  limit
+  initialType = 'all',
+  showAddToCart = true,
 }) => {
-  const [filters, setFilters] = useState<FilterState>({
-    search: '',
-    type: '',
-    priceRange: initialPriceRange,
-    sort: 'newest',
-  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedType, setSelectedType] = useState<ProductType | 'all'>(initialType);
+  const [sortOption, setSortOption] = useState<SortOption>(SortOption.Newest);
 
-  // Get unique product types for filter dropdown
-  const productTypes = useMemo(() => {
-    const types = new Set<string>();
-    products.forEach(product => types.add(product.type));
-    return Array.from(types);
-  }, [products]);
-
-  // Find min and max prices for price filter
-  const priceRange = useMemo(() => {
-    let min = Number.MAX_VALUE;
-    let max = 0;
-    
-    products.forEach(product => {
-      min = Math.min(min, product.price);
-      max = Math.max(max, product.price);
-    });
-    
-    return [Math.floor(min), Math.ceil(max)] as [number, number];
-  }, [products]);
-
-  // Update filters
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilters(prev => ({ ...prev, search: e.target.value }));
-  };
-
-  const handleTypeChange = (value: string) => {
-    setFilters(prev => ({ ...prev, type: value }));
-  };
-
-  const handleSortChange = (value: string) => {
-    setFilters(prev => ({ ...prev, sort: value as SortOption }));
+  // Helper function to get sort function based on selected option
+  const getSortFunction = (option: SortOption): SortFunction => {
+    switch (option) {
+      case SortOption.PriceLowToHigh:
+        return (a, b) => a.price - b.price;
+      case SortOption.PriceHighToLow:
+        return (a, b) => b.price - a.price;
+      case SortOption.Newest:
+        return (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case SortOption.Alphabetical:
+        return (a, b) => (a.name || a.title || '').localeCompare(b.name || b.title || '');
+      default:
+        return (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }
   };
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
-    // Start with featured products if featured flag is true
-    let filtered = featured
-      ? products.filter(product => product.isFeatured)
-      : products;
-    
-    // Apply search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        product => 
-          product.name.toLowerCase().includes(searchLower) ||
-          product.description.toLowerCase().includes(searchLower)
-      );
-    }
-    
-    // Apply type filter
-    if (filters.type) {
-      filtered = filtered.filter(product => product.type === filters.type);
-    }
-    
-    // Apply price range filter
-    filtered = filtered.filter(
-      product => 
-        product.price >= filters.priceRange[0] && 
-        product.price <= filters.priceRange[1]
-    );
-    
-    // Apply sorting
-    const sortFn = getSortFunction(filters.sort);
-    filtered = [...filtered].sort(sortFn);
-    
-    // Apply limit if provided
-    if (limit && limit > 0) {
-      filtered = filtered.slice(0, limit);
-    }
-    
-    return filtered;
-  }, [products, filters, featured, limit]);
+    return products
+      .filter(product => {
+        // Filter by search term
+        const productName = product.name || product.title || '';
+        const matchesSearch = productName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                             product.description.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Filter by product type
+        const matchesType = selectedType === 'all' || product.type === selectedType;
+        
+        return matchesSearch && matchesType;
+      })
+      .sort(getSortFunction(sortOption));
+  }, [products, searchTerm, selectedType, sortOption]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full">
       {showFilters && (
-        <div className="mb-8 grid gap-4 md:flex md:items-center md:justify-between">
-          <div className="flex flex-col md:flex-row gap-4">
-            <Input
-              placeholder="Search products..."
-              value={filters.search}
-              onChange={handleSearchChange}
-              className="max-w-xs"
-            />
+        <div className="mb-8 p-4 rounded-lg bg-card border border-white/10 backdrop-blur-sm">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            {/* Search */}
+            <div>
+              <Label htmlFor="search" className="mb-2 block">Search</Label>
+              <Input
+                id="search"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-background/50 border-white/10"
+              />
+            </div>
             
-            <Select value={filters.type} onValueChange={handleTypeChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Product Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
-                {productTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filters.sort} onValueChange={handleSortChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Sort By" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                <SelectItem value="name-asc">Name: A-Z</SelectItem>
-                <SelectItem value="name-desc">Name: Z-A</SelectItem>
-              </SelectContent>
-            </Select>
+            {/* Product Type Filter */}
+            <div>
+              <Label htmlFor="productType" className="mb-2 block">Product Type</Label>
+              <Select value={selectedType} onValueChange={(value) => setSelectedType(value as ProductType | 'all')}>
+                <SelectTrigger id="productType" className="bg-background/50 border-white/10">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value={ProductType.NFT}>NFTs</SelectItem>
+                  <SelectItem value={ProductType.MUSIC}>Music</SelectItem>
+                  <SelectItem value={ProductType.MERCH}>Merch</SelectItem>
+                  <SelectItem value={ProductType.COLLECTIBLE}>Collectibles</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Sort Options */}
+            <div>
+              <Label htmlFor="sortOption" className="mb-2 block">Sort By</Label>
+              <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+                <SelectTrigger id="sortOption" className="bg-background/50 border-white/10">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={SortOption.Newest}>Newest</SelectItem>
+                  <SelectItem value={SortOption.PriceLowToHigh}>Price: Low to High</SelectItem>
+                  <SelectItem value={SortOption.PriceHighToLow}>Price: High to Low</SelectItem>
+                  <SelectItem value={SortOption.Alphabetical}>Alphabetically</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
-          <div className="text-sm text-muted-foreground">
-            {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+          {/* Clear Filters Button */}
+          <div className="mt-4 flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedType('all');
+                setSortOption(SortOption.Newest);
+              }}
+            >
+              Clear Filters
+            </Button>
           </div>
         </div>
       )}
       
       {filteredProducts.length === 0 ? (
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium mb-2">No products found</h3>
-          <p className="text-muted-foreground mb-4">Try adjusting your search or filter criteria</p>
-          <Button 
-            variant="outline" 
-            onClick={() => setFilters({
-              search: '',
-              type: '',
-              priceRange: initialPriceRange,
-              sort: 'newest',
-            })}
-          >
-            Clear Filters
-          </Button>
+          <h3 className="text-xl font-medium mb-2">No products found</h3>
+          <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onAddToCart={() => onAddToCart && onAddToCart(product)}
+              showAddToCart={showAddToCart}
+            />
           ))}
         </div>
       )}
