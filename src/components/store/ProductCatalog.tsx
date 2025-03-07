@@ -28,46 +28,35 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Função separada para aplicar filtros - evita instantiação de tipo excessivamente profunda
-  const applyFilters = () => {
+  // Simplificamos a lógica de aplicar filtros para evitar instanciação de tipo excessivamente profunda
+  useEffect(() => {
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
     }
     
-    // Criar uma cópia dos produtos para modificar
+    // Aplicar filtro de pesquisa
     let result = [...products];
     
-    // Aplicar filtro de pesquisa
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
       result = result.filter(product => {
-        const titleMatch = product.title.toLowerCase().includes(searchTerm);
-        const descriptionMatch = product.description ? 
-          product.description.toLowerCase().includes(searchTerm) : 
-          false;
-        return titleMatch || descriptionMatch;
+        return product.title.toLowerCase().includes(searchTerm) || 
+               (product.description ? product.description.toLowerCase().includes(searchTerm) : false);
       });
     }
     
     // Aplicar ordenação
-    switch (sortBy) {
-      case 'price-low':
-        result.sort((a, b) => Number(a.price) - Number(b.price));
-        break;
-      case 'price-high':
-        result.sort((a, b) => Number(b.price) - Number(a.price));
-        break;
-      case 'name-az':
-        result.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-za':
-        result.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      // 'newest' é o padrão e já está ordenado pela consulta
-      default:
-        break;
+    if (sortBy === 'price-low') {
+      result.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (sortBy === 'price-high') {
+      result.sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (sortBy === 'name-az') {
+      result.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === 'name-za') {
+      result.sort((a, b) => b.title.localeCompare(a.title));
     }
+    // 'newest' é o padrão e já está ordenado pela consulta
     
     // Aplicar limite
     if (limit && limit > 0) {
@@ -75,11 +64,6 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     
     setFilteredProducts(result);
-  };
-
-  // Chamar applyFilters quando os filtros ou produtos mudarem
-  useEffect(() => {
-    applyFilters();
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
