@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
 import { Input } from '@/components/ui/input';
@@ -28,16 +28,17 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Simplificamos a lógica de aplicar filtros para evitar instanciação de tipo excessivamente profunda
-  useEffect(() => {
+  // Simplificamos a função de filtragem para evitar instanciação de tipo excessivamente profunda
+  const applyFilters = useCallback(() => {
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
     }
     
-    // Aplicar filtro de pesquisa
+    // Criamos uma nova array para os produtos filtrados
     let result = [...products];
     
+    // Aplicar filtro de pesquisa
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
       result = result.filter(product => {
@@ -47,16 +48,21 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     
     // Aplicar ordenação
-    if (sortBy === 'price-low') {
-      result.sort((a, b) => Number(a.price) - Number(b.price));
-    } else if (sortBy === 'price-high') {
-      result.sort((a, b) => Number(b.price) - Number(a.price));
-    } else if (sortBy === 'name-az') {
-      result.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      result.sort((a, b) => b.title.localeCompare(a.title));
+    switch (sortBy) {
+      case 'price-low':
+        result.sort((a, b) => Number(a.price) - Number(b.price));
+        break;
+      case 'price-high':
+        result.sort((a, b) => Number(b.price) - Number(a.price));
+        break;
+      case 'name-az':
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'name-za':
+        result.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      // 'newest' é o padrão e já está ordenado pela consulta
     }
-    // 'newest' é o padrão e já está ordenado pela consulta
     
     // Aplicar limite
     if (limit && limit > 0) {
@@ -65,6 +71,11 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     
     setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
+
+  // Usar o callback para aplicar filtros quando as dependências mudarem
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const fetchProducts = async () => {
     setLoading(true);
