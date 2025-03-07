@@ -1,5 +1,6 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
+import { ThemeContextType, ThemeType } from './theme-types';
 
 // Definição do tema principal
 export const themeColors = {
@@ -254,7 +255,7 @@ export const transitions = {
 };
 
 // Definição do tema completo
-export const theme = {
+export const theme: ThemeType = {
   colors: themeColors,
   typography,
   spacing,
@@ -264,8 +265,6 @@ export const theme = {
 };
 
 // Contexto do tema
-type ThemeContextType = typeof theme;
-
 const ThemeContext = createContext<ThemeContextType>(theme);
 
 // Provider para o tema

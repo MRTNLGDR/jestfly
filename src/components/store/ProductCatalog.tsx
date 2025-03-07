@@ -1,244 +1,226 @@
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import ProductCard from './ProductCard';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ProductCard } from './ProductCard';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-// Define Product type
-export type Product = {
+// Define a more specific Product type to match both components
+export type ProductType = "nft" | "music" | "merch" | "collectible";
+
+export interface Product {
   id: string;
-  title: string;
+  name: string;
   description: string;
   price: number;
   image: string;
-  category: 'nft' | 'music' | 'merch' | 'collectible';
-  featured?: boolean;
-  artist?: string;
-  releaseDate?: string;
-  type: string;
-};
+  type: ProductType;
+  rating?: number;
+  isNew?: boolean;
+  isFeatured?: boolean;
+  stock?: number;
+  createdAt: string;
+}
 
-// Define props type with proper generic constraint
-export interface ProductCatalogProps {
-  category?: 'nft' | 'music' | 'merch' | 'collectible';
-  featuredOnly?: boolean;
+interface ProductCatalogProps {
+  products: Product[];
+  showFilters?: boolean;
+  featured?: boolean;
   limit?: number;
 }
 
-// Sort option type
-type SortOption = 'price-asc' | 'price-desc' | 'newest' | 'oldest';
+type SortOption = 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc' | 'newest';
 
-// Define sort function type to avoid recursive type references
+type FilterState = {
+  search: string;
+  type: string;
+  priceRange: [number, number];
+  sort: SortOption;
+};
+
+const initialPriceRange: [number, number] = [0, 1000];
+
+// Dedicated sort function type to prevent infinite type recursion
 type SortFunction = (a: Product, b: Product) => number;
 
-// Helper function to get sort function
+// Helper to get the appropriate sort function
 const getSortFunction = (sortOption: SortOption): SortFunction => {
   switch (sortOption) {
     case 'price-asc':
       return (a, b) => a.price - b.price;
     case 'price-desc':
       return (a, b) => b.price - a.price;
+    case 'name-asc':
+      return (a, b) => a.name.localeCompare(b.name);
+    case 'name-desc':
+      return (a, b) => b.name.localeCompare(a.name);
     case 'newest':
-      return (a, b) => {
-        const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
-        const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
-        return dateB - dateA;
-      };
-    case 'oldest':
-      return (a, b) => {
-        const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
-        const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
-        return dateA - dateB;
-      };
+      return (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     default:
       return (a, b) => 0;
   }
 };
 
-// Sample products data
-const sampleProducts: Product[] = [
-  {
-    id: '1',
-    title: 'Digital Dream NFT',
-    description: 'Limited edition digital artwork',
-    price: 0.5,
-    image: '/placeholder.svg',
-    category: 'nft',
-    featured: true,
-    artist: 'Digital Artist',
-    releaseDate: '2023-05-15',
-    type: 'Digital Art'
-  },
-  {
-    id: '2',
-    title: 'Neon Nights EP',
-    description: 'Latest electronic music release',
-    price: 9.99,
-    image: '/placeholder.svg',
-    category: 'music',
-    artist: 'Electronic Producer',
-    releaseDate: '2023-06-20',
-    type: 'Music'
-  },
-  {
-    id: '3',
-    title: 'JESTFLY T-Shirt',
-    description: 'Premium cotton t-shirt with logo',
-    price: 29.99,
-    image: '/placeholder.svg',
-    category: 'merch',
-    type: 'Clothing'
-  },
-  {
-    id: '4',
-    title: 'Signed Vinyl Collection',
-    description: 'Limited edition signed vinyl records',
-    price: 149.99,
-    image: '/placeholder.svg',
-    category: 'collectible',
-    featured: true,
-    artist: 'Various Artists',
-    type: 'Collectible'
-  },
-  {
-    id: '5',
-    title: 'Crystal Memories NFT',
-    description: 'Exclusive crystal-themed digital collectible',
-    price: 0.8,
-    image: '/placeholder.svg',
-    category: 'nft',
-    artist: 'Crystal Artist',
-    releaseDate: '2023-07-10',
-    type: 'Digital Art'
-  },
-  {
-    id: '6',
-    title: 'JESTFLY Hoodie',
-    description: 'Comfortable hoodie with glow-in-dark print',
-    price: 59.99,
-    image: '/placeholder.svg',
-    category: 'merch',
-    type: 'Clothing'
-  }
-];
-
-const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
-  category, 
-  featuredOnly = false,
-  limit 
+export const ProductCatalog: React.FC<ProductCatalogProps> = ({
+  products,
+  showFilters = true,
+  featured = false,
+  limit
 }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOption, setSortOption] = useState<SortOption>('newest');
-  const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    type: '',
+    priceRange: initialPriceRange,
+    sort: 'newest',
+  });
 
-  useEffect(() => {
-    // Simulate API fetch
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        // In a real app, this would be an API call
-        // For now, we'll use the sample data
-        let filteredProducts = [...sampleProducts];
-        
-        // Apply category filter if specified
-        if (category) {
-          filteredProducts = filteredProducts.filter(p => p.category === category);
-        }
-        
-        // Apply featured filter if specified
-        if (featuredOnly) {
-          filteredProducts = filteredProducts.filter(p => p.featured);
-        }
-        
-        // Apply limit if specified
-        if (limit && filteredProducts.length > limit) {
-          filteredProducts = filteredProducts.slice(0, limit);
-        }
-        
-        setProducts(filteredProducts);
-      } catch (error) {
-        console.error('Error fetching products:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Get unique product types for filter dropdown
+  const productTypes = useMemo(() => {
+    const types = new Set<string>();
+    products.forEach(product => types.add(product.type));
+    return Array.from(types);
+  }, [products]);
+
+  // Find min and max prices for price filter
+  const priceRange = useMemo(() => {
+    let min = Number.MAX_VALUE;
+    let max = 0;
     
-    fetchProducts();
-  }, [category, featuredOnly, limit]);
+    products.forEach(product => {
+      min = Math.min(min, product.price);
+      max = Math.max(max, product.price);
+    });
+    
+    return [Math.floor(min), Math.ceil(max)] as [number, number];
+  }, [products]);
 
-  // Filter products based on search term
-  const filteredProducts = products.filter(product => 
-    product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // Update filters
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters(prev => ({ ...prev, search: e.target.value }));
+  };
 
-  // Sort products based on selected option
-  const sortedProducts = [...filteredProducts].sort(getSortFunction(sortOption));
+  const handleTypeChange = (value: string) => {
+    setFilters(prev => ({ ...prev, type: value }));
+  };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-pulse-slow">Loading products...</div>
-      </div>
+  const handleSortChange = (value: string) => {
+    setFilters(prev => ({ ...prev, sort: value as SortOption }));
+  };
+
+  // Filter and sort products
+  const filteredProducts = useMemo(() => {
+    // Start with featured products if featured flag is true
+    let filtered = featured
+      ? products.filter(product => product.isFeatured)
+      : products;
+    
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(
+        product => 
+          product.name.toLowerCase().includes(searchLower) ||
+          product.description.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply type filter
+    if (filters.type) {
+      filtered = filtered.filter(product => product.type === filters.type);
+    }
+    
+    // Apply price range filter
+    filtered = filtered.filter(
+      product => 
+        product.price >= filters.priceRange[0] && 
+        product.price <= filters.priceRange[1]
     );
-  }
-
-  if (!isLoading && products.length === 0) {
-    return (
-      <div className="text-center py-10">
-        <h3 className="text-title-md">No products found</h3>
-        <p className="text-muted-foreground">Try adjusting your filters or check back later for new items.</p>
-      </div>
-    );
-  }
+    
+    // Apply sorting
+    const sortFn = getSortFunction(filters.sort);
+    filtered = [...filtered].sort(sortFn);
+    
+    // Apply limit if provided
+    if (limit && limit > 0) {
+      filtered = filtered.slice(0, limit);
+    }
+    
+    return filtered;
+  }, [products, filters, featured, limit]);
 
   return (
-    <div className="w-full">
-      {!featuredOnly && !limit && (
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <Input
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-grow"
-          />
-          <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-            <SelectTrigger className="w-full md:w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="newest">Newest First</SelectItem>
-              <SelectItem value="oldest">Oldest First</SelectItem>
-              <SelectItem value="price-asc">Price: Low to High</SelectItem>
-              <SelectItem value="price-desc">Price: High to Low</SelectItem>
-            </SelectContent>
-          </Select>
+    <div className="container mx-auto px-4 py-8">
+      {showFilters && (
+        <div className="mb-8 grid gap-4 md:flex md:items-center md:justify-between">
+          <div className="flex flex-col md:flex-row gap-4">
+            <Input
+              placeholder="Search products..."
+              value={filters.search}
+              onChange={handleSearchChange}
+              className="max-w-xs"
+            />
+            
+            <Select value={filters.type} onValueChange={handleTypeChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Product Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Types</SelectItem>
+                {productTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.sort} onValueChange={handleSortChange}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Sort By" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                <SelectItem value="name-desc">Name: Z-A</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="text-sm text-muted-foreground">
+            {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+          </div>
         </div>
       )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {sortedProducts.map((product) => (
-          <motion.div
-            key={product.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+      
+      {filteredProducts.length === 0 ? (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-medium mb-2">No products found</h3>
+          <p className="text-muted-foreground mb-4">Try adjusting your search or filter criteria</p>
+          <Button 
+            variant="outline" 
+            onClick={() => setFilters({
+              search: '',
+              type: '',
+              priceRange: initialPriceRange,
+              sort: 'newest',
+            })}
           >
-            <ProductCard product={product} />
-          </motion.div>
-        ))}
-      </div>
-
-      {limit && products.length >= limit && (
-        <div className="mt-8 text-center">
-          <Button variant="outline" className="hover-glow">View All Products</Button>
+            Clear Filters
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredProducts.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
         </div>
       )}
     </div>
   );
 };
-
-export default ProductCatalog;

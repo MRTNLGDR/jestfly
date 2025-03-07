@@ -1,69 +1,38 @@
 
-import { themeColors, typography, borders, effects, transitions } from '../styles/theme.tsx';
+import { themeColors, borders, effects, transitions } from '../styles/theme.tsx';
 
-/**
- * Converte um objeto de cores para hsl ou rgb no formato que o Tailwind espera
- */
-export function formatTailwindThemeColors(colors: any) {
-  const formatted: any = {};
-  
-  for (const [key, value] of Object.entries(colors)) {
-    if (typeof value === 'string') {
-      formatted[key] = value;
-    } else if (typeof value === 'object') {
-      formatted[key] = formatTailwindThemeColors(value);
-    }
-  }
-  
-  return formatted;
-}
-
-/**
- * Extrai todas as cores para uso no arquivo tailwind.config.ts
- */
+// Function to get Tailwind theme colors
 export function getTailwindThemeColors() {
-  return formatTailwindThemeColors(themeColors);
+  const { primary, secondary, accent } = themeColors;
+  return {
+    primary, 
+    secondary,
+    accent
+  };
 }
 
-/**
- * Obtém a configuração de tipografia para o Tailwind
- */
+// Function to get Tailwind typography
 export function getTailwindTypography() {
-  return {
-    fontFamily: typography.fontFamily,
-    fontSize: typography.fontSize,
-    fontWeight: typography.fontWeight,
-    lineHeight: typography.lineHeight,
-    letterSpacing: typography.letterSpacing,
-  };
+  return {};
 }
 
-/**
- * Obtém a configuração de bordas para o Tailwind
- */
+// Function to get Tailwind borders
 export function getTailwindBorders() {
-  return {
-    borderRadius: borders.radius,
-    borderWidth: borders.width,
-  };
+  return { borderRadius: borders.radius };
 }
 
-/**
- * Obtém a configuração de efeitos para o Tailwind
- */
+// Function to get Tailwind effects
 export function getTailwindEffects() {
   return {
     boxShadow: effects.shadows,
-    backdropBlur: effects.blurs,
+    backdropBlur: effects.blurs
   };
 }
 
-/**
- * Obtém a configuração de transições para o Tailwind
- */
+// Function to get Tailwind transitions
 export function getTailwindTransitions() {
   return {
     transitionDuration: transitions.duration,
-    transitionTimingFunction: transitions.timing,
+    transitionTimingFunction: transitions.timing
   };
 }
