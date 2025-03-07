@@ -1,6 +1,5 @@
 
 import { theme } from '../styles/theme';
-import type { ThemeType } from '../styles/theme-types';
 
 export const getTailwindThemeColors = () => {
   const colors = theme.colors;
