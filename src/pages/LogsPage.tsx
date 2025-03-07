@@ -129,7 +129,7 @@ const LogsPage = () => {
     }
   }, [filters, activeTab]);
 
-  // Updated to handle partial filter changes
+  // Corrected handler function that accepts partial filter updates
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
     setFilters(prevFilters => ({
       ...prevFilters,

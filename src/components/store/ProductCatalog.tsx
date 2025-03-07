@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
@@ -27,37 +28,58 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  useEffect(() => {
+  // Função separada para aplicar filtros - evita instantiação de tipo excessivamente profunda
+  const applyFilters = () => {
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
     }
     
+    // Criar uma cópia dos produtos para modificar
     let result = [...products];
     
+    // Aplicar filtro de pesquisa
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
-      result = result.filter(product => 
-        product.title.toLowerCase().includes(searchTerm) || 
-        (product.description ? product.description.toLowerCase().includes(searchTerm) : false)
-      );
+      result = result.filter(product => {
+        const titleMatch = product.title.toLowerCase().includes(searchTerm);
+        const descriptionMatch = product.description ? 
+          product.description.toLowerCase().includes(searchTerm) : 
+          false;
+        return titleMatch || descriptionMatch;
+      });
     }
     
-    if (sortBy === 'price-low') {
-      result.sort((a, b) => Number(a.price) - Number(b.price));
-    } else if (sortBy === 'price-high') {
-      result.sort((a, b) => Number(b.price) - Number(a.price));
-    } else if (sortBy === 'name-az') {
-      result.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (sortBy === 'name-za') {
-      result.sort((a, b) => b.title.localeCompare(a.title));
+    // Aplicar ordenação
+    switch (sortBy) {
+      case 'price-low':
+        result.sort((a, b) => Number(a.price) - Number(b.price));
+        break;
+      case 'price-high':
+        result.sort((a, b) => Number(b.price) - Number(a.price));
+        break;
+      case 'name-az':
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      case 'name-za':
+        result.sort((a, b) => b.title.localeCompare(a.title));
+        break;
+      // 'newest' é o padrão e já está ordenado pela consulta
+      default:
+        break;
     }
     
+    // Aplicar limite
     if (limit && limit > 0) {
       result = result.slice(0, limit);
     }
     
     setFilteredProducts(result);
+  };
+
+  // Chamar applyFilters quando os filtros ou produtos mudarem
+  useEffect(() => {
+    applyFilters();
   }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
