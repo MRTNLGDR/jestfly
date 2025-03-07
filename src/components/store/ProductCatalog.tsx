@@ -28,17 +28,17 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Simplificamos a função de filtragem para evitar instanciação de tipo excessivamente profunda
-  const applyFilters = useCallback(() => {
+  // Apply filtering logic directly in a useEffect to avoid deep type instantiation
+  useEffect(() => {
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
     }
     
-    // Criamos uma nova array para os produtos filtrados
+    // Create a new array for filtered products
     let result = [...products];
     
-    // Aplicar filtro de pesquisa
+    // Apply search filter
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
       result = result.filter(product => {
@@ -47,7 +47,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       });
     }
     
-    // Aplicar ordenação
+    // Apply sorting
     switch (sortBy) {
       case 'price-low':
         result.sort((a, b) => Number(a.price) - Number(b.price));
@@ -61,21 +61,16 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       case 'name-za':
         result.sort((a, b) => b.title.localeCompare(a.title));
         break;
-      // 'newest' é o padrão e já está ordenado pela consulta
+      // 'newest' is the default and already sorted in the query
     }
     
-    // Aplicar limite
+    // Apply limit
     if (limit && limit > 0) {
       result = result.slice(0, limit);
     }
     
     setFilteredProducts(result);
   }, [products, search, sortBy, limit]);
-
-  // Usar o callback para aplicar filtros quando as dependências mudarem
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
 
   const fetchProducts = async () => {
     setLoading(true);
