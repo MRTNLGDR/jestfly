@@ -1,5 +1,5 @@
 
-import { themeColors, typography, borders, effects, transitions } from '@/styles/theme.tsx';
+import { themeColors, typography, borders, effects, transitions } from '../styles/theme.tsx';
 
 /**
  * Converte um objeto de cores para hsl ou rgb no formato que o Tailwind espera
