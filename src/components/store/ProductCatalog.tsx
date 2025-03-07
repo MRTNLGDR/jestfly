@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { Product } from './ProductCard';
 import { Input } from '@/components/ui/input';
@@ -24,12 +24,19 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [sortBy, setSortBy] = useState('newest');
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
+  // Fetch products when category or featuredOnly changes
   useEffect(() => {
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Apply filtering logic directly in a useEffect to avoid deep type instantiation
+  // Separate effect for filtering products to avoid deep type instantiation
   useEffect(() => {
+    filterAndSortProducts();
+  }, [products, search, sortBy, limit]);
+
+  // Separated the filtering logic into a standalone function
+  // This avoids the excessive type instantiation in dependency arrays
+  function filterAndSortProducts() {
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
@@ -70,7 +77,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     }
     
     setFilteredProducts(result);
-  }, [products, search, sortBy, limit]);
+  }
 
   const fetchProducts = async () => {
     setLoading(true);
