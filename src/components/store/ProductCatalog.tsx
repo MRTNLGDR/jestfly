@@ -29,55 +29,50 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     fetchProducts();
   }, [category, featuredOnly]);
 
-  // Separate effect for filtering products to avoid deep type instantiation
+  // Apply filtering and sorting in a separate effect
   useEffect(() => {
-    filterAndSortProducts();
-  }, [products, search, sortBy, limit]);
-
-  // Separated the filtering logic into a standalone function
-  // This avoids the excessive type instantiation in dependency arrays
-  function filterAndSortProducts() {
     if (products.length === 0) {
       setFilteredProducts([]);
       return;
     }
     
-    // Create a new array for filtered products
-    let result = [...products];
+    // Create a shallow copy of products for manipulation
+    let filtered = [...products];
     
     // Apply search filter
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
-      result = result.filter(product => {
+      filtered = filtered.filter(product => {
         return product.title.toLowerCase().includes(searchTerm) || 
                (product.description ? product.description.toLowerCase().includes(searchTerm) : false);
       });
     }
     
     // Apply sorting
+    let sorted = [...filtered];
     switch (sortBy) {
       case 'price-low':
-        result.sort((a, b) => Number(a.price) - Number(b.price));
+        sorted.sort((a, b) => Number(a.price) - Number(b.price));
         break;
       case 'price-high':
-        result.sort((a, b) => Number(b.price) - Number(a.price));
+        sorted.sort((a, b) => Number(b.price) - Number(a.price));
         break;
       case 'name-az':
-        result.sort((a, b) => a.title.localeCompare(b.title));
+        sorted.sort((a, b) => a.title.localeCompare(b.title));
         break;
       case 'name-za':
-        result.sort((a, b) => b.title.localeCompare(a.title));
+        sorted.sort((a, b) => b.title.localeCompare(a.title));
         break;
       // 'newest' is the default and already sorted in the query
     }
     
     // Apply limit
     if (limit && limit > 0) {
-      result = result.slice(0, limit);
+      sorted = sorted.slice(0, limit);
     }
     
-    setFilteredProducts(result);
-  }
+    setFilteredProducts(sorted);
+  }, [products, search, sortBy, limit]);
 
   const fetchProducts = async () => {
     setLoading(true);
