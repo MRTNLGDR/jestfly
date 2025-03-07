@@ -129,6 +129,14 @@ const LogsPage = () => {
     }
   }, [filters, activeTab]);
 
+  // Updated to handle partial filter changes
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      ...newFilters
+    }));
+  };
+
   return (
     <div className="container mx-auto py-6 px-4">
       <h1 className="text-2xl font-bold mb-6">System Logs & Activity</h1>
@@ -148,7 +156,7 @@ const LogsPage = () => {
             <div>
               <LogsFilter 
                 filters={filters}
-                onFilterChange={setFilters}
+                onFilterChange={handleFilterChange}
               />
               
               <LogsTable 

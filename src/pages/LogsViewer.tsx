@@ -68,6 +68,14 @@ const LogsViewer = () => {
     }
   }, [resourceType, resourceId, activeTab, filters]);
 
+  // Updated to handle partial filter changes
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters(prevFilters => ({
+      ...prevFilters,
+      ...newFilters
+    }));
+  };
+
   if (!resourceType || !resourceId) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -101,7 +109,7 @@ const LogsViewer = () => {
             <div>
               <LogsFilter 
                 filters={filters}
-                onFilterChange={setFilters}
+                onFilterChange={handleFilterChange}
               />
               
               <LogsTable 
