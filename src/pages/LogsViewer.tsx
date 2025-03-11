@@ -10,8 +10,8 @@ import LogsTabs from '@/components/logs/LogsTabs';
 import { LogLevel, LogSource, LogModule, Log } from '@/types/logs';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { type Json } from '@/integrations/supabase/types';
 
+// Define the database log structure
 interface DbLog {
   id: string;
   created_at: string;
@@ -20,7 +20,7 @@ interface DbLog {
   type: string;
   message: string;
   user_id?: string;
-  metadata?: Json;
+  metadata?: Record<string, any>;
 }
 
 const LogsViewer: React.FC = () => {
@@ -91,7 +91,7 @@ const LogsViewer: React.FC = () => {
         type: dbLog.type as LogModule,
         message: dbLog.message,
         userId: dbLog.user_id || '',
-        metadata: dbLog.metadata as Record<string, any> || {}
+        metadata: dbLog.metadata || {}
       }));
       
       setLogs(formattedLogs);
