@@ -1,21 +1,9 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/auth/useAuth';
-
-export interface BookingFormData {
-  bookingType: 'dj' | 'studio' | 'consulting';
-  date: Date;
-  startTime: string;
-  endTime: string;
-  details: string;
-  location?: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone?: string;
-}
+import { BookingFormData } from '@/types/booking';
 
 export const useBookingsActions = () => {
   const { user } = useAuth();
