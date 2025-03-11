@@ -1,72 +1,92 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { useSystemLogs } from '@/hooks/logs/useSystemLogs';
 import GlassHeader from '@/components/GlassHeader';
 import Footer from '@/components/Footer';
 import LogsFilter from '@/components/logs/LogsFilter';
 import LogsTable from '@/components/logs/LogsTable';
 import LogsTabs from '@/components/logs/LogsTabs';
-import { LogLevel, LogSource, LogModule, Log } from '@/types/logs';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 
 const LogsPage: React.FC = () => {
-  const [filters, setFilters] = useState({
-    level: null as LogLevel | null,
-    source: null as LogSource | null,
-    search: '',
-    startDate: null as Date | null,
-    endDate: null as Date | null,
-  });
+  const { user, profile } = useAuth();
+  const { 
+    logs, 
+    isLoading, 
+    filters, 
+    fetchLogs, 
+    updateFilters,
+    clearFilters 
+  } = useSystemLogs();
 
-  // Sample logs data for the viewer
-  const viewerLogs: Log[] = [
-    {
-      id: '1',
-      timestamp: new Date().toISOString(),
-      level: LogLevel.INFO,
-      source: LogSource.SYSTEM,
-      type: LogModule.SYSTEM,
-      message: 'User session started',
-      userId: 'user123',
-      metadata: { browser: 'Chrome', os: 'Windows' }
-    },
-    {
-      id: '2',
-      timestamp: new Date(Date.now() - 1800000).toISOString(),
-      level: LogLevel.DEBUG,
-      source: LogSource.CLIENT,
-      type: LogModule.USER,
-      message: 'Component mounted',
-      userId: 'user123',
-      metadata: { component: 'Dashboard' }
-    },
-  ];
+  const isAdmin = profile?.profile_type === 'admin';
 
-  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({
-      ...prev,
-      ...newFilters
-    }));
-  };
+  // Load logs initially when component mounts
+  useEffect(() => {
+    if (user && isAdmin) {
+      fetchLogs();
+    }
+  }, [user, isAdmin, fetchLogs]);
+
+  // Reload logs when filters change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user && isAdmin) {
+        fetchLogs();
+      }
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [filters, user, isAdmin, fetchLogs]);
+
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-black">
+        <GlassHeader />
+        <main className="container mx-auto px-4 pt-24 pb-20">
+          <h1 className="text-4xl font-light mb-6 text-gradient-primary">Logs Viewer</h1>
+          <div className="glass-morphism p-8 rounded-lg text-center">
+            <p className="text-white/70">You don't have permission to view logs.</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black">
       <GlassHeader />
       
       <main className="container mx-auto px-4 pt-24 pb-20">
-        <h1 className="text-4xl font-light mb-6 text-gradient-primary">Logs Viewer</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-light text-gradient-primary">Logs Viewer</h1>
+          <Button 
+            onClick={() => fetchLogs()} 
+            variant="outline"
+            className="bg-black/30 border-white/10"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
         
         <LogsFilter
           currentFilters={filters}
-          onFilterChange={handleFilterChange}
+          onFilterChange={updateFilters}
+          onClearFilters={clearFilters}
         />
         
         <LogsTabs 
-          defaultValue="session"
+          defaultValue="system"
           tabValues={[
-            { value: 'session', label: 'Current Session', count: viewerLogs.length },
+            { value: 'system', label: 'System Logs', count: logs.length },
             { value: 'user', label: 'User Logs', count: 0 },
           ]}
         >
-          <LogsTable logs={viewerLogs} isLoading={false} />
+          <LogsTable logs={logs} isLoading={isLoading} />
         </LogsTabs>
       </main>
       
