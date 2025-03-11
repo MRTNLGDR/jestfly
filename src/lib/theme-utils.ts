@@ -1,9 +1,14 @@
 
 import { theme } from '../styles/theme.tsx';
+import { ThemeColorsType, TypographyType, EffectsType, TransitionsType } from '../styles/theme-types';
 
 // Provide default empty values to prevent undefined errors
 const defaultTheme = {
-  colors: {},
+  colors: {
+    primary: { DEFAULT: '#8B5CF6' },
+    secondary: { DEFAULT: '#4ade80' },
+    accent: { DEFAULT: '#0ea5e9' }
+  },
   typography: {
     fontFamily: {},
     fontSize: {},
@@ -11,12 +16,12 @@ const defaultTheme = {
     letterSpacing: {},
   },
   effects: {
-    boxShadow: {},
-    backdropBlur: {},
+    shadows: {},
+    blurs: {},
   },
   transitions: {
     duration: {},
-    timingFunction: {},
+    timing: {},
   },
 };
 
