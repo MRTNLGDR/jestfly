@@ -79,7 +79,7 @@ const LogsPage: React.FC = () => {
             { value: 'user', label: 'User Logs', count: 0 },
           ]}
         >
-          <LogsTable logs={viewerLogs} />
+          <LogsTable logs={viewerLogs} isLoading={false} />
         </LogsTabs>
       </main>
       
