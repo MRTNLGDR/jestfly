@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import GlassHeader from '@/components/GlassHeader';
 import Footer from '@/components/Footer';
@@ -54,8 +55,8 @@ const LogsPage: React.FC = () => {
         <h1 className="text-4xl font-light mb-6 text-gradient-primary">Logs Viewer</h1>
         
         <LogsFilter
-          onFilterChange={handleFilterChange}
           currentFilters={filters}
+          onFilterChange={handleFilterChange}
         />
         
         <LogsTabs 
