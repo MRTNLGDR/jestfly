@@ -37,8 +37,8 @@ const LogsViewer: React.FC = () => {
 
   const isAdmin = profile?.profile_type === 'admin';
 
-  // Define fetchLogs function outside any hooks
-  const fetchLogs = () => {
+  // Define fetchLogs as a regular function, not dependent on other state
+  function fetchLogs() {
     setIsLoadingLogs(true);
     
     if (!user || !isAdmin) {
@@ -75,6 +75,7 @@ const LogsViewer: React.FC = () => {
     // Order by most recent first
     query = query.order('created_at', { ascending: false });
     
+    // Use proper promise handling without the catch method
     query.then(({ data, error }) => {
       if (error) {
         console.error('Error fetching logs:', error);
@@ -96,18 +97,15 @@ const LogsViewer: React.FC = () => {
       
       setLogs(formattedLogs);
       setIsLoadingLogs(false);
-    }).catch((error: Error) => {
-      console.error('Error in fetchLogs:', error);
-      setIsLoadingLogs(false);
     });
-  };
+  }
 
   // Initial fetch on component mount
   useEffect(() => {
     fetchLogs();
   }, []);
 
-  // Effect to handle filter changes with debounce
+  // Effect for filter changes with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchLogs();
