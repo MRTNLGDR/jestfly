@@ -1,114 +1,162 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { CommunityPost, CreatePostInput } from '@/types/community';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { CommunityPost, CreatePostInput } from '@/types/community';
+import { toast } from 'sonner';
 
 export const useCommunityPosts = (category?: string) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const fetchPosts = async (): Promise<CommunityPost[]> => {
-    let query = supabase
-      .from('community_posts')
-      .select(`
-        *,
-        user:profiles(username, display_name, avatar)
-      `);
+  // Query to fetch posts
+  const { data = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['community-posts', category],
+    queryFn: async () => {
+      let query = supabase
+        .from('community_posts')
+        .select(`
+          *,
+          user:profiles(username, avatar, display_name),
+          likes_count:post_likes(count),
+          comments_count:post_comments(count)
+        `);
 
-    if (category && category !== 'all') {
-      query = query.eq('category', category);
+      if (category) {
+        query = query.eq('category', category);
+      }
+
+      query = query.order('is_pinned', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      return (data || []).map(post => ({
+        ...post,
+        likes_count: post.likes_count?.[0]?.count || 0,
+        comments_count: post.comments_count?.[0]?.count || 0,
+      })) as CommunityPost[];
     }
-
-    query = query.order('is_pinned', { ascending: false })
-                .order('created_at', { ascending: false });
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching community posts:', error);
-      throw new Error(error.message);
-    }
-
-    return (data || []) as CommunityPost[];
-  };
-
-  const {
-    data: posts = [],
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ['communityPosts', category],
-    queryFn: fetchPosts
   });
 
+  // Mutation to create a post
   const createPost = useMutation({
-    mutationFn: async (newPost: CreatePostInput) => {
-      if (!user) {
-        throw new Error('Você precisa estar logado para criar um post');
-      }
+    mutationFn: async (postData: CreatePostInput): Promise<CommunityPost> => {
+      if (!user) throw new Error('User must be logged in to create a post');
 
       const { data, error } = await supabase
         .from('community_posts')
         .insert({
-          title: newPost.title,
-          content: newPost.content,
-          category: newPost.category,
-          user_id: newPost.user_id,
-          is_pinned: newPost.is_pinned || false,
-          is_featured: newPost.is_featured || false
+          title: postData.title,
+          content: postData.content,
+          category: postData.category,
+          user_id: user.id,
+          is_pinned: postData.is_pinned || false,
+          is_featured: postData.is_featured || false
         })
-        .select();
+        .select()
+        .single();
 
-      if (error) {
-        console.error('Error creating post:', error);
-        throw new Error(error.message);
-      }
-
-      return (data?.[0] || null) as CommunityPost;
+      if (error) throw error;
+      return data as CommunityPost;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['communityPosts'] });
-      toast.success('Post criado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+      toast.success('Publicação criada com sucesso!');
     },
     onError: (error) => {
-      toast.error(`Erro ao criar post: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error('Erro ao criar publicação: ' + error.message);
     }
   });
 
+  // Mutation to delete a post
   const deletePost = useMutation({
     mutationFn: async (postId: string) => {
-      if (!user) {
-        throw new Error('Você precisa estar logado para excluir um post');
-      }
+      if (!user) throw new Error('User must be logged in to delete a post');
 
+      // First delete all comments
+      await supabase
+        .from('post_comments')
+        .delete()
+        .eq('post_id', postId);
+
+      // Then delete all likes
+      await supabase
+        .from('post_likes')
+        .delete()
+        .eq('post_id', postId);
+
+      // Finally delete the post
       const { error } = await supabase
         .from('community_posts')
         .delete()
         .eq('id', postId)
         .eq('user_id', user.id);
 
-      if (error) {
-        throw new Error(error.message);
+      if (error) throw error;
+      return postId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
+      toast.success('Publicação excluída com sucesso!');
+    },
+    onError: (error) => {
+      toast.error('Erro ao excluir publicação: ' + error.message);
+    }
+  });
+
+  // Mutation to like a post
+  const likePost = useMutation({
+    mutationFn: async (postId: string) => {
+      if (!user) throw new Error('User must be logged in to like a post');
+      
+      // Check if user already liked the post
+      const { data: existingLike } = await supabase
+        .from('post_likes')
+        .select('*')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (existingLike) {
+        // Unlike
+        const { error } = await supabase
+          .from('post_likes')
+          .delete()
+          .eq('id', existingLike.id);
+        
+        if (error) throw error;
+        return { action: 'removed', postId };
+      } else {
+        // Like
+        const { error } = await supabase
+          .from('post_likes')
+          .insert({
+            post_id: postId,
+            user_id: user.id,
+          });
+        
+        if (error) throw error;
+        return { action: 'added', postId };
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['communityPosts'] });
-      toast.success('Post excluído com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['community-posts'] });
     },
     onError: (error) => {
-      toast.error(`Erro ao excluir post: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      toast.error('Erro ao curtir/descurtir: ' + error.message);
     }
   });
 
   return {
-    posts,
+    posts: data,
     isLoading,
     error,
     createPost,
     deletePost,
+    likePost,
     refetch
   };
 };

@@ -1,15 +1,18 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { Textarea } from '@/components/ui/textarea';
-import { useCommunityPosts, usePostComments, useLikes } from '@/hooks/community';
+import { useCommunityPosts, usePostComments } from '@/hooks/community';
+import { useLikes } from '@/hooks/community/useLikes';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronLeft, Heart, MessageSquare, Share2, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -18,8 +21,7 @@ const PostDetailPage: React.FC = () => {
   const { posts, isLoading: isPostsLoading, deletePost } = useCommunityPosts();
   const { comments, isLoading: isCommentsLoading, createComment, deleteComment } = usePostComments(postId || '');
   const { likes, isLoading: isLikesLoading, addLike, removeLike } = useLikes(postId || '');
-  const { toast } = useToast();
-
+  
   const post = posts.find(post => post.id === postId);
   const [commentContent, setCommentContent] = useState('');
   const isPostLoading = isPostsLoading || !post;
@@ -28,10 +30,8 @@ const PostDetailPage: React.FC = () => {
 
   const handleCreateComment = async () => {
     if (commentContent.trim() === '') {
-      toast({
-        title: 'Erro',
-        description: 'O comentário não pode estar vazio.',
-        variant: 'destructive'
+      toast('O comentário não pode estar vazio.', {
+        description: 'Por favor, escreva algo antes de comentar.',
       });
       return;
     }
@@ -40,10 +40,8 @@ const PostDetailPage: React.FC = () => {
       await createComment.mutateAsync(commentContent);
       setCommentContent('');
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Falha ao criar comentário.',
-        variant: 'destructive'
+      toast('Erro ao criar comentário', {
+        description: 'Ocorreu um erro ao tentar criar seu comentário.',
       });
     }
   };
@@ -52,10 +50,8 @@ const PostDetailPage: React.FC = () => {
     try {
       await deleteComment.mutateAsync(commentId);
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Falha ao excluir comentário.',
-        variant: 'destructive'
+      toast('Erro ao excluir comentário', {
+        description: 'Ocorreu um erro ao tentar excluir o comentário.',
       });
     }
   };
@@ -68,10 +64,8 @@ const PostDetailPage: React.FC = () => {
         await addLike.mutateAsync(postId || '');
       }
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Falha ao curtir/descurtir o post.',
-        variant: 'destructive'
+      toast('Erro ao curtir/descurtir o post', {
+        description: 'Ocorreu um erro ao processar sua ação.',
       });
     }
   };
@@ -83,10 +77,8 @@ const PostDetailPage: React.FC = () => {
       await deletePost.mutateAsync(postId);
       navigate('/community');
     } catch (error) {
-      toast({
-        title: 'Erro',
-        description: 'Falha ao excluir o post.',
-        variant: 'destructive'
+      toast('Erro ao excluir o post', {
+        description: 'Ocorreu um erro ao tentar excluir a publicação.',
       });
     }
   };
@@ -119,7 +111,7 @@ const PostDetailPage: React.FC = () => {
           </Avatar>
           <span>
             {post?.user?.display_name || post?.user?.username} - Publicado{' '}
-            {post?.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: require('date-fns/locale/pt') }) : 'há pouco tempo'}
+            {post?.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: ptBR }) : 'há pouco tempo'}
           </span>
         </div>
         {post?.category && (
@@ -190,7 +182,7 @@ const PostDetailPage: React.FC = () => {
               </div>
               <p className="text-gray-300">{comment.content}</p>
               <small className="text-gray-500">
-                {comment.created_at ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: require('date-fns/locale/pt') }) : 'há pouco tempo'}
+                {comment.created_at ? formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ptBR }) : 'há pouco tempo'}
               </small>
             </div>
           ))

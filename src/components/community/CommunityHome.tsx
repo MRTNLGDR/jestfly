@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCommunityPosts } from '@/hooks/community';
@@ -6,7 +7,14 @@ import PostCard from './PostCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Filter } from 'lucide-react';
+import { 
+  Filter, 
+  AlertCircle, 
+  Calendar, 
+  MessageSquare, 
+  Users, 
+  Loader2 
+} from 'lucide-react';
 
 const CommunityHome: React.FC = () => {
   const { user } = useAuth();
