@@ -1,21 +1,16 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Refresh, Filter } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import GlassHeader from '@/components/GlassHeader';
+import Footer from '@/components/Footer';
 import LogsFilter from '@/components/logs/LogsFilter';
 import LogsTable from '@/components/logs/LogsTable';
-import { useAuth } from '@/hooks/auth/useAuth';
-import { useToast } from '@/components/ui/use-toast';
+import LogsTabs from '@/components/logs/LogsTabs';
 import { LogLevel, LogSource, LogModule, Log } from '@/types/logs';
-import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+import { type Json } from '@/integrations/supabase/types';
 
 interface DbLog {
   id: string;
@@ -25,57 +20,38 @@ interface DbLog {
   type: string;
   message: string;
   user_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Json;
 }
 
-const LogsViewer = () => {
+const LogsViewer: React.FC = () => {
   const { user, profile } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [logs, setLogs] = useState<Log[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
+  const [isLoadingLogs, setIsLoadingLogs] = useState(true);
   const [filters, setFilters] = useState({
-    search: '',
     level: null as LogLevel | null,
     source: null as LogSource | null,
+    search: '',
     startDate: null as Date | null,
-    endDate: null as Date | null
+    endDate: null as Date | null,
   });
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    if (profile?.profile_type !== 'admin') {
-      navigate('/');
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to view this page.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    fetchLogs();
-  }, [user, profile, navigate, activeTab, filters]);
+  const isAdmin = profile?.profile_type === 'admin';
 
   const fetchLogs = async () => {
+    setIsLoadingLogs(true);
+    
     try {
-      setLoading(true);
+      if (!user || !isAdmin) {
+        setLogs([]);
+        setIsLoadingLogs(false);
+        return;
+      }
       
       let query = supabase
         .from('system_logs')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
       
       // Apply filters
-      if (filters.search) {
-        query = query.ilike('message', `%${filters.search}%`);
-      }
-      
       if (filters.level) {
         query = query.eq('level', filters.level);
       }
@@ -83,123 +59,111 @@ const LogsViewer = () => {
       if (filters.source) {
         query = query.eq('source', filters.source);
       }
-
-      // Apply tab filtering
-      if (activeTab === 'errors') {
-        query = query.eq('level', 'error');
-      } else if (activeTab === 'auth') {
-        query = query.eq('type', 'auth');
-      } else if (activeTab === 'system') {
-        query = query.eq('type', 'system');
+      
+      if (filters.search) {
+        query = query.ilike('message', `%${filters.search}%`);
       }
-
-      // Apply date filters
+      
       if (filters.startDate) {
         query = query.gte('created_at', filters.startDate.toISOString());
       }
+      
       if (filters.endDate) {
         query = query.lte('created_at', filters.endDate.toISOString());
       }
-
-      const { data, error } = await query.limit(100);
+      
+      // Order by most recent first
+      query = query.order('created_at', { ascending: false });
+      
+      const { data, error } = await query;
       
       if (error) {
-        throw error;
+        console.error('Error fetching logs:', error);
+        return;
       }
-
-      // Map DB logs to the Log type
-      const mappedLogs: Log[] = (data || []).map((dbLog: DbLog) => ({
+      
+      // Transform database logs to the Log type
+      const formattedLogs: Log[] = (data as DbLog[]).map((dbLog: DbLog) => ({
         id: dbLog.id,
         timestamp: dbLog.created_at,
         level: dbLog.level as LogLevel,
         source: dbLog.source as LogSource,
         type: dbLog.type as LogModule,
         message: dbLog.message,
-        userId: dbLog.user_id,
-        metadata: dbLog.metadata
+        userId: dbLog.user_id || '',
+        metadata: dbLog.metadata as Record<string, any> || {}
       }));
-
-      setLogs(mappedLogs);
+      
+      setLogs(formattedLogs);
     } catch (error) {
-      console.error('Error fetching logs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch logs. Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error in fetchLogs:', error);
     } finally {
-      setLoading(false);
+      setIsLoadingLogs(false);
     }
   };
 
-  // Update this function to accept the right parameter type
+  useEffect(() => {
+    fetchLogs();
+  }, [user, filters]);
+
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
   };
 
-  const resetFilters = () => {
-    setFilters({
-      search: '',
-      level: null,
-      source: null,
-      startDate: null,
-      endDate: null
-    });
-  };
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-black">
+        <GlassHeader />
+        
+        <main className="container mx-auto px-4 pt-24 pb-20">
+          <h1 className="text-4xl font-light mb-6 text-gradient-primary">Logs Viewer</h1>
+          <div className="glass-morphism p-8 rounded-lg text-center">
+            <p className="text-white/70">You don't have permission to view logs.</p>
+          </div>
+        </main>
+        
+        <Footer />
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-light text-gradient-primary">System Logs</h1>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-black">
+      <GlassHeader />
+      
+      <main className="container mx-auto px-4 pt-24 pb-20">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-light text-gradient-primary">Logs Viewer</h1>
           <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={resetFilters}
-            className="border-white/10 hover:border-white/30 text-white/70 hover:text-white"
+            onClick={fetchLogs} 
+            variant="outline"
+            className="bg-black/30 border-white/10"
           >
-            <Filter className="mr-2 h-4 w-4" />
-            Reset Filters
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchLogs}
-            className="border-white/10 hover:border-white/30 text-white/70 hover:text-white"
-          >
-            <Refresh className="mr-2 h-4 w-4" />
+            <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
         </div>
-      </div>
+        
+        <LogsFilter
+          currentFilters={filters}
+          onFilterChange={handleFilterChange}
+        />
+        
+        <LogsTabs 
+          defaultValue="system"
+          tabValues={[
+            { value: 'system', label: 'System Logs', count: logs.length },
+            { value: 'user', label: 'User Logs', count: 0 },
+          ]}
+        >
+          <LogsTable logs={logs} isLoading={isLoadingLogs} />
+        </LogsTabs>
+      </main>
       
-      <Card className="bg-black/40 backdrop-blur-md border-white/10">
-        <CardContent className="p-6">
-          <LogsFilter 
-            currentFilters={filters}
-            onFilterChange={handleFilterChange}
-          />
-          
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-            <TabsList className="bg-black/50 border border-white/10">
-              <TabsTrigger value="all">All Logs</TabsTrigger>
-              <TabsTrigger value="errors">Errors</TabsTrigger>
-              <TabsTrigger value="auth">Auth</TabsTrigger>
-              <TabsTrigger value="system">System</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value={activeTab} className="mt-4">
-              {loading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-                </div>
-              ) : (
-                <LogsTable logs={logs} isLoading={loading} />
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <Footer />
     </div>
   );
 };
