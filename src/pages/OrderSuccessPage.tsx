@@ -11,14 +11,9 @@ const OrderSuccessPage = () => {
   const navigate = useNavigate();
   const { orderId } = location.state || {};
 
-  const menuItems = [
-    { label: "Store", href: "/store" },
-    { label: "Order Success", href: "/store/order-success" }
-  ];
-
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
-      <GlassHeader menuItems={menuItems} />
+      <GlassHeader />
       
       <main className="flex-1 flex items-center justify-center container mx-auto px-4 py-20">
         <div className="max-w-md w-full text-center">

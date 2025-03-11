@@ -38,12 +38,6 @@ const LogsPage: React.FC = () => {
     },
   ];
 
-  const menuItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Logs', href: '/logs' },
-    { label: 'Back', href: '/admin' },
-  ];
-
   const handleFilterChange = (newFilters: {
     level?: LogLevel;
     source?: LogSource;
@@ -62,7 +56,7 @@ const LogsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black">
-      <GlassHeader menuItems={menuItems} />
+      <GlassHeader />
       
       <main className="container mx-auto px-4 pt-24 pb-20">
         <h1 className="text-4xl font-light mb-6 text-gradient-primary">Logs Viewer</h1>

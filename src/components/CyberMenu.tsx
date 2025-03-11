@@ -3,22 +3,18 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '../hooks/use-mobile';
-
-interface MenuItem {
-  label: string;
-  href: string;
-}
+import { MenuItems } from '../constants/menuItems';
 
 interface CyberMenuProps {
-  items: MenuItem[];
+  isOpen?: boolean;
 }
 
-const CyberMenu: React.FC<CyberMenuProps> = ({ items }) => {
+const CyberMenu: React.FC<CyberMenuProps> = ({ isOpen }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const isMobile = useIsMobile();
   
   // Only show a limited number of items on mobile
-  const displayedItems = isMobile ? items.slice(0, 5) : items;
+  const displayedItems = isMobile ? MenuItems.slice(0, 5) : MenuItems;
   
   return (
     <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 w-full px-4 sm:px-0 sm:w-auto">
@@ -38,7 +34,7 @@ const CyberMenu: React.FC<CyberMenuProps> = ({ items }) => {
               }}
             >
               <Link
-                to={item.href}
+                to={item.path}
                 className="relative block px-2 sm:px-4 py-1.5 sm:py-2 text-white hover:text-white/90"
               >
                 {/* Multiple glass-like polygons forming the button */}

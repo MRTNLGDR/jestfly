@@ -11,17 +11,10 @@ import { Separator } from '../components/ui/separator';
 import GlassHeader from '../components/GlassHeader';
 
 const AdminPanel = () => {
-  const menuItems = [
-    { label: "Dashboard", href: "/admin" },
-    { label: "Models", href: "/admin/models" },
-    { label: "Assets", href: "/admin/assets" },
-    { label: "Settings", href: "/admin/settings" }
-  ];
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-gray-900 to-black">
-        <GlassHeader menuItems={menuItems} />
+        <GlassHeader />
         <div className="flex flex-1 pt-16">
           <AdminSidebar />
           <main className="flex-1 p-4 overflow-auto">

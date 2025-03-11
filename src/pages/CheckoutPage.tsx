@@ -187,7 +187,7 @@ const CheckoutPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
-      <GlassHeader menuItems={menuItems} />
+      <GlassHeader />
       
       <main className="flex-1 container mx-auto px-4 py-20">
         <div className="max-w-6xl mx-auto">

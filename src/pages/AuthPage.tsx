@@ -13,15 +13,6 @@ const AuthPage: React.FC = () => {
   
   const from = location.state?.from || '/';
   
-  const menuItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Community', href: '/community' },
-    { label: 'Store', href: '/store' },
-    { label: 'Events', href: '/community/events' },
-    { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
-  ];
-  
   useEffect(() => {
     // Se o usuário já estiver autenticado, redireciona para a página de origem
     if (user && !isLoading) {
@@ -35,7 +26,7 @@ const AuthPage: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-900/20">
-      <GlassHeader menuItems={menuItems} />
+      <GlassHeader />
       
       <main className="container mx-auto px-4 py-20">
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)]">
