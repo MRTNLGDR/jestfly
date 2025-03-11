@@ -18,6 +18,7 @@ const defaultTheme = {
   effects: {
     shadows: {},
     blurs: {},
+    glassmorphism: {},
   },
   transitions: {
     duration: {},
@@ -42,6 +43,10 @@ export const getTailwindTypography = () => {
     lineHeight: typography.lineHeight,
     letterSpacing: typography.letterSpacing,
   };
+};
+
+export const getTailwindBorders = () => {
+  return theme?.borders || {};
 };
 
 export const getTailwindEffects = () => {
