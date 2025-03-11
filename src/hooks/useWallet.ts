@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from './auth/useAuth';
-import { walletService } from '@/services/walletService';
+import { walletService } from '@/services/wallet';
 import { Wallet, Transaction, TransferJestCoinParams } from '@/types/wallet';
 import { toast } from 'sonner';
 
