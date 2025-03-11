@@ -34,5 +34,14 @@ export interface Log {
   metadata?: Record<string, any>;
 }
 
+// Database log structure from system_logs table
+export interface SystemLogRecord {
+  id: string;
+  created_at: string;
+  level: string;
+  message: string;
+  metadata: any;
+}
+
 // Compatibilidade retroativa
 export type LogType = Log;
