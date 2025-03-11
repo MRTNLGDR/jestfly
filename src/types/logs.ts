@@ -1,25 +1,28 @@
 
 export enum LogLevel {
+  DEBUG = 'debug',
   INFO = 'info',
   WARN = 'warn',
   ERROR = 'error',
-  DEBUG = 'debug'
+  CRITICAL = 'critical'
 }
 
 export enum LogSource {
+  SYSTEM = 'system',
   CLIENT = 'client',
   SERVER = 'server',
-  SYSTEM = 'system',
   DATABASE = 'database',
-  AUTHENTICATION = 'authentication'
+  AUTH = 'auth'
 }
 
-export interface LogType {
+export type LogType = {
   id: string;
   timestamp: string;
   level: LogLevel;
   source: LogSource;
   message: string;
-  userId: string | null;
-  metadata: Record<string, any>;
-}
+  userId?: string;
+  metadata?: Record<string, any>;
+};
+
+export type LogEntry = LogType; // Alias for backward compatibility

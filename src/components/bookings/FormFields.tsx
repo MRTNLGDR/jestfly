@@ -192,6 +192,8 @@ export const TimeField: React.FC<FieldProps> = ({
             <Input 
               type="time" 
               {...field} 
+              // Convert Date to string if necessary
+              value={typeof field.value === 'string' ? field.value : ''}
               className="bg-black/20 border-white/10"
             />
           </FormControl>

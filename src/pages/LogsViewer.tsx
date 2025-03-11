@@ -3,10 +3,9 @@ import React, { useState } from 'react';
 import GlassHeader from '@/components/GlassHeader';
 import Footer from '@/components/Footer';
 import LogsFilter from '@/components/logs/LogsFilter';
-import { LogLevel, LogSource } from '@/components/logs/LogsFilter';
 import LogsTable from '@/components/logs/LogsTable';
 import LogsTabs from '@/components/logs/LogsTabs';
-import { LogType } from '@/types/logs';
+import { LogLevel, LogSource, LogType } from '@/types/logs';
 
 const LogsViewer: React.FC = () => {
   const [filters, setFilters] = useState({
