@@ -54,7 +54,7 @@ const BookingForm: React.FC = () => {
       bookingType: 'dj',
       details: '',
       location: '',
-      contactName: user?.full_name || '',
+      contactName: user?.username || '',
       contactEmail: user?.email || '',
       contactPhone: '',
     },
@@ -62,7 +62,7 @@ const BookingForm: React.FC = () => {
 
   const bookingType = form.watch('bookingType');
   
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: BookingFormData) {
     try {
       await createBooking.mutateAsync(values);
       form.reset();
