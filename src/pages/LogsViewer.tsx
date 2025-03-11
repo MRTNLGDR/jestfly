@@ -37,7 +37,8 @@ const LogsViewer: React.FC = () => {
 
   const isAdmin = profile?.profile_type === 'admin';
 
-  // Define fetchLogs as a regular function, not dependent on other state
+  // Completely separate the fetchLogs function from any dependencies
+  // to avoid circular type references
   function fetchLogs() {
     setIsLoadingLogs(true);
     
@@ -75,7 +76,6 @@ const LogsViewer: React.FC = () => {
     // Order by most recent first
     query = query.order('created_at', { ascending: false });
     
-    // Use proper promise handling without the catch method
     query.then(({ data, error }) => {
       if (error) {
         console.error('Error fetching logs:', error);
