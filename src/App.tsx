@@ -1,4 +1,3 @@
-
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from "sonner";
 import './App.css';
@@ -26,13 +25,64 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
+  const defaultHomePageProps = {
+    crystalParams: {
+      size: 4,
+      position: [0, 0, 0],
+      rotation: [0, 0, 0],
+      color: '#9b59b6',
+      intensity: 1.5,
+      speed: 1,
+      metalness: 0.2,
+      roughness: 0.1,
+      transmission: 0.9,
+      thickness: 0.5,
+      envMapIntensity: 1,
+      clearcoat: 1,
+      clearcoatRoughness: 0.1,
+      ior: 2.33,
+      attenuationColor: '#ffffff',
+      attenuationDistance: 0,
+      reflectivity: 0.5,
+      iridescence: 1,
+      iridescenceIOR: 1.5,
+      sheen: 0,
+      sheenRoughness: 0.1,
+      sheenColor: '#ffffff',
+      specularIntensity: 1,
+      specularColor: '#ffffff',
+      lightIntensity: 1,
+      opacity: 1,
+      transparent: true,
+      textureMap: '',
+      normalMap: '',
+      roughnessMap: '',
+      metalnessMap: '',
+      emissiveMap: '',
+      emissiveColor: '#000000',
+      emissiveIntensity: 0,
+      aoMap: '',
+      aoMapIntensity: 1,
+      displacementMap: '',
+      displacementScale: 1,
+      displacementBias: 0,
+      wireframe: false,
+      side: "front" as const,
+    },
+    galleryImages: [
+      { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: "default" as const },
+      { src: '/placeholder.svg', alt: 'Placeholder 2', crystalPosition: "top-left" as const },
+      { src: '/placeholder.svg', alt: 'Placeholder 3', crystalPosition: "center" as const },
+    ],
+  };
+
   return (
     <AuthProvider>
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-black to-gray-900">
         <GlassHeader />
         <main className="flex-grow pt-16">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<HomePage {...defaultHomePageProps} />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/store" element={<StorePage />} />
             <Route path="/store/:productId" element={<ProductDetailPage />} />
@@ -46,7 +96,6 @@ function App() {
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order/success" element={<OrderSuccessPage />} />
             
-            {/* Rotas protegidas */}
             <Route 
               path="/profile" 
               element={
@@ -56,11 +105,10 @@ function App() {
               } 
             />
             
-            {/* Rotas de Admin */}
             <Route 
               path="/admin/*" 
               element={
-                <ProtectedRoute requiredProfileType="admin">
+                <ProtectedRoute requiredRole="admin">
                   <AdminPanel />
                 </ProtectedRoute>
               } 
@@ -69,7 +117,7 @@ function App() {
             <Route 
               path="/logs" 
               element={
-                <ProtectedRoute requiredProfileType="admin">
+                <ProtectedRoute requiredRole="admin">
                   <LogsPage />
                 </ProtectedRoute>
               } 
@@ -78,13 +126,12 @@ function App() {
             <Route 
               path="/assets" 
               element={
-                <ProtectedRoute requiredProfileType="admin">
+                <ProtectedRoute requiredRole="admin">
                   <AssetUploader />
                 </ProtectedRoute>
               } 
             />
             
-            {/* Rota de fallback para páginas não encontradas */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

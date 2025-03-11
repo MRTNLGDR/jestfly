@@ -3,7 +3,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuth';
 
-interface ProtectedRouteProps {
+export interface ProtectedRouteProps {
   children: React.ReactNode;
   requiredRole?: 'admin' | 'artist' | 'collaborator' | 'fan';
 }
@@ -23,14 +23,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
   
-  // Se o usuário não estiver autenticado, redireciona para a página de login
   if (!user) {
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
   
-  // Se houver um papel requerido e o usuário não tiver esse papel, redireciona
   if (requiredRole && profile?.profile_type !== requiredRole) {
-    // Verifica se o usuário é admin (admin pode acessar qualquer coisa)
     if (profile?.profile_type !== 'admin') {
       return <Navigate to="/" replace />;
     }

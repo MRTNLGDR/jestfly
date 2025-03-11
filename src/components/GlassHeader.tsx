@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import CyberMenu from './CyberMenu';
@@ -7,7 +6,7 @@ import { MenuItems } from '../constants/menuItems';
 import { Button } from './ui/button';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import WalletWidget from './jestcoin/WalletWidget';
 import {
   DropdownMenu,
@@ -22,11 +21,10 @@ import { User, LogOut, Settings, Users, Music, Headphones } from 'lucide-react';
 const GlassHeader = () => {
   const location = useLocation();
   const { user, profile, signOut } = useAuth();
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useIsMobile();
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -35,7 +33,6 @@ const GlassHeader = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menu when location changes
   useEffect(() => {
     setMenuOpen(false);
   }, [location]);

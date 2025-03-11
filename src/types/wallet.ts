@@ -9,6 +9,15 @@ export interface Wallet {
   updated_at: string;
 }
 
+export type TransactionType = 
+  | 'deposit'
+  | 'withdrawal'
+  | 'transfer_in'
+  | 'transfer_out'
+  | 'purchase'
+  | 'reward'
+  | 'airdrop';
+
 export interface Transaction {
   id: string;
   wallet_id: string;
@@ -20,15 +29,6 @@ export interface Transaction {
   created_at: string;
   user?: ProfileData;
 }
-
-export type TransactionType = 
-  | 'deposit'
-  | 'withdrawal'
-  | 'transfer_in'
-  | 'transfer_out'
-  | 'purchase'
-  | 'reward'
-  | 'airdrop';
 
 export interface TransferJestCoinParams {
   amount: number;

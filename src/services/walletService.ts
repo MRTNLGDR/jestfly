@@ -1,12 +1,8 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { Wallet, Transaction, TransferJestCoinParams } from "@/types/wallet";
+import { Wallet, Transaction, TransferJestCoinParams, TransactionType } from "@/types/wallet";
 import { ProfileData } from "@/contexts/AuthContext";
 
 export const walletService = {
-  /**
-   * Busca o saldo atual da carteira do usuário
-   */
   async getWallet(userId: string): Promise<Wallet | null> {
     const { data, error } = await supabase
       .from('wallets')
@@ -22,9 +18,6 @@ export const walletService = {
     return data;
   },
 
-  /**
-   * Busca o histórico de transações do usuário
-   */
   async getTransactions(walletId: string, limit = 10): Promise<Transaction[]> {
     const { data, error } = await supabase
       .from('transactions')
@@ -38,12 +31,12 @@ export const walletService = {
       return [];
     }
 
-    return data || [];
+    return (data || []).map(transaction => ({
+      ...transaction,
+      transaction_type: transaction.transaction_type as TransactionType
+    }));
   },
 
-  /**
-   * Busca transações com detalhes de usuário
-   */
   async getTransactionsWithUserDetails(walletId: string, limit = 10): Promise<Transaction[]> {
     const { data: transactions, error } = await supabase
       .from('transactions')
@@ -57,42 +50,38 @@ export const walletService = {
       return [];
     }
 
-    // Para cada transação de transferência, buscar detalhes do usuário
     const enhancedTransactions = await Promise.all(
       (transactions || []).map(async (transaction) => {
-        // Buscar detalhes apenas para transferências onde temos um ID de referência
+        const transactionWithType = {
+          ...transaction,
+          transaction_type: transaction.transaction_type as TransactionType
+        };
+
         if (
-          (transaction.transaction_type === 'transfer_in' || 
-          transaction.transaction_type === 'transfer_out') && 
-          transaction.reference_id
+          (transactionWithType.transaction_type === 'transfer_in' || 
+          transactionWithType.transaction_type === 'transfer_out') && 
+          transactionWithType.reference_id
         ) {
           const { data: userData } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', transaction.reference_id)
+            .eq('id', transactionWithType.reference_id)
             .single();
           
           return {
-            ...transaction,
+            ...transactionWithType,
             user: userData
           };
         }
-        return transaction;
+        return transactionWithType;
       })
     );
 
     return enhancedTransactions;
   },
 
-  /**
-   * Transfere JestCoins para outro usuário
-   */
-  async transferJestCoin(
-    userId: string,
-    params: TransferJestCoinParams
-  ): Promise<{ success: boolean; message: string }> {
+  async transferJestCoin(userId: string, params: TransferJestCoinParams): Promise<{ success: boolean; message: string }> {
     try {
-      // Verifica se o destinatário existe
       const { data: recipientProfile, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -106,7 +95,6 @@ export const walletService = {
         };
       }
 
-      // Verifica se o usuário tem saldo suficiente
       const { data: wallet, error: walletError } = await supabase
         .from('wallets')
         .select('id, balance')
@@ -127,7 +115,6 @@ export const walletService = {
         };
       }
 
-      // Busca a carteira do destinatário
       const { data: recipientWallet, error: recipientWalletError } = await supabase
         .from('wallets')
         .select('id')
@@ -141,10 +128,6 @@ export const walletService = {
         };
       }
 
-      // Realiza a transferência (RPC via edge function seria o ideal aqui)
-      // Mas vamos fazer diretamente para simplicidade
-      
-      // 1. Subtrai do remetente
       const { error: updateSenderError } = await supabase
         .from('wallets')
         .update({ 
@@ -160,7 +143,6 @@ export const walletService = {
         };
       }
 
-      // 2. Adiciona ao destinatário  
       const { error: updateRecipientError } = await supabase
         .from('wallets')
         .update({ 
@@ -168,13 +150,12 @@ export const walletService = {
             row_id: recipientWallet.id,
             column_name: 'balance',
             increment_amount: params.amount
-          }),
+          }) as unknown as number,
           updated_at: new Date().toISOString()
         })
         .eq('id', recipientWallet.id);
 
       if (updateRecipientError) {
-        // Desfaz a transação se houver erro
         await supabase
           .from('wallets')
           .update({ 
@@ -189,8 +170,6 @@ export const walletService = {
         };
       }
 
-      // 3. Registra as transações
-      // Transação de saída
       await supabase.from('transactions').insert({
         wallet_id: wallet.id,
         amount: -params.amount,
@@ -200,7 +179,6 @@ export const walletService = {
         description: params.description || 'Transferência enviada'
       });
 
-      // Transação de entrada
       await supabase.from('transactions').insert({
         wallet_id: recipientWallet.id,
         amount: params.amount,
