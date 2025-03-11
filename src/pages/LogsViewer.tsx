@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/auth/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import GlassHeader from '../components/GlassHeader';
@@ -37,47 +37,45 @@ const LogsViewer: React.FC = () => {
 
   const isAdmin = profile?.profile_type === 'admin';
 
-  // Using useCallback to prevent infinite recursion and deep type instantiation
-  const fetchLogs = useCallback(async () => {
+  // Define fetchLogs outside of any hooks to avoid dependency cycles
+  function fetchLogs() {
     setIsLoadingLogs(true);
     
-    try {
-      if (!user || !isAdmin) {
-        setLogs([]);
-        setIsLoadingLogs(false);
-        return;
-      }
-      
-      let query = supabase
-        .from('system_logs')
-        .select('*');
-      
-      // Apply filters
-      if (filters.level) {
-        query = query.eq('level', filters.level);
-      }
-      
-      if (filters.source) {
-        query = query.eq('source', filters.source);
-      }
-      
-      if (filters.search) {
-        query = query.ilike('message', `%${filters.search}%`);
-      }
-      
-      if (filters.startDate) {
-        query = query.gte('created_at', filters.startDate.toISOString());
-      }
-      
-      if (filters.endDate) {
-        query = query.lte('created_at', filters.endDate.toISOString());
-      }
-      
-      // Order by most recent first
-      query = query.order('created_at', { ascending: false });
-      
-      const { data, error } = await query;
-      
+    if (!user || !isAdmin) {
+      setLogs([]);
+      setIsLoadingLogs(false);
+      return;
+    }
+    
+    let query = supabase
+      .from('system_logs')
+      .select('*');
+    
+    // Apply filters
+    if (filters.level) {
+      query = query.eq('level', filters.level);
+    }
+    
+    if (filters.source) {
+      query = query.eq('source', filters.source);
+    }
+    
+    if (filters.search) {
+      query = query.ilike('message', `%${filters.search}%`);
+    }
+    
+    if (filters.startDate) {
+      query = query.gte('created_at', filters.startDate.toISOString());
+    }
+    
+    if (filters.endDate) {
+      query = query.lte('created_at', filters.endDate.toISOString());
+    }
+    
+    // Order by most recent first
+    query = query.order('created_at', { ascending: false });
+    
+    query.then(({ data, error }) => {
       if (error) {
         console.error('Error fetching logs:', error);
         return;
@@ -96,17 +94,26 @@ const LogsViewer: React.FC = () => {
       }));
       
       setLogs(formattedLogs);
-    } catch (error) {
-      console.error('Error in fetchLogs:', error);
-    } finally {
       setIsLoadingLogs(false);
-    }
-  }, [user, isAdmin, filters]); // Include all dependencies explicitly
+    }).catch(error => {
+      console.error('Error in fetchLogs:', error);
+      setIsLoadingLogs(false);
+    });
+  }
 
   // Initial fetch on component mount
   useEffect(() => {
     fetchLogs();
-  }, [fetchLogs]); // Depend on the memoized function
+  }, [user, isAdmin]); // Only re-fetch when user or isAdmin changes
+
+  // Separate effect for filter changes with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchLogs();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [filters]); // This is safe now because fetchLogs is defined outside hooks
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({
