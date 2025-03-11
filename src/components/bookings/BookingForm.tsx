@@ -29,6 +29,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useBookingsActions } from '@/hooks/useBookingsActions';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { BookingFormData } from '@/types/booking';
 
 const formSchema = z.object({
   bookingType: z.enum(['dj', 'studio', 'consulting']),
@@ -47,13 +48,13 @@ const BookingForm: React.FC = () => {
   const { createBooking, isSubmitting } = useBookingsActions();
   const [step, setStep] = useState(1);
   
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<BookingFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       bookingType: 'dj',
       details: '',
       location: '',
-      contactName: user?.username || '',
+      contactName: user?.full_name || '',
       contactEmail: user?.email || '',
       contactPhone: '',
     },
