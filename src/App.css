@@ -3,16 +3,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles for App component */
-.app {
-  width: 100%;
-  min-height: 100vh;
-  position: relative;
-  display: flex;
-  flex-direction: column;
+@layer components {
+  .app {
+    @apply w-full min-h-screen relative flex flex-col;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
 }
 
-/* Animation keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -21,13 +25,4 @@
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
-}
-
-/* Animation classes */
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-in-out;
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
 }
