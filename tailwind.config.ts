@@ -8,6 +8,16 @@ import {
   getTailwindTransitions 
 } from "./src/lib/theme-utils";
 
+// Safely get theme values or fallback to empty objects
+const safeGet = (fn: () => any, fallback: any = {}) => {
+  try {
+    return fn() || fallback;
+  } catch (e) {
+    console.error('Error getting theme values:', e);
+    return fallback;
+  }
+};
+
 export default {
 	darkMode: ["class"],
 	content: [
@@ -89,7 +99,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				...getTailwindThemeColors(),
+				...safeGet(getTailwindThemeColors),
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -97,16 +107,16 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			boxShadow: {
-				...getTailwindEffects().boxShadow,
+				...safeGet(() => getTailwindEffects().boxShadow),
 			},
 			backdropBlur: {
-				...getTailwindEffects().backdropBlur,
+				...safeGet(() => getTailwindEffects().backdropBlur),
 			},
 			transitionDuration: {
-				...getTailwindTransitions().transitionDuration,
+				...safeGet(() => getTailwindTransitions().transitionDuration),
 			},
 			transitionTimingFunction: {
-				...getTailwindTransitions().transitionTimingFunction,
+				...safeGet(() => getTailwindTransitions().transitionTimingFunction),
 			},
 			keyframes: {
 				'accordion-down': {

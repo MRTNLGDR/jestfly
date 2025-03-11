@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {
@@ -60,12 +61,12 @@ const defaultHomePageProps = {
     displacementScale: 1,
     displacementBias: 0,
     wireframe: false,
-    side: "front" as const, // Changed to use literal type "front"
+    side: "front" as const, // Using literal type "front"
   },
   galleryImages: [
-    { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: 'default' },
-    { src: '/placeholder.svg', alt: 'Placeholder 2', crystalPosition: 'top-left' },
-    { src: '/placeholder.svg', alt: 'Placeholder 3', crystalPosition: 'center' },
+    { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: "default" as const },
+    { src: '/placeholder.svg', alt: 'Placeholder 2', crystalPosition: "top-left" as const },
+    { src: '/placeholder.svg', alt: 'Placeholder 3', crystalPosition: "center" as const },
   ],
 };
 
