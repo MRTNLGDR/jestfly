@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -35,10 +34,20 @@ interface BookingDetailsStepProps {
 
 const BookingDetailsStep: React.FC<BookingDetailsStepProps> = ({ form, bookingType, onNext }) => {
   const selectedDate = form.watch('date');
+  const [timeError, setTimeError] = React.useState<string | null>(null);
 
   const handleTimeSelection = (startTime: string, endTime: string) => {
+    setTimeError(null);
     form.setValue('startTime', startTime);
     form.setValue('endTime', endTime);
+  };
+
+  const handleNext = () => {
+    if (!form.getValues('startTime') || !form.getValues('endTime')) {
+      setTimeError('Por favor, selecione um horário para a reserva');
+      return;
+    }
+    onNext();
   };
 
   return (
@@ -120,6 +129,10 @@ const BookingDetailsStep: React.FC<BookingDetailsStepProps> = ({ form, bookingTy
         />
       )}
       
+      {timeError && (
+        <div className="text-red-500 text-sm">{timeError}</div>
+      )}
+      
       {bookingType === 'dj' && (
         <FormField
           control={form.control}
@@ -169,7 +182,7 @@ const BookingDetailsStep: React.FC<BookingDetailsStepProps> = ({ form, bookingTy
       <div className="flex justify-end">
         <Button 
           type="button" 
-          onClick={onNext}
+          onClick={handleNext}
           className="bg-indigo-600 hover:bg-indigo-700"
         >
           Próximo
