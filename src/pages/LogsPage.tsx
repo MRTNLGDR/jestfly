@@ -10,11 +10,11 @@ import { LogType } from '@/types/logs';
 
 const LogsPage: React.FC = () => {
   const [filters, setFilters] = useState({
-    level: null,
-    source: null,
+    level: null as LogLevel | null,
+    source: null as LogSource | null,
     search: '',
-    startDate: null,
-    endDate: null,
+    startDate: null as Date | null,
+    endDate: null as Date | null,
   });
 
   // Sample logs data (in a real app, this would come from API)
@@ -45,6 +45,22 @@ const LogsPage: React.FC = () => {
     { label: 'Admin', href: '/admin' },
   ];
 
+  const handleFilterChange = (newFilters: {
+    level?: LogLevel;
+    source?: LogSource;
+    search?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }) => {
+    setFilters({
+      level: newFilters.level || null,
+      source: newFilters.source || null,
+      search: newFilters.search !== undefined ? newFilters.search : filters.search,
+      startDate: newFilters.startDate || null,
+      endDate: newFilters.endDate || null,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-black">
       <GlassHeader menuItems={menuItems} />
@@ -53,7 +69,7 @@ const LogsPage: React.FC = () => {
         <h1 className="text-4xl font-light mb-6 text-gradient-primary">System Logs</h1>
         
         <LogsFilter
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           currentFilters={filters}
         />
         
