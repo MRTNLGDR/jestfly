@@ -1,18 +1,32 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from '@/integrations/supabase/client';
-import { Download, RefreshCw } from 'lucide-react';
-import GlassHeader from '@/components/GlassHeader';
-import Footer from '@/components/Footer';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Refresh, Filter } from 'lucide-react';
 import LogsFilter from '@/components/logs/LogsFilter';
 import LogsTable from '@/components/logs/LogsTable';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { useToast } from '@/components/ui/use-toast';
-import { LogLevel, LogSource, Log } from '@/types/logs';
+import { LogLevel, LogSource, LogModule, Log } from '@/types/logs';
+import { supabase } from '@/integrations/supabase/client';
+
+interface DbLog {
+  id: string;
+  created_at: string;
+  level: string;
+  source: string;
+  type: string;
+  message: string;
+  user_id?: string;
+  metadata?: Record<string, any>;
+}
 
 const LogsViewer = () => {
   const { user, profile } = useAuth();
@@ -35,12 +49,11 @@ const LogsViewer = () => {
       return;
     }
 
-    // Check profile type instead of user.profile_type
     if (profile?.profile_type !== 'admin') {
       navigate('/');
       toast({
         title: "Access Denied",
-        description: "You don't have permission to view this page",
+        description: "You don't have permission to view this page.",
         variant: "destructive"
       });
       return;
@@ -52,8 +65,12 @@ const LogsViewer = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      let query = supabase.from('system_logs').select('*');
-
+      
+      let query = supabase
+        .from('system_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
       // Apply filters
       if (filters.search) {
         query = query.ilike('message', `%${filters.search}%`);
@@ -68,30 +85,46 @@ const LogsViewer = () => {
       }
 
       // Apply tab filtering
-      if (activeTab === 'system') {
-        query = query.eq('type', 'SYSTEM');
-      } else if (activeTab === 'user') {
-        query = query.eq('type', 'USER');
-      } else if (activeTab === 'security') {
-        query = query.eq('type', 'SECURITY');
+      if (activeTab === 'errors') {
+        query = query.eq('level', 'error');
+      } else if (activeTab === 'auth') {
+        query = query.eq('type', 'auth');
+      } else if (activeTab === 'system') {
+        query = query.eq('type', 'system');
       }
 
-      // Order by timestamp
-      query = query.order('timestamp', { ascending: false });
+      // Apply date filters
+      if (filters.startDate) {
+        query = query.gte('created_at', filters.startDate.toISOString());
+      }
+      if (filters.endDate) {
+        query = query.lte('created_at', filters.endDate.toISOString());
+      }
 
-      const { data, error } = await query;
-
+      const { data, error } = await query.limit(100);
+      
       if (error) {
         throw error;
       }
 
-      // Type cast data to Log[]
-      setLogs(data as Log[] || []);
+      // Map DB logs to the Log type
+      const mappedLogs: Log[] = (data || []).map((dbLog: DbLog) => ({
+        id: dbLog.id,
+        timestamp: dbLog.created_at,
+        level: dbLog.level as LogLevel,
+        source: dbLog.source as LogSource,
+        type: dbLog.type as LogModule,
+        message: dbLog.message,
+        userId: dbLog.user_id,
+        metadata: dbLog.metadata
+      }));
+
+      setLogs(mappedLogs);
     } catch (error) {
       console.error('Error fetching logs:', error);
       toast({
         title: "Error",
-        description: "Failed to load logs",
+        description: "Failed to fetch logs. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -115,70 +148,58 @@ const LogsViewer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      <GlassHeader />
-      
-      <main className="flex-1 container mx-auto px-4 py-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">System Logs</h1>
-              <p className="text-white/60 mt-1">View and analyze application logs</p>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-white/10 text-white hover:bg-white/10"
-                onClick={fetchLogs}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-white/10 text-white hover:bg-white/10"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </div>
-          </div>
-          
-          <Card className="bg-black/40 backdrop-blur-md border-white/10">
-            <CardContent className="p-6">
-              <LogsFilter 
-                currentFilters={filters}
-                onFilterChange={handleFilterChange}
-              />
-              
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-                <TabsList className="bg-black/50 border border-white/10">
-                  <TabsTrigger value="all">All Logs</TabsTrigger>
-                  <TabsTrigger value="system">System</TabsTrigger>
-                  <TabsTrigger value="user">User</TabsTrigger>
-                  <TabsTrigger value="security">Security</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value={activeTab} className="mt-4">
-                  {loading ? (
-                    <div className="flex justify-center items-center h-64">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-                    </div>
-                  ) : (
-                    <LogsTable logs={logs} isLoading={loading} />
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-light text-gradient-primary">System Logs</h1>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={resetFilters}
+            className="border-white/10 hover:border-white/30 text-white/70 hover:text-white"
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            Reset Filters
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchLogs}
+            className="border-white/10 hover:border-white/30 text-white/70 hover:text-white"
+          >
+            <Refresh className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
         </div>
-      </main>
+      </div>
       
-      <Footer />
+      <Card className="bg-black/40 backdrop-blur-md border-white/10">
+        <CardContent className="p-6">
+          <LogsFilter 
+            currentFilters={filters}
+            onFilterChange={handleFilterChange}
+          />
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
+            <TabsList className="bg-black/50 border border-white/10">
+              <TabsTrigger value="all">All Logs</TabsTrigger>
+              <TabsTrigger value="errors">Errors</TabsTrigger>
+              <TabsTrigger value="auth">Auth</TabsTrigger>
+              <TabsTrigger value="system">System</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value={activeTab} className="mt-4">
+              {loading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+                </div>
+              ) : (
+                <LogsTable logs={logs} isLoading={loading} />
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
