@@ -12,9 +12,18 @@ import NewPostPage from '@/components/community/NewPostPage';
 import CommunityNav from '@/components/community/CommunityNav';
 
 const CommunityPage: React.FC = () => {
+  const menuItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Community', href: '/community' },
+    { label: 'Store', href: '/store' },
+    { label: 'Events', href: '/community/events' },
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-900/20">
-      <GlassHeader />
+      <GlassHeader menuItems={menuItems} />
       
       <main className="container mx-auto px-4 pt-20 pb-20">
         <CommunityNav />

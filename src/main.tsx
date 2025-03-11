@@ -18,21 +18,40 @@ import CommunityPage from '@/pages/CommunityPage';
 // import ContactPage from '@/pages/ContactPage';
 // import AboutPage from '@/pages/AboutPage';
 
-// Definindo props padrão para HomePage se necessário
-const defaultCrystalParams = {
-  size: 4,
-  position: [0, 0, 0],
-  rotation: [0, 0, 0],
-  color: '#9b59b6',
-  intensity: 1.5,
-  speed: 1,
+// Definindo props padrão para HomePage
+const defaultHomePageProps = {
+  crystalParams: {
+    size: 4,
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    color: '#9b59b6',
+    intensity: 1.5,
+    speed: 1,
+    metalness: 0.2,
+    roughness: 0.1,
+    transmission: 0.9,
+    thickness: 0.5,
+    envMapIntensity: 1,
+    clearcoat: 1,
+    clearcoatRoughness: 0.1,
+    ior: 2.33,
+    attenuationColor: '#ffffff',
+    attenuationDistance: 0,
+    reflectivity: 0.5,
+    iridescence: 1,
+    iridescenceIOR: 1.5,
+    sheen: 0,
+    sheenRoughness: 0.1,
+    sheenColor: '#ffffff',
+    specularIntensity: 1,
+    specularColor: '#ffffff',
+  },
+  galleryImages: [
+    { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: 'default' },
+    { src: '/placeholder.svg', alt: 'Placeholder 2', crystalPosition: 'top-left' },
+    { src: '/placeholder.svg', alt: 'Placeholder 3', crystalPosition: 'center' },
+  ],
 };
-
-const defaultGalleryImages = [
-  { id: '1', src: '/placeholder.svg', alt: 'Placeholder 1' },
-  { id: '2', src: '/placeholder.svg', alt: 'Placeholder 2' },
-  { id: '3', src: '/placeholder.svg', alt: 'Placeholder 3' },
-];
 
 const router = createBrowserRouter([
   {
@@ -41,7 +60,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <HomePage crystalParams={defaultCrystalParams} galleryImages={defaultGalleryImages} />,
+        element: <HomePage {...defaultHomePageProps} />,
       },
       {
         path: "community/*",
