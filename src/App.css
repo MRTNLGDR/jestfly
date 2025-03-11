@@ -1,20 +1,14 @@
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+.app {
+  @apply w-full min-h-screen relative flex flex-col;
+}
 
-@layer components {
-  .app {
-    @apply w-full min-h-screen relative flex flex-col;
-  }
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-in-out;
+}
 
-  .animate-fade-in {
-    animation: fadeIn 0.6s ease-in-out;
-  }
-
-  .animate-float {
-    animation: float 4s ease-in-out infinite;
-  }
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
 
 @keyframes fadeIn {
