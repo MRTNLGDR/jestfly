@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/auth/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import GlassHeader from '../components/GlassHeader';
@@ -37,8 +37,8 @@ const LogsViewer: React.FC = () => {
 
   const isAdmin = profile?.profile_type === 'admin';
 
-  // Define fetchLogs outside of any hooks to avoid dependency cycles
-  function fetchLogs() {
+  // Memoize fetchLogs with useCallback to prevent type instantiation issues
+  const fetchLogs = useCallback(() => {
     setIsLoadingLogs(true);
     
     if (!user || !isAdmin) {
@@ -75,45 +75,38 @@ const LogsViewer: React.FC = () => {
     // Order by most recent first
     query = query.order('created_at', { ascending: false });
     
-    query.then(({ data, error }) => {
-      if (error) {
-        console.error('Error fetching logs:', error);
-        return;
-      }
-      
-      // Transform database logs to the Log type
-      const formattedLogs: Log[] = (data as DbLog[]).map((dbLog: DbLog) => ({
-        id: dbLog.id,
-        timestamp: dbLog.created_at,
-        level: dbLog.level as LogLevel,
-        source: dbLog.source as LogSource,
-        type: dbLog.type as LogModule,
-        message: dbLog.message,
-        userId: dbLog.user_id || '',
-        metadata: dbLog.metadata || {}
-      }));
-      
-      setLogs(formattedLogs);
-      setIsLoadingLogs(false);
-    }).catch(error => {
-      console.error('Error in fetchLogs:', error);
-      setIsLoadingLogs(false);
-    });
-  }
+    query
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error fetching logs:', error);
+          return;
+        }
+        
+        // Transform database logs to the Log type
+        const formattedLogs: Log[] = (data as DbLog[]).map((dbLog: DbLog) => ({
+          id: dbLog.id,
+          timestamp: dbLog.created_at,
+          level: dbLog.level as LogLevel,
+          source: dbLog.source as LogSource,
+          type: dbLog.type as LogModule,
+          message: dbLog.message,
+          userId: dbLog.user_id || '',
+          metadata: dbLog.metadata || {}
+        }));
+        
+        setLogs(formattedLogs);
+        setIsLoadingLogs(false);
+      })
+      .catch(error => {
+        console.error('Error in fetchLogs:', error);
+        setIsLoadingLogs(false);
+      });
+  }, [filters, user, isAdmin]);
 
   // Initial fetch on component mount
   useEffect(() => {
     fetchLogs();
-  }, [user, isAdmin]); // Only re-fetch when user or isAdmin changes
-
-  // Separate effect for filter changes with debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchLogs();
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [filters]); // This is safe now because fetchLogs is defined outside hooks
+  }, [fetchLogs]);
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({
