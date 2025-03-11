@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App';
 import HomePage from '@/pages/HomePage';
 import CommunityPage from '@/pages/CommunityPage';
+import BookingsPage from '@/pages/BookingsPage';
 // import StorePage from '@/pages/StorePage';
 // import ProductDetailPage from '@/pages/ProductDetailPage';
 // import CheckoutPage from '@/pages/CheckoutPage';
@@ -85,6 +86,10 @@ const router = createBrowserRouter([
       {
         path: "community/*",
         element: <CommunityPage />,
+      },
+      {
+        path: "bookings",
+        element: <BookingsPage />,
       },
       // {
       //   path: "store",

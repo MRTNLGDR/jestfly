@@ -2,184 +2,191 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Loader2, Calendar, Clock, MapPin, User, Mail, Phone, FileText, AlertCircle } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useBookings } from '@/hooks/useBookings';
-import { Booking, BookingType } from '@/services/bookingsService';
+import { useBookingsActions } from '@/hooks/useBookingsActions';
+import { CalendarX, Clock, Calendar, MapPin, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'confirmed':
-      return 'bg-green-500/20 text-green-500 border-green-500/50';
-    case 'pending':
-      return 'bg-yellow-500/20 text-yellow-500 border-yellow-500/50';
-    case 'cancelled':
-      return 'bg-red-500/20 text-red-500 border-red-500/50';
-    case 'completed':
-      return 'bg-blue-500/20 text-blue-500 border-blue-500/50';
-    default:
-      return 'bg-gray-500/20 text-gray-500 border-gray-500/50';
-  }
-};
+const BookingsList: React.FC = () => {
+  const { bookings, isLoading, error, cancelBooking } = useBookingsActions();
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'confirmed':
-      return 'Confirmado';
-    case 'pending':
-      return 'Pendente';
-    case 'cancelled':
-      return 'Cancelado';
-    case 'completed':
-      return 'Concluído';
-    default:
-      return status;
-  }
-};
-
-const getBookingTypeText = (type: BookingType) => {
-  switch (type) {
-    case 'dj':
-      return 'Performance de DJ';
-    case 'studio':
-      return 'Sessão de Estúdio';
-    case 'consultation':
-      return 'Consultoria';
-    default:
-      return type;
-  }
-};
-
-interface BookingsListProps {
-  showManageButtons?: boolean;
-}
-
-const BookingsList: React.FC<BookingsListProps> = ({ showManageButtons = true }) => {
-  const { bookings, isLoadingBookings, cancelBooking, isCancelling } = useBookings();
-
-  const handleCancelBooking = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja cancelar esta reserva?')) {
-      await cancelBooking(id);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'bg-green-500/10 text-green-500 border-green-500/20';
+      case 'pending':
+        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+      case 'cancelled':
+        return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'completed':
+        return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      default:
+        return 'bg-white/10 text-white/70 border-white/20';
     }
   };
 
-  if (isLoadingBookings) {
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return 'Confirmado';
+      case 'pending':
+        return 'Pendente';
+      case 'cancelled':
+        return 'Cancelado';
+      case 'completed':
+        return 'Concluído';
+      default:
+        return status;
+    }
+  };
+
+  const getBookingTypeText = (type: string) => {
+    switch (type) {
+      case 'dj':
+        return 'DJ para Evento';
+      case 'studio':
+        return 'Sessão de Estúdio';
+      case 'consulting':
+        return 'Consultoria';
+      default:
+        return type;
+    }
+  };
+
+  const getBookingTypeIcon = (type: string) => {
+    switch (type) {
+      case 'dj':
+        return '🎧';
+      case 'studio':
+        return '🎵';
+      case 'consulting':
+        return '📊';
+      default:
+        return '📅';
+    }
+  };
+
+  const formatDateTime = (dateTimeStr: string) => {
+    const date = new Date(dateTimeStr);
+    return format(date, "PPP 'às' p", { locale: ptBR });
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center p-8">
-        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-        <span>Carregando reservas...</span>
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-1/3 bg-white/5" />
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-40 w-full bg-white/5" />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (!bookings || bookings.length === 0) {
+  if (error) {
     return (
-      <Card className="bg-black/40 backdrop-blur-md border border-white/10">
-        <CardContent className="pt-6">
-          <div className="text-center py-8">
-            <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-xl font-medium text-white mb-2">Nenhuma reserva encontrada</h3>
-            <p className="text-white/70">
-              Você ainda não possui reservas. Faça sua primeira reserva agora!
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <Alert variant="destructive" className="bg-red-900/20 border-red-500/30 text-red-400">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Erro ao carregar reservas. Por favor, tente novamente mais tarde.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (bookings.length === 0) {
+    return (
+      <div className="text-center py-10 bg-black/20 rounded-lg border border-white/10">
+        <CalendarX className="h-16 w-16 mx-auto mb-4 text-white/30" />
+        <h3 className="text-xl font-medium text-white mb-2">Nenhuma reserva encontrada</h3>
+        <p className="text-white/70 max-w-md mx-auto">
+          Você ainda não tem nenhuma reserva. Use o formulário para agendar um DJ, sessão de estúdio ou consultoria.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {bookings.map((booking: Booking) => (
-        <Card key={booking.id} className="bg-black/40 backdrop-blur-md border border-white/10">
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle>{getBookingTypeText(booking.booking_type as BookingType)}</CardTitle>
-                <CardDescription>
-                  {format(new Date(booking.created_at || ''), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                </CardDescription>
-              </div>
-              <Badge className={`${getStatusColor(booking.status)}`}>
-                {getStatusText(booking.status)}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 opacity-70" />
-                <span>{format(new Date(booking.start_time), "dd/MM/yyyy", { locale: ptBR })}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 opacity-70" />
-                <span>
-                  {format(new Date(booking.start_time), "HH:mm", { locale: ptBR })} - 
-                  {format(new Date(booking.end_time), " HH:mm", { locale: ptBR })}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 col-span-2">
-                <MapPin className="h-4 w-4 opacity-70" />
-                <span>{booking.location || 'Local não especificado'}</span>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-white/10">
-              <h4 className="text-sm font-medium mb-2">Informações do cliente</h4>
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 opacity-70" />
-                  <span>{booking.customer_name}</span>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold text-white">Minhas Reservas</h2>
+      
+      {bookings.map((booking: any) => (
+        <Card key={booking.id} className="bg-black/40 backdrop-blur-md border-white/10 overflow-hidden">
+          <div className="flex items-center bg-primary/10 px-4 py-2">
+            <span className="text-xl mr-2">{getBookingTypeIcon(booking.booking_type)}</span>
+            <h3 className="text-lg font-medium text-white">{getBookingTypeText(booking.booking_type)}</h3>
+            <Badge 
+              className={`ml-auto ${getStatusColor(booking.status)}`}
+              variant="outline"
+            >
+              {getStatusText(booking.status)}
+            </Badge>
+          </div>
+          
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex items-start">
+                  <Calendar className="h-5 w-5 text-white/70 mr-2 mt-0.5" />
+                  <div>
+                    <p className="text-white font-medium">Data e Hora</p>
+                    <p className="text-white/70">{formatDateTime(booking.start_time)}</p>
+                    <p className="text-white/70">até {format(new Date(booking.end_time), "p", { locale: ptBR })}</p>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 opacity-70" />
-                  <span>{booking.customer_email}</span>
-                </div>
-                {booking.customer_phone && (
-                  <div className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4 opacity-70" />
-                    <span>{booking.customer_phone}</span>
+                
+                {booking.location && (
+                  <div className="flex items-start">
+                    <MapPin className="h-5 w-5 text-white/70 mr-2 mt-0.5" />
+                    <div>
+                      <p className="text-white font-medium">Local</p>
+                      <p className="text-white/70">{booking.location}</p>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-
-            {booking.details && (
-              <div className="pt-2 border-t border-white/10">
-                <div className="flex items-start space-x-2">
-                  <FileText className="h-4 w-4 opacity-70 mt-1" />
+              
+              <div className="space-y-3">
+                {booking.details && (
                   <div>
-                    <h4 className="text-sm font-medium">Detalhes</h4>
-                    <p className="text-sm opacity-80">{booking.details}</p>
+                    <p className="text-white font-medium">Detalhes</p>
+                    <p className="text-white/70 text-sm">{booking.details}</p>
                   </div>
+                )}
+                
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-white font-medium">Valor</p>
+                    <p className="text-primary">{formatCurrency(booking.price)}</p>
+                  </div>
+                  
+                  {booking.status === 'pending' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-red-400 border-red-400/30 hover:bg-red-400/10 hover:text-red-300"
+                      onClick={() => cancelBooking.mutate(booking.id)}
+                      disabled={cancelBooking.isPending}
+                    >
+                      Cancelar
+                    </Button>
+                  )}
                 </div>
               </div>
-            )}
+            </div>
           </CardContent>
-          {showManageButtons && booking.status !== 'cancelled' && booking.status !== 'completed' && (
-            <CardFooter className="border-t border-white/10 pt-4">
-              <div className="flex justify-between w-full">
-                <div className="text-lg font-semibold">
-                  R$ {Number(booking.price).toFixed(2)}
-                </div>
-                <Button 
-                  variant="destructive" 
-                  size="sm" 
-                  onClick={() => handleCancelBooking(booking.id as string)}
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Cancelando...
-                    </>
-                  ) : 'Cancelar'}
-                </Button>
-              </div>
-            </CardFooter>
-          )}
         </Card>
       ))}
     </div>

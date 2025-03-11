@@ -1,410 +1,515 @@
 
-import React, { useState, useEffect } from 'react';
-import { z } from "zod";
-import { format } from "date-fns";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CalendarIcon, Clock, Info } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { useBookingsActions, BookingFormData } from '@/hooks/useBookingsActions';
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useBookings } from "@/hooks/useBookings";
-import { BookingType } from "@/services/bookingsService";
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
 
-// Esquema de validação para o formulário
 const bookingFormSchema = z.object({
-  customer_name: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
-  customer_email: z.string().email({ message: "Email inválido" }),
-  customer_phone: z.string().optional(),
-  date: z.string().min(1, { message: "Data é obrigatória" }),
-  time: z.string().min(1, { message: "Hora é obrigatória" }),
-  duration: z.string().min(1, { message: "Duração é obrigatória" }),
+  bookingType: z.enum(['dj', 'studio', 'consulting'], {
+    required_error: 'Selecione o tipo de reserva',
+  }),
+  date: z.date({
+    required_error: 'Selecione uma data para a reserva',
+  }).refine(date => date >= new Date(new Date().setHours(0, 0, 0, 0)), {
+    message: 'A data deve ser hoje ou futura',
+  }),
+  startTime: z.string({
+    required_error: 'Selecione o horário de início',
+  }),
+  endTime: z.string({
+    required_error: 'Selecione o horário de término',
+  }),
+  details: z.string().min(10, 'Forneça detalhes sobre sua reserva (mínimo 10 caracteres)'),
   location: z.string().optional(),
-  details: z.string().optional(),
+  contactName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
+  contactEmail: z.string().email('Email inválido'),
+  contactPhone: z.string().optional(),
 });
 
-type BookingFormValues = z.infer<typeof bookingFormSchema>;
+const BookingForm: React.FC = () => {
+  const { user } = useAuth();
+  const { createBooking, isSubmitting } = useBookingsActions();
+  const [selectedType, setSelectedType] = useState<string>('');
+  const [step, setStep] = useState(1);
 
-interface BookingFormProps {
-  bookingType: BookingType;
-  onBookingComplete?: () => void;
-}
-
-const BookingForm: React.FC<BookingFormProps> = ({ bookingType, onBookingComplete }) => {
-  const { createBooking, calculatePrice, checkAvailability, isCreating } = useBookings();
-  const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
-  const [availabilityMessage, setAvailabilityMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  // Duração padrão em horas com base no tipo de reserva
-  const defaultDurations = {
-    dj: ["2", "3", "4", "6", "8"],
-    studio: ["1", "2", "3", "4"],
-    consultation: ["1", "2"]
-  };
-
-  // Inicializar o formulário
-  const form = useForm<BookingFormValues>({
+  const form = useForm<BookingFormData>({
     resolver: zodResolver(bookingFormSchema),
     defaultValues: {
-      customer_name: "",
-      customer_email: "",
-      customer_phone: "",
-      date: format(new Date(), "yyyy-MM-dd"),
-      time: "18:00",
-      duration: bookingType === 'dj' ? "4" : bookingType === 'studio' ? "2" : "1",
-      location: "",
-      details: "",
+      bookingType: undefined,
+      date: undefined,
+      startTime: '',
+      endTime: '',
+      details: '',
+      location: '',
+      contactName: user?.display_name || '',
+      contactEmail: user?.email || '',
+      contactPhone: '',
     },
   });
-  
-  const { watch, setValue } = form;
-  const date = watch('date');
-  const time = watch('time');
-  const duration = watch('duration');
 
-  // Atualizar o preço estimado quando a duração ou tipo de reserva mudar
-  useEffect(() => {
-    if (date && time && duration) {
-      const startTime = new Date(`${date}T${time}`);
-      const endTime = new Date(startTime.getTime() + parseInt(duration) * 60 * 60 * 1000);
-      const price = calculatePrice(
-        bookingType, 
-        startTime.toISOString(), 
-        endTime.toISOString()
-      );
-      setEstimatedPrice(price);
-    }
-  }, [bookingType, date, time, duration, calculatePrice]);
+  const typeOptions = [
+    { value: 'dj', label: 'DJ para Evento', price: 'R$ 250/hora', icon: '🎧', description: 'Reserve um DJ para seu evento' },
+    { value: 'studio', label: 'Sessão de Estúdio', price: 'R$ 150/hora', icon: '🎵', description: 'Reserve tempo no nosso estúdio profissional' },
+    { value: 'consulting', label: 'Consultoria', price: 'R$ 200/hora', icon: '📊', description: 'Agende uma consultoria personalizada' },
+  ];
 
-  // Verificar disponibilidade quando data, hora ou duração mudar
-  useEffect(() => {
-    const checkTimeSlot = async () => {
-      if (date && time && duration) {
-        setIsCheckingAvailability(true);
-        setAvailabilityMessage(null);
-        
-        try {
-          const startTime = new Date(`${date}T${time}`);
-          const endTime = new Date(startTime.getTime() + parseInt(duration) * 60 * 60 * 1000);
-          
-          // Verifica se a data é futura
-          if (startTime < new Date()) {
-            setAvailabilityMessage({
-              type: 'error',
-              message: 'Selecione uma data e hora futura.'
-            });
-            return;
-          }
-          
-          const { available, error } = await checkAvailability(
-            startTime.toISOString(),
-            endTime.toISOString(),
-            bookingType
-          );
-          
-          if (available) {
-            setAvailabilityMessage({
-              type: 'success',
-              message: 'Horário disponível!'
-            });
-          } else {
-            setAvailabilityMessage({
-              type: 'error',
-              message: error || 'Horário indisponível.'
-            });
-          }
-        } catch (error) {
-          console.error('Erro ao verificar disponibilidade:', error);
-          setAvailabilityMessage({
-            type: 'error',
-            message: 'Erro ao verificar disponibilidade.'
-          });
-        } finally {
-          setIsCheckingAvailability(false);
-        }
-      }
+  const timeOptions = Array.from({ length: 13 }, (_, i) => {
+    const hour = i + 9; // 9h às 21h
+    return {
+      value: `${hour}:00`,
+      label: `${hour}:00`,
     };
-    
-    // Debounce para não verificar disponibilidade a cada mudança
-    const timeoutId = setTimeout(checkTimeSlot, 500);
-    return () => clearTimeout(timeoutId);
-  }, [bookingType, date, time, duration, checkAvailability]);
+  });
 
-  // Função para submeter o formulário
-  const onSubmit = async (values: BookingFormValues) => {
-    if (availabilityMessage?.type === 'error') {
-      toast.error('Por favor, escolha um horário disponível.');
+  const onSubmit = async (data: BookingFormData) => {
+    if (!user) {
+      toast.error('Você precisa estar logado para fazer uma reserva');
       return;
     }
 
     try {
-      const startTime = new Date(`${values.date}T${values.time}`);
-      const endTime = new Date(startTime.getTime() + parseInt(values.duration) * 60 * 60 * 1000);
-      
-      const bookingData = {
-        booking_type: bookingType,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        price: estimatedPrice || 0,
-        status: 'pending',
-        customer_name: values.customer_name,
-        customer_email: values.customer_email,
-        customer_phone: values.customer_phone,
-        location: values.location,
-        details: values.details
-      };
-      
-      const result = await createBooking(bookingData);
-      
-      if (result.success) {
-        toast.success('Reserva realizada com sucesso!');
-        form.reset();
-        if (onBookingComplete) {
-          onBookingComplete();
-        }
-      }
+      await createBooking.mutateAsync(data);
+      form.reset();
+      setStep(1);
     } catch (error) {
-      console.error('Erro ao criar reserva:', error);
-      toast.error('Ocorreu um erro ao criar a reserva. Por favor, tente novamente.');
+      console.error('Error submitting booking:', error);
     }
   };
 
-  // Títulos e descrições baseados no tipo de reserva
-  const bookingTypeInfo = {
-    dj: {
-      title: "Reserva de DJ",
-      locationLabel: "Local do Evento",
-      detailsLabel: "Detalhes do Evento"
-    },
-    studio: {
-      title: "Reserva de Estúdio",
-      locationLabel: "Estúdio",
-      detailsLabel: "Detalhes do Projeto"
-    },
-    consultation: {
-      title: "Reserva de Consultoria",
-      locationLabel: "Método de Reunião",
-      detailsLabel: "Assunto da Consultoria"
-    }
+  const handleTypeChange = (value: string) => {
+    setSelectedType(value);
+    form.setValue('bookingType', value as BookingFormData['bookingType']);
   };
+
+  const nextStep = () => {
+    if (step === 1 && !form.getValues('bookingType')) {
+      form.setError('bookingType', { message: 'Selecione o tipo de reserva' });
+      return;
+    }
+    
+    if (step === 2 && !form.getValues('date')) {
+      form.setError('date', { message: 'Selecione uma data' });
+      return;
+    }
+    
+    if (step === 3) {
+      const startTime = form.getValues('startTime');
+      const endTime = form.getValues('endTime');
+      
+      if (!startTime) {
+        form.setError('startTime', { message: 'Selecione o horário de início' });
+        return;
+      }
+      
+      if (!endTime) {
+        form.setError('endTime', { message: 'Selecione o horário de término' });
+        return;
+      }
+      
+      // Validar que o horário de término é posterior ao de início
+      const [startHour] = startTime.split(':').map(Number);
+      const [endHour] = endTime.split(':').map(Number);
+      
+      if (endHour <= startHour) {
+        form.setError('endTime', { message: 'Horário de término deve ser após o início' });
+        return;
+      }
+    }
+    
+    setStep(prev => prev + 1);
+  };
+
+  const prevStep = () => {
+    setStep(prev => prev - 1);
+  };
+
+  const selectedOption = typeOptions.find(option => option.value === selectedType);
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <h2 className="text-2xl font-bold">{bookingTypeInfo[bookingType].title}</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="customer_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome Completo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Seu nome completo" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="customer_email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="seu@email.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="customer_phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone (opcional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="(00) 00000-0000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="time"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Horário</FormLabel>
-                <FormControl>
-                  <Input type="time" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="duration"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Duração (horas)</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
+    <Card className="w-full max-w-2xl mx-auto bg-black/40 backdrop-blur-md border-white/10">
+      <CardHeader>
+        <CardTitle className="text-2xl text-white">Fazer uma Reserva</CardTitle>
+        <CardDescription className="text-white/70">
+          Reserve um DJ para seu evento, tempo no estúdio ou uma consultoria personalizada
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="mb-6">
+          <div className="flex justify-between items-center">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="flex flex-col items-center">
+                <div 
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center text-sm",
+                    step === i 
+                      ? "bg-primary text-white" 
+                      : step > i 
+                        ? "bg-primary/30 text-white" 
+                        : "bg-white/10 text-white/50"
+                  )}
                 >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a duração" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {defaultDurations[bookingType].map((hours) => (
-                      <SelectItem key={hours} value={hours}>
-                        {hours} {parseInt(hours) === 1 ? 'hora' : 'horas'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {bookingType === 'consultation' ? (
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{bookingTypeInfo[bookingType].locationLabel}</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o método" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="zoom">Zoom</SelectItem>
-                      <SelectItem value="meet">Google Meet</SelectItem>
-                      <SelectItem value="teams">Microsoft Teams</SelectItem>
-                      <SelectItem value="presencial">Presencial</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+                  {i}
+                </div>
+                <span className={cn(
+                  "text-xs mt-1",
+                  step === i ? "text-white" : "text-white/50"
+                )}>
+                  {i === 1 ? 'Tipo' : i === 2 ? 'Data' : i === 3 ? 'Horário' : 'Detalhes'}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="h-[2px] bg-white/10 relative mt-4">
+            <div 
+              className="h-[2px] bg-primary absolute top-0 left-0 transition-all"
+              style={{ width: `${(step - 1) * 33.33}%` }}
             />
-          ) : (
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{bookingTypeInfo[bookingType].locationLabel}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={`Informe o ${bookingTypeInfo[bookingType].locationLabel.toLowerCase()}`} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
-        
-        <FormField
-          control={form.control}
-          name="details"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{bookingTypeInfo[bookingType].detailsLabel}</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder={`Detalhes sobre ${bookingType === 'dj' ? 'seu evento' : bookingType === 'studio' ? 'seu projeto musical' : 'a consultoria que você precisa'}`}
-                  className="min-h-[120px]" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        {/* Status de disponibilidade */}
-        <div className="bg-white/5 p-4 rounded-lg border border-white/20">
-          <h3 className="text-xl font-medium mb-2">Resumo da Reserva</h3>
-          
-          <div className="flex flex-col space-y-2">
-            {isCheckingAvailability ? (
-              <div className="flex items-center space-x-2 text-yellow-400">
-                <Loader2 className="animate-spin h-4 w-4" />
-                <span>Verificando disponibilidade...</span>
-              </div>
-            ) : availabilityMessage ? (
-              <div className={`flex items-center space-x-2 ${
-                availabilityMessage.type === 'success' ? 'text-green-500' : 'text-red-500'
-              }`}>
-                <span>{availabilityMessage.message}</span>
-              </div>
-            ) : null}
-            
-            {estimatedPrice !== null && (
-              <div className="text-lg">
-                <span className="font-semibold">Valor estimado:</span> R$ {estimatedPrice.toFixed(2)}
-              </div>
-            )}
           </div>
         </div>
-        
-        <Button
-          type="submit"
-          className={`w-full ${
-            bookingType === 'dj' 
-              ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700' 
-              : bookingType === 'studio'
-              ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700'
-              : 'bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700'
-          }`}
-          disabled={isCreating || isCheckingAvailability || availabilityMessage?.type === 'error'}
-        >
-          {isCreating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processando...
-            </>
-          ) : 'Confirmar Reserva'}
-        </Button>
-      </form>
-    </Form>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {step === 1 && (
+              <>
+                <div className="space-y-4">
+                  <h3 className="text-white text-lg font-medium">Selecione o tipo de reserva</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {typeOptions.map(option => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => handleTypeChange(option.value)}
+                        className={cn(
+                          "relative p-4 rounded-lg text-left transition-all h-full min-h-[140px]",
+                          selectedType === option.value
+                            ? "bg-primary/20 border-2 border-primary"
+                            : "bg-white/5 border border-white/10 hover:bg-white/10"
+                        )}
+                      >
+                        <div className="text-2xl mb-2">{option.icon}</div>
+                        <h4 className="text-white font-medium">{option.label}</h4>
+                        <p className="text-white/60 text-sm mt-1">{option.description}</p>
+                        <div className="absolute bottom-2 right-2 text-sm font-medium text-primary">
+                          {option.price}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  {form.formState.errors.bookingType && (
+                    <p className="text-red-500 text-sm mt-1">{form.formState.errors.bookingType.message}</p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-4">
+                <h3 className="text-white text-lg font-medium">Selecione a data</h3>
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="glass"
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-white/50"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP", { locale: ptBR })
+                              ) : (
+                                <span>Selecione uma data</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-zinc-950 border-white/10" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date < new Date(new Date().setHours(0, 0, 0, 0))
+                            }
+                            className="bg-zinc-950"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-4">
+                <h3 className="text-white text-lg font-medium">Selecione o horário</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Horário de início</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-black/30 border-white/10 text-white">
+                              <SelectValue placeholder="Selecione o horário" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-zinc-950 border-white/10">
+                            {timeOptions.slice(0, -1).map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Horário de término</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-black/30 border-white/10 text-white">
+                              <SelectValue placeholder="Selecione o horário" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-zinc-950 border-white/10">
+                            {timeOptions.slice(1).map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-white text-lg font-medium mb-4">Informações de contato</h3>
+                  <div className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="contactName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">Nome completo</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              className="bg-black/30 border-white/10 text-white"
+                              placeholder="Seu nome completo"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="contactEmail"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">Email</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              className="bg-black/30 border-white/10 text-white"
+                              placeholder="seu@email.com"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="contactPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">Telefone (opcional)</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              className="bg-black/30 border-white/10 text-white"
+                              placeholder="(00) 00000-0000"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                
+                <Separator className="bg-white/10" />
+                
+                <div>
+                  <h3 className="text-white text-lg font-medium mb-4">Detalhes da reserva</h3>
+                  <div className="space-y-4">
+                    {selectedType === 'dj' && (
+                      <FormField
+                        control={form.control}
+                        name="location"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-white">Local do evento</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                className="bg-black/30 border-white/10 text-white"
+                                placeholder="Endereço completo do evento"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                    
+                    <FormField
+                      control={form.control}
+                      name="details"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-white">
+                            Detalhes adicionais
+                            {selectedType === 'dj' && ' (tipo de evento, preferências musicais, etc)'}
+                            {selectedType === 'studio' && ' (o que você planeja gravar, equipamentos necessários, etc)'}
+                            {selectedType === 'consulting' && ' (assunto a ser tratado, objetivos, etc)'}
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea 
+                              {...field} 
+                              className="bg-black/30 border-white/10 text-white h-32"
+                              placeholder="Forneça detalhes para que possamos melhor atender sua necessidade"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-primary/10 p-4 rounded-lg border border-primary/20">
+                  <div className="flex items-start">
+                    <Info className="h-5 w-5 text-primary mr-2 mt-0.5" />
+                    <div>
+                      <h4 className="text-white font-medium">Resumo da Reserva</h4>
+                      <p className="text-white/70 text-sm mt-1">
+                        {selectedOption?.label} em {form.getValues('date') && format(form.getValues('date'), "dd/MM/yyyy")} 
+                        {form.getValues('startTime') && form.getValues('endTime') && 
+                          ` das ${form.getValues('startTime')} às ${form.getValues('endTime')}`}
+                      </p>
+                      <p className="text-primary font-medium text-sm mt-1">
+                        {selectedOption?.price} • Pagamento após aprovação
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-between pt-4">
+              {step > 1 ? (
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={prevStep}
+                >
+                  Voltar
+                </Button>
+              ) : (
+                <div></div>
+              )}
+              
+              {step < 4 ? (
+                <Button 
+                  type="button"
+                  onClick={nextStep}
+                >
+                  Próximo
+                </Button>
+              ) : (
+                <Button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  {isSubmitting ? 'Enviando...' : 'Confirmar Reserva'}
+                </Button>
+              )}
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
 };
 
