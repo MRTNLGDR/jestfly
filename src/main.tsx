@@ -61,7 +61,7 @@ const defaultHomePageProps = {
     displacementScale: 1,
     displacementBias: 0,
     wireframe: false,
-    side: 2, // Adding the missing side property (DoubleSide = 2)
+    side: "double", // Fixed: changed from number 2 to string "double"
   },
   galleryImages: [
     { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: 'default' },
