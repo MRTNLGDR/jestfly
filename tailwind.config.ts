@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 import { 
   getTailwindThemeColors, 
@@ -106,18 +105,10 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
-			boxShadow: {
-				...safeGet(() => getTailwindEffects().boxShadow),
-			},
-			backdropBlur: {
-				...safeGet(() => getTailwindEffects().backdropBlur),
-			},
-			transitionDuration: {
-				...safeGet(() => getTailwindTransitions().transitionDuration),
-			},
-			transitionTimingFunction: {
-				...safeGet(() => getTailwindTransitions().transitionTimingFunction),
-			},
+			boxShadow: safeGet(() => getTailwindEffects().boxShadow),
+			backdropBlur: safeGet(() => getTailwindEffects().backdropBlur),
+			transitionDuration: safeGet(() => getTailwindTransitions().transitionDuration),
+			transitionTimingFunction: safeGet(() => getTailwindTransitions().transitionTimingFunction),
 			keyframes: {
 				'accordion-down': {
 					from: {
@@ -179,3 +170,4 @@ export default {
 	},
 	plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+

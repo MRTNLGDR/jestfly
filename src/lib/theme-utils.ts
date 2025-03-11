@@ -1,19 +1,36 @@
 
 import { theme } from '../styles/theme.tsx';
 
+// Provide default empty values to prevent undefined errors
+const defaultTheme = {
+  colors: {},
+  typography: {
+    fontFamily: {},
+    fontSize: {},
+    lineHeight: {},
+    letterSpacing: {},
+  },
+  effects: {
+    boxShadow: {},
+    backdropBlur: {},
+  },
+  transitions: {
+    duration: {},
+    timingFunction: {},
+  },
+};
+
 export const getTailwindThemeColors = () => {
-  const colors = theme.colors;
-  
+  const colors = theme?.colors || defaultTheme.colors;
   return {
-    'primary-color': colors.primary.DEFAULT,
-    'secondary-color': colors.secondary.DEFAULT,
-    'accent-color': colors.accent.DEFAULT,
+    'primary-color': colors.primary?.DEFAULT || '#8B5CF6',
+    'secondary-color': colors.secondary?.DEFAULT || '#4ade80',
+    'accent-color': colors.accent?.DEFAULT || '#0ea5e9',
   };
 };
 
 export const getTailwindTypography = () => {
-  const typography = theme.typography;
-  
+  const typography = theme?.typography || defaultTheme.typography;
   return {
     fontFamily: typography.fontFamily,
     fontSize: typography.fontSize,
@@ -22,30 +39,18 @@ export const getTailwindTypography = () => {
   };
 };
 
-export const getTailwindBorders = () => {
-  const borders = theme.borders;
-  
-  return {
-    borderRadius: borders.radius,
-    borderWidth: borders.width,
-  };
-};
-
 export const getTailwindEffects = () => {
-  const effects = theme.effects;
-  
+  const effects = theme?.effects || defaultTheme.effects;
   return {
-    boxShadow: effects.shadows,
-    backdropBlur: effects.blurs,
-    glassmorphism: effects.glassmorphism,
+    boxShadow: effects.shadows || {},
+    backdropBlur: effects.blurs || {},
   };
 };
 
 export const getTailwindTransitions = () => {
-  const transitions = theme.transitions;
-  
+  const transitions = theme?.transitions || defaultTheme.transitions;
   return {
-    transitionDuration: transitions.duration,
-    transitionTimingFunction: transitions.timing,
+    transitionDuration: transitions.duration || {},
+    transitionTimingFunction: transitions.timing || {},
   };
 };
