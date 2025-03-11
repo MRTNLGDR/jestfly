@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useCommunityPosts } from '@/hooks/useCommunity';
+import { useCommunityPosts } from '@/hooks/community';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, MessageSquare, ThumbsUp, Calendar, AlertCircle, Users } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import PostCard from './PostCard';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Filter } from 'lucide-react';
 
 const CommunityHome: React.FC = () => {
   const { user } = useAuth();
@@ -93,59 +92,7 @@ const CommunityHome: React.FC = () => {
               <h2 className="text-2xl font-bold text-white border-b border-white/10 pb-2">Destacados</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {featuredPosts.map(post => (
-                  <Card key={post.id} className="bg-black/40 backdrop-blur-md border-white/10 hover:border-purple-500 transition-all">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          {getCategoryIcon(post.category)}
-                          <span className="text-sm text-white/70">{formatCategoryName(post.category)}</span>
-                        </div>
-                        {post.is_pinned && (
-                          <div className="bg-yellow-900/60 text-yellow-200 px-2 py-0.5 rounded-full text-xs">
-                            Fixado
-                          </div>
-                        )}
-                      </div>
-                      <CardTitle className="text-xl text-white">{post.title}</CardTitle>
-                      <CardDescription className="text-white/60">
-                        Por {post.user?.display_name || 'Usuário'} • {formatDistanceToNow(new Date(post.created_at), { locale: ptBR, addSuffix: true })}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-white/80 line-clamp-3">{post.content}</p>
-                    </CardContent>
-                    <CardFooter className="flex justify-between pt-2 border-t border-white/10">
-                      <div className="flex space-x-4">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-white/70 hover:text-white hover:bg-white/10"
-                          onClick={() => handleLikePost(post.id)}
-                        >
-                          <ThumbsUp className="h-4 w-4 mr-1" />
-                          <span>{post.likes_count}</span>
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-white/70 hover:text-white hover:bg-white/10"
-                          asChild
-                        >
-                          <Link to={`/community/post/${post.id}`}>
-                            <MessageSquare className="h-4 w-4 mr-1" />
-                            <span>{post.comments_count}</span>
-                          </Link>
-                        </Button>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
-                        asChild
-                      >
-                        <Link to={`/community/post/${post.id}`}>Ver mais</Link>
-                      </Button>
-                    </CardFooter>
-                  </Card>
+                  <PostCard key={post.id} post={post} handleLikePost={handleLikePost} />
                 ))}
               </div>
             </div>
@@ -158,54 +105,7 @@ const CommunityHome: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {normalPosts.map(post => (
-                <Card key={post.id} className="bg-black/40 backdrop-blur-md border-white/10 hover:border-purple-500 transition-all">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        {getCategoryIcon(post.category)}
-                        <span className="text-sm text-white/70">{formatCategoryName(post.category)}</span>
-                      </div>
-                    </div>
-                    <CardTitle className="text-xl text-white">{post.title}</CardTitle>
-                    <CardDescription className="text-white/60">
-                      Por {post.user?.display_name || 'Usuário'} • {formatDistanceToNow(new Date(post.created_at), { locale: ptBR, addSuffix: true })}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-white/80 line-clamp-3">{post.content}</p>
-                  </CardContent>
-                  <CardFooter className="flex justify-between pt-2 border-t border-white/10">
-                    <div className="flex space-x-4">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-white/70 hover:text-white hover:bg-white/10"
-                        onClick={() => handleLikePost(post.id)}
-                      >
-                        <ThumbsUp className="h-4 w-4 mr-1" />
-                        <span>{post.likes_count}</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-white/70 hover:text-white hover:bg-white/10"
-                        asChild
-                      >
-                        <Link to={`/community/post/${post.id}`}>
-                          <MessageSquare className="h-4 w-4 mr-1" />
-                          <span>{post.comments_count}</span>
-                        </Link>
-                      </Button>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      className="text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
-                      asChild
-                    >
-                      <Link to={`/community/post/${post.id}`}>Ver mais</Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <PostCard key={post.id} post={post} handleLikePost={handleLikePost} />
               ))}
             </div>
           )}

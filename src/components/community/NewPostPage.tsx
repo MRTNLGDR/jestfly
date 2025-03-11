@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCommunityPosts } from '@/hooks/useCommunity';
+import { useCommunityPosts } from '@/hooks/community';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { PostCategory } from '@/types/community';
@@ -72,7 +72,7 @@ const NewPostPage: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor="category" className="text-sm font-medium text-white">Categoria</label>
+              <Label htmlFor="category" className="text-sm font-medium text-white">Categoria</Label>
               <Select
                 value={category}
                 onValueChange={(value) => setCategory(value as PostCategory)}
@@ -91,7 +91,7 @@ const NewPostPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="title" className="text-sm font-medium text-white">Título</label>
+              <Label htmlFor="title" className="text-sm font-medium text-white">Título</Label>
               <Input
                 id="title"
                 value={title}
@@ -104,7 +104,7 @@ const NewPostPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="content" className="text-sm font-medium text-white">Conteúdo</label>
+              <Label htmlFor="content" className="text-sm font-medium text-white">Conteúdo</Label>
               <Textarea
                 id="content"
                 value={content}
