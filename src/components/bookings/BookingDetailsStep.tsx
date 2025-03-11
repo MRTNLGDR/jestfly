@@ -25,6 +25,7 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { BookingFormData } from '@/types/booking';
+import BookingAvailability from './BookingAvailability';
 
 interface BookingDetailsStepProps {
   form: UseFormReturn<BookingFormData>;
@@ -33,6 +34,13 @@ interface BookingDetailsStepProps {
 }
 
 const BookingDetailsStep: React.FC<BookingDetailsStepProps> = ({ form, bookingType, onNext }) => {
+  const selectedDate = form.watch('date');
+
+  const handleTimeSelection = (startTime: string, endTime: string) => {
+    form.setValue('startTime', startTime);
+    form.setValue('endTime', endTime);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-light text-white">Etapa 1: Detalhes da Reserva</h2>
@@ -92,7 +100,7 @@ const BookingDetailsStep: React.FC<BookingDetailsStepProps> = ({ form, bookingTy
                   onSelect={field.onChange}
                   disabled={(date) => date < new Date()}
                   initialFocus
-                  className="bg-black/80"
+                  className={cn("p-3 pointer-events-auto")}
                 />
               </PopoverContent>
             </Popover>
@@ -103,8 +111,14 @@ const BookingDetailsStep: React.FC<BookingDetailsStepProps> = ({ form, bookingTy
           </FormItem>
         )}
       />
-      
-      <TimeSelection form={form} />
+
+      {selectedDate && (
+        <BookingAvailability
+          date={selectedDate}
+          bookingType={bookingType}
+          onSelectTime={handleTimeSelection}
+        />
+      )}
       
       {bookingType === 'dj' && (
         <FormField
@@ -166,51 +180,3 @@ const BookingDetailsStep: React.FC<BookingDetailsStepProps> = ({ form, bookingTy
 };
 
 export default BookingDetailsStep;
-
-const TimeSelection: React.FC<{ form: UseFormReturn<BookingFormData> }> = ({ form }) => {
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <FormField
-        control={form.control}
-        name="startTime"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Horário de Início</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="14:00" 
-                {...field} 
-                className="bg-black/20 border-white/10"
-              />
-            </FormControl>
-            <FormDescription className="text-white/60">
-              Formato 24h (ex: 14:00)
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      
-      <FormField
-        control={form.control}
-        name="endTime"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Horário de Término</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="16:00" 
-                {...field} 
-                className="bg-black/20 border-white/10"
-              />
-            </FormControl>
-            <FormDescription className="text-white/60">
-              Formato 24h (ex: 16:00)
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    </div>
-  );
-};
