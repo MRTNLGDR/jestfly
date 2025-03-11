@@ -10,6 +10,7 @@ import JestFlyersHubPage from '@/components/community/JestFlyersHubPage';
 import PostDetailPage from '@/components/community/PostDetailPage';
 import NewPostPage from '@/components/community/NewPostPage';
 import CommunityNav from '@/components/community/CommunityNav';
+import { Toaster } from 'sonner';
 
 const CommunityPage: React.FC = () => {
   const menuItems = [
@@ -24,6 +25,7 @@ const CommunityPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-900/20">
       <GlassHeader menuItems={menuItems} />
+      <Toaster position="top-right" />
       
       <main className="container mx-auto px-4 pt-20 pb-20">
         <CommunityNav />

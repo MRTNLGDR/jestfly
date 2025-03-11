@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {
@@ -9,17 +10,11 @@ import App from './App';
 import HomePage from '@/pages/HomePage';
 import CommunityPage from '@/pages/CommunityPage';
 import BookingsPage from '@/pages/BookingsPage';
-// import StorePage from '@/pages/StorePage';
-// import ProductDetailPage from '@/pages/ProductDetailPage';
-// import CheckoutPage from '@/pages/CheckoutPage';
-// import LoginPage from '@/pages/LoginPage';
-// import RegistrationPage from '@/pages/RegistrationPage';
-// import ProfilePage from '@/pages/ProfilePage';
-// import EditProfilePage from '@/pages/EditProfilePage';
-// import ContactPage from '@/pages/ContactPage';
-// import AboutPage from '@/pages/AboutPage';
+import AuthPage from '@/pages/AuthPage';
+import ProfilePage from '@/pages/ProfilePage';
+import AdminPanel from '@/pages/AdminPanel';
 
-// Defining complete props for HomePage with all required ModelParameters properties
+// Define os params padrão para a HomePage
 const defaultHomePageProps = {
   crystalParams: {
     size: 4,
@@ -62,7 +57,7 @@ const defaultHomePageProps = {
     displacementScale: 1,
     displacementBias: 0,
     wireframe: false,
-    side: "front" as const, // Using literal type "front"
+    side: "front" as const,
   },
   galleryImages: [
     { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: "default" as const },
@@ -91,42 +86,18 @@ const router = createBrowserRouter([
         path: "bookings",
         element: <BookingsPage />,
       },
-      // {
-      //   path: "store",
-      //   element: <StorePage />,
-      // },
-      // {
-      //   path: "store/product/:productId",
-      //   element: <ProductDetailPage />,
-      // },
-      // {
-      //   path: "checkout",
-      //   element: <CheckoutPage />,
-      // },
-      // {
-      //   path: "login",
-      //   element: <LoginPage />,
-      // },
-      // {
-      //   path: "register",
-      //   element: <RegistrationPage />,
-      // },
-      // {
-      //   path: "profile",
-      //   element: <ProfilePage />,
-      // },
-      // {
-      //   path: "profile/edit",
-      //   element: <EditProfilePage />,
-      // },
-      // {
-      //   path: "contact",
-      //   element: <ContactPage />,
-      // },
-      // {
-      //   path: "about",
-      //   element: <AboutPage />,
-      // },
+      {
+        path: "auth",
+        element: <AuthPage />,
+      },
+      {
+        path: "profile",
+        element: <ProfilePage />,
+      },
+      {
+        path: "admin",
+        element: <AdminPanel />,
+      },
     ],
   },
 ]);

@@ -2,54 +2,40 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { Loader2 } from 'lucide-react';
-
-type AllowedProfileTypes = 'fan' | 'artist' | 'collaborator' | 'admin';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedProfiles?: AllowedProfileTypes[];
-  requireAuth?: boolean;
+  requiredRole?: 'admin' | 'artist' | 'collaborator' | 'fan';
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
-  children,
-  allowedProfiles = [],
-  requireAuth = true,
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requiredRole 
 }) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   const location = useLocation();
-
-  // Enquanto a autenticação está carregando, mostrar um spinner
-  if (loading) {
+  
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin h-10 w-10 border-4 border-purple-600 rounded-full border-t-transparent"></div>
       </div>
     );
   }
-
-  // Se não requer autenticação, renderizar as crianças diretamente
-  if (!requireAuth) {
-    return <>{children}</>;
+  
+  // Se o usuário não estiver autenticado, redireciona para a página de login
+  if (!user) {
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
-
-  // Se requer autenticação mas o usuário não está autenticado,
-  // redirecionar para a página de login
-  if (!user || !profile) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+  
+  // Se houver um papel requerido e o usuário não tiver esse papel, redireciona
+  if (requiredRole && profile?.profile_type !== requiredRole) {
+    // Verifica se o usuário é admin (admin pode acessar qualquer coisa)
+    if (profile?.profile_type !== 'admin') {
+      return <Navigate to="/" replace />;
+    }
   }
-
-  // Se há tipos de perfil permitidos e o perfil do usuário não está entre eles,
-  // redirecionar para a página inicial ou mostrar mensagem de acesso negado
-  if (
-    allowedProfiles.length > 0 &&
-    !allowedProfiles.includes(profile.profile_type as AllowedProfileTypes)
-  ) {
-    return <Navigate to="/" replace />;
-  }
-
-  // Se tudo estiver ok, renderizar o conteúdo protegido
+  
   return <>{children}</>;
 };
 
