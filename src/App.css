@@ -1,6 +1,10 @@
 
 .app {
-  @apply w-full min-h-screen relative flex flex-col;
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .animate-fade-in {

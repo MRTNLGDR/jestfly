@@ -1,14 +1,14 @@
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/auth/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import GlassHeader from '@/components/GlassHeader';
-import Footer from '@/components/Footer';
-import LogsFilter from '@/components/logs/LogsFilter';
-import LogsTable from '@/components/logs/LogsTable';
-import LogsTabs from '@/components/logs/LogsTabs';
-import { LogLevel, LogSource, LogModule, Log } from '@/types/logs';
-import { Button } from '@/components/ui/button';
+import { useAuth } from '../hooks/auth/useAuth';
+import { supabase } from '../integrations/supabase/client';
+import GlassHeader from '../components/GlassHeader';
+import Footer from '../components/Footer';
+import LogsFilter from '../components/logs/LogsFilter';
+import LogsTable from '../components/logs/LogsTable';
+import LogsTabs from '../components/logs/LogsTabs';
+import { LogLevel, LogSource, LogModule, Log } from '../types/logs';
+import { Button } from '../components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
 // Define the database log structure
@@ -104,7 +104,8 @@ const LogsViewer: React.FC = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, [user, filters]);
+  // Removed the dependency on filters to prevent infinite loop/deep instantiation
+  }, [user, isAdmin]);
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({
@@ -112,6 +113,15 @@ const LogsViewer: React.FC = () => {
       ...newFilters
     }));
   };
+
+  // Add a separate effect for filter changes with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchLogs();
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [filters]);
 
   if (!user || !isAdmin) {
     return (
