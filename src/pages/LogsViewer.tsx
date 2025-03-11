@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/auth/useAuth';
 import { supabase } from '../integrations/supabase/client';
 import GlassHeader from '../components/GlassHeader';
@@ -37,7 +37,8 @@ const LogsViewer: React.FC = () => {
 
   const isAdmin = profile?.profile_type === 'admin';
 
-  const fetchLogs = async () => {
+  // Using useCallback to prevent infinite recursion and deep type instantiation
+  const fetchLogs = useCallback(async () => {
     setIsLoadingLogs(true);
     
     try {
@@ -100,12 +101,12 @@ const LogsViewer: React.FC = () => {
     } finally {
       setIsLoadingLogs(false);
     }
-  };
+  }, [user, isAdmin, filters]); // Include all dependencies explicitly
 
+  // Initial fetch on component mount
   useEffect(() => {
     fetchLogs();
-  // Removed the dependency on filters to prevent infinite loop/deep instantiation
-  }, [user, isAdmin]);
+  }, [fetchLogs]); // Depend on the memoized function
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
     setFilters(prev => ({
@@ -113,15 +114,6 @@ const LogsViewer: React.FC = () => {
       ...newFilters
     }));
   };
-
-  // Add a separate effect for filter changes with debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchLogs();
-    }, 300);
-    
-    return () => clearTimeout(timer);
-  }, [filters]);
 
   if (!user || !isAdmin) {
     return (
