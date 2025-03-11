@@ -2,7 +2,7 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Footer from '@/components/Footer';
-import { GlassHeader } from '@/components/GlassHeader';
+import GlassHeader from '@/components/GlassHeader';
 import CommunityHome from '@/components/community/CommunityHome';
 import EventsPage from '@/components/community/EventsPage';
 import GiveawaysPage from '@/components/community/GiveawaysPage';

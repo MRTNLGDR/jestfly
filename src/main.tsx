@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {
@@ -17,6 +18,22 @@ import CommunityPage from '@/pages/CommunityPage';
 // import ContactPage from '@/pages/ContactPage';
 // import AboutPage from '@/pages/AboutPage';
 
+// Definindo props padrão para HomePage se necessário
+const defaultCrystalParams = {
+  size: 4,
+  position: [0, 0, 0],
+  rotation: [0, 0, 0],
+  color: '#9b59b6',
+  intensity: 1.5,
+  speed: 1,
+};
+
+const defaultGalleryImages = [
+  { id: '1', src: '/placeholder.svg', alt: 'Placeholder 1' },
+  { id: '2', src: '/placeholder.svg', alt: 'Placeholder 2' },
+  { id: '3', src: '/placeholder.svg', alt: 'Placeholder 3' },
+];
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -24,7 +41,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <HomePage />,
+        element: <HomePage crystalParams={defaultCrystalParams} galleryImages={defaultGalleryImages} />,
       },
       {
         path: "community/*",
