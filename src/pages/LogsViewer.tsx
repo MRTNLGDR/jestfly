@@ -1,29 +1,36 @@
 
 import React, { useEffect } from 'react';
-import { useAuth } from '../hooks/auth/useAuth';
-import { useSystemLogs } from '../hooks/logs/useSystemLogs';
-import GlassHeader from '../components/GlassHeader';
-import Footer from '../components/Footer';
-import LogsFilter from '../components/logs/LogsFilter';
-import LogsTable from '../components/logs/LogsTable';
-import LogsTabs from '../components/logs/LogsTabs';
-import { Button } from '../components/ui/button';
+import { useAuth } from '@/hooks/auth/useAuth';
+import { useSystemLogs } from '@/hooks/logs/useSystemLogs';
+import GlassHeader from '@/components/GlassHeader';
+import Footer from '@/components/Footer';
+import LogsFilter from '@/components/logs/LogsFilter';
+import LogsTable from '@/components/logs/LogsTable';
+import LogsTabs from '@/components/logs/LogsTabs';
+import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
 const LogsViewer: React.FC = () => {
   const { user, profile } = useAuth();
-  const { logs, isLoading, filters, fetchLogs, updateFilters } = useSystemLogs();
+  const { 
+    logs, 
+    isLoading, 
+    filters, 
+    fetchLogs, 
+    updateFilters,
+    clearFilters 
+  } = useSystemLogs();
 
   const isAdmin = profile?.profile_type === 'admin';
 
-  // Fetch logs on component mount
+  // Load logs initially when component mounts
   useEffect(() => {
     if (user && isAdmin) {
       fetchLogs();
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, fetchLogs]);
 
-  // Effect for filter changes with debounce
+  // Reload logs when filters change
   useEffect(() => {
     const timer = setTimeout(() => {
       if (user && isAdmin) {
@@ -32,7 +39,7 @@ const LogsViewer: React.FC = () => {
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [filters]);
+  }, [filters, user, isAdmin, fetchLogs]);
 
   if (!user || !isAdmin) {
     return (
@@ -69,6 +76,7 @@ const LogsViewer: React.FC = () => {
         <LogsFilter
           currentFilters={filters}
           onFilterChange={updateFilters}
+          onClearFilters={clearFilters}
         />
         
         <LogsTabs 
