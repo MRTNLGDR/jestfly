@@ -6,6 +6,14 @@ export enum LogLevel {
   DEBUG = 'debug'
 }
 
+export enum LogSource {
+  SYSTEM = 'system',
+  CLIENT = 'client',
+  SERVER = 'server',
+  DATABASE = 'database',
+  AUTH = 'auth'
+}
+
 export enum LogModule {
   AUTH = 'auth',
   USER = 'user',
@@ -15,22 +23,15 @@ export enum LogModule {
   SYSTEM = 'system'
 }
 
-export enum LogSource {
-  SYSTEM = 'system',
-  CLIENT = 'client',
-  SERVER = 'server',
-  DATABASE = 'database',
-  AUTH = 'auth'
-}
-
-export type LogType = {
+export interface Log {
   id: string;
   timestamp: string;
   level: LogLevel;
   source: LogSource;
+  type: LogModule;
   message: string;
   userId?: string;
   metadata?: Record<string, any>;
-};
+}
 
-export type LogEntry = LogType; // Alias for backward compatibility
+export type LogType = Log; // Alias for backward compatibility

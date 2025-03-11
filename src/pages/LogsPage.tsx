@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import GlassHeader from '@/components/GlassHeader';
 import Footer from '@/components/Footer';
 import LogsFilter from '@/components/logs/LogsFilter';
 import LogsTable from '@/components/logs/LogsTable';
 import LogsTabs from '@/components/logs/LogsTabs';
-import { LogLevel, LogSource, LogType } from '@/types/logs';
+import { LogLevel, LogSource, LogModule, Log } from '@/types/logs';
 
 const LogsPage: React.FC = () => {
   const [filters, setFilters] = useState({
@@ -17,12 +16,13 @@ const LogsPage: React.FC = () => {
   });
 
   // Sample logs data for the viewer
-  const viewerLogs: LogType[] = [
+  const viewerLogs: Log[] = [
     {
       id: '1',
       timestamp: new Date().toISOString(),
       level: LogLevel.INFO,
       source: LogSource.SYSTEM,
+      type: LogModule.SYSTEM,
       message: 'User session started',
       userId: 'user123',
       metadata: { browser: 'Chrome', os: 'Windows' }
@@ -32,26 +32,18 @@ const LogsPage: React.FC = () => {
       timestamp: new Date(Date.now() - 1800000).toISOString(),
       level: LogLevel.DEBUG,
       source: LogSource.CLIENT,
+      type: LogModule.USER,
       message: 'Component mounted',
       userId: 'user123',
       metadata: { component: 'Dashboard' }
     },
   ];
 
-  const handleFilterChange = (newFilters: {
-    level?: LogLevel;
-    source?: LogSource;
-    search?: string;
-    startDate?: Date;
-    endDate?: Date;
-  }) => {
-    setFilters({
-      level: newFilters.level || null,
-      source: newFilters.source || null,
-      search: newFilters.search !== undefined ? newFilters.search : filters.search,
-      startDate: newFilters.startDate || null,
-      endDate: newFilters.endDate || null,
-    });
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters(prev => ({
+      ...prev,
+      ...newFilters
+    }));
   };
 
   return (
