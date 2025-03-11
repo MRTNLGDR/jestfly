@@ -30,8 +30,9 @@ export interface Log {
   source: LogSource;
   type: LogModule;
   message: string;
-  userId?: string;
+  userId?: string | null;
   metadata?: Record<string, any>;
 }
 
-export type LogType = Log; // Alias for backward compatibility
+// Compatibilidade retroativa
+export type LogType = Log;
