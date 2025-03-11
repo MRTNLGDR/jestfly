@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {
@@ -61,7 +60,7 @@ const defaultHomePageProps = {
     displacementScale: 1,
     displacementBias: 0,
     wireframe: false,
-    side: "double", // Fixed: changed from number 2 to string "double"
+    side: "front" as const, // Changed to use literal type "front"
   },
   galleryImages: [
     { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: 'default' },

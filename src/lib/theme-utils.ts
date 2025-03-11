@@ -1,5 +1,4 @@
-
-import { theme } from '../styles/theme';
+import { theme } from '../styles/theme.tsx';
 
 export const getTailwindThemeColors = () => {
   const colors = theme.colors;
