@@ -12,20 +12,21 @@ import LogsFilter from '@/components/logs/LogsFilter';
 import LogsTable from '@/components/logs/LogsTable';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import { LogLevel, LogSource, Log } from '@/types/logs';
 
 const LogsViewer = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [filters, setFilters] = useState({
     search: '',
-    level: '',
-    type: '',
-    dateFrom: '',
-    dateTo: ''
+    level: null as LogLevel | null,
+    source: null as LogSource | null,
+    startDate: null as Date | null,
+    endDate: null as Date | null
   });
 
   useEffect(() => {
@@ -34,7 +35,8 @@ const LogsViewer = () => {
       return;
     }
 
-    if (user?.profile_type !== 'admin') {
+    // Check profile type instead of user.profile_type
+    if (profile?.profile_type !== 'admin') {
       navigate('/');
       toast({
         title: "Access Denied",
@@ -45,7 +47,7 @@ const LogsViewer = () => {
     }
 
     fetchLogs();
-  }, [user, activeTab, filters]);
+  }, [user, profile, navigate, activeTab, filters]);
 
   const fetchLogs = async () => {
     try {
@@ -61,8 +63,8 @@ const LogsViewer = () => {
         query = query.eq('level', filters.level);
       }
       
-      if (filters.type) {
-        query = query.eq('type', filters.type);
+      if (filters.source) {
+        query = query.eq('source', filters.source);
       }
 
       // Apply tab filtering
@@ -83,7 +85,8 @@ const LogsViewer = () => {
         throw error;
       }
 
-      setLogs(data || []);
+      // Type cast data to Log[]
+      setLogs(data as Log[] || []);
     } catch (error) {
       console.error('Error fetching logs:', error);
       toast({
@@ -96,17 +99,18 @@ const LogsViewer = () => {
     }
   };
 
-  const handleFilterChange = (name: string, value: string) => {
-    setFilters(prev => ({ ...prev, [name]: value }));
+  // Update this function to accept the right parameter type
+  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
   const resetFilters = () => {
     setFilters({
       search: '',
-      level: '',
-      type: '',
-      dateFrom: '',
-      dateTo: ''
+      level: null,
+      source: null,
+      startDate: null,
+      endDate: null
     });
   };
 
@@ -147,9 +151,8 @@ const LogsViewer = () => {
           <Card className="bg-black/40 backdrop-blur-md border-white/10">
             <CardContent className="p-6">
               <LogsFilter 
-                filters={filters} 
-                onFilterChange={handleFilterChange} 
-                onResetFilters={resetFilters} 
+                currentFilters={filters}
+                onFilterChange={handleFilterChange}
               />
               
               <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
@@ -166,7 +169,7 @@ const LogsViewer = () => {
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
                     </div>
                   ) : (
-                    <LogsTable logs={logs} />
+                    <LogsTable logs={logs} isLoading={loading} />
                   )}
                 </TabsContent>
               </Tabs>
