@@ -18,7 +18,7 @@ import CommunityPage from '@/pages/CommunityPage';
 // import ContactPage from '@/pages/ContactPage';
 // import AboutPage from '@/pages/AboutPage';
 
-// Definindo props padrão para HomePage
+// Defining complete props for HomePage with all required ModelParameters properties
 const defaultHomePageProps = {
   crystalParams: {
     size: 4,
@@ -45,6 +45,22 @@ const defaultHomePageProps = {
     sheenColor: '#ffffff',
     specularIntensity: 1,
     specularColor: '#ffffff',
+    lightIntensity: 1,
+    opacity: 1,
+    transparent: true,
+    textureMap: '',
+    normalMap: '',
+    roughnessMap: '',
+    metalnessMap: '',
+    emissiveMap: '',
+    emissiveColor: '#000000',
+    emissiveIntensity: 0,
+    aoMap: '',
+    aoMapIntensity: 1,
+    displacementMap: '',
+    displacementScale: 1,
+    displacementBias: 0,
+    wireframe: false
   },
   galleryImages: [
     { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: 'default' },

@@ -1,125 +1,74 @@
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogsFilter, LogLevel, LogSource } from "@/components/logs/LogsFilter";
-import { LogsTable } from "@/components/logs/LogsTable";
-import { LogsTabs } from "@/components/logs/LogsTabs";
-import { AnyLogEntry, SystemLogEntry, LogEntry } from '@/types/logs';
+import React, { useState } from 'react';
+import GlassHeader from '@/components/GlassHeader';
+import Footer from '@/components/Footer';
+import LogsFilter from '@/components/logs/LogsFilter';
+import { LogLevel, LogSource } from '@/components/logs/LogsFilter';
+import LogsTable from '@/components/logs/LogsTable';
+import LogsTabs from '@/components/logs/LogsTabs';
+import { LogType } from '@/types/logs';
 
-// This component would be used to view logs for a specific resource
-// For example: /logs/user/123 or /logs/post/456
-const LogsViewer = () => {
-  const { resourceType, resourceId } = useParams<{ resourceType?: string, resourceId?: string }>();
-  
-  const [activeTab, setActiveTab] = useState<string>('system');
+const LogsViewer: React.FC = () => {
   const [filters, setFilters] = useState({
+    level: null,
+    source: null,
     search: '',
-    level: 'all' as LogLevel,
-    source: 'all' as LogSource
+    startDate: null,
+    endDate: null,
   });
-  
-  const [logs, setLogs] = useState<AnyLogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchLogs = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // In a real app, this would be an API call filtered by resourceType and resourceId
-        // For example: await api.getLogs({ resourceType, resourceId, ...filters })
-        
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Example response based on the resource being viewed
-        const dummyLogs: AnyLogEntry[] = [
-          {
-            id: `log-${resourceType}-1`,
-            timestamp: new Date().toISOString(),
-            message: `Activity for ${resourceType} ${resourceId}`,
-            action: 'view',
-            user_id: 'current-user'
-          },
-          {
-            id: `log-${resourceType}-2`,
-            timestamp: new Date(Date.now() - 3600000).toISOString(),
-            level: 'info',
-            source: 'system',
-            message: `System processed ${resourceType} ${resourceId}`,
-            metadata: { details: 'Example metadata' }
-          } as SystemLogEntry
-        ];
-        
-        setLogs(dummyLogs);
-      } catch (err) {
-        setError(`Failed to load logs for ${resourceType} ${resourceId}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    if (resourceType && resourceId) {
-      fetchLogs();
-    }
-  }, [resourceType, resourceId, activeTab, filters]);
+  // Sample logs data for the viewer
+  const viewerLogs: LogType[] = [
+    {
+      id: '1',
+      timestamp: new Date().toISOString(),
+      level: LogLevel.INFO,
+      source: LogSource.SYSTEM,
+      message: 'User session started',
+      userId: 'user123',
+      metadata: { browser: 'Chrome', os: 'Windows' }
+    },
+    {
+      id: '2',
+      timestamp: new Date(Date.now() - 1800000).toISOString(),
+      level: LogLevel.DEBUG,
+      source: LogSource.CLIENT,
+      message: 'Component mounted',
+      userId: 'user123',
+      metadata: { component: 'Dashboard' }
+    },
+  ];
 
-  // Corrected handler function that accepts partial filter updates
-  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prevFilters => ({
-      ...prevFilters,
-      ...newFilters
-    }));
-  };
-
-  if (!resourceType || !resourceId) {
-    return (
-      <div className="container mx-auto py-6 px-4">
-        <Alert variant="destructive">
-          <AlertDescription>
-            Invalid resource specification. Please provide both resource type and ID.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const menuItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Logs', href: '/logs' },
+    { label: 'Back', href: '/admin' },
+  ];
 
   return (
-    <div className="container mx-auto py-6 px-4">
-      <h1 className="text-2xl font-bold mb-6">
-        Logs for {resourceType.charAt(0).toUpperCase() + resourceType.slice(1)}: {resourceId}
-      </h1>
+    <div className="min-h-screen bg-black">
+      <GlassHeader menuItems={menuItems} />
       
-      {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      <main className="container mx-auto px-4 pt-24 pb-20">
+        <h1 className="text-4xl font-light mb-6 text-gradient-primary">Logs Viewer</h1>
+        
+        <LogsFilter
+          onFilterChange={setFilters}
+          currentFilters={filters}
+        />
+        
+        <LogsTabs 
+          defaultValue="session"
+          tabValues={[
+            { value: 'session', label: 'Current Session', count: viewerLogs.length },
+            { value: 'user', label: 'User Logs', count: 0 },
+          ]}
+        >
+          <LogsTable logs={viewerLogs} />
+        </LogsTabs>
+      </main>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Activity Log</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <LogsTabs activeTab={activeTab} onTabChange={setActiveTab}>
-            <div>
-              <LogsFilter 
-                filters={filters}
-                onFilterChange={handleFilterChange}
-              />
-              
-              <LogsTable 
-                logs={logs}
-                isLoading={isLoading}
-              />
-            </div>
-          </LogsTabs>
-        </CardContent>
-      </Card>
+      <Footer />
     </div>
   );
 };
