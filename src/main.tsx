@@ -13,6 +13,7 @@ import BookingsPage from '@/pages/BookingsPage';
 import AuthPage from '@/pages/AuthPage';
 import ProfilePage from '@/pages/ProfilePage';
 import AdminPanel from '@/pages/AdminPanel';
+import LogsPage from '@/pages/LogsPage';
 
 // Define os params padrão para a HomePage
 const defaultHomePageProps = {
@@ -97,6 +98,10 @@ const router = createBrowserRouter([
       {
         path: "admin",
         element: <AdminPanel />,
+      },
+      {
+        path: "logs",
+        element: <LogsPage />,
       },
     ],
   },
