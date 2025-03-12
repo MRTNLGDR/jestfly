@@ -121,7 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  // Wrap the loginUser function to match the expected return type in AuthContextType
+  const login = async (email: string, password: string): Promise<void> => {
     try {
       setError(null);
       await loginUser(email, password);
@@ -131,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, userData: Partial<UserProfile>) => {
+  const register = async (email: string, password: string, userData: Partial<UserProfile>): Promise<void> => {
     try {
       setError(null);
       await registerUser(email, password, userData);
@@ -141,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await logoutUser();
     } catch (err: any) {
@@ -150,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<void> => {
     try {
       setError(null);
       await resetUserPassword(email);
@@ -160,7 +161,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<UserProfile>) => {
+  const updateProfile = async (data: Partial<UserProfile>): Promise<void> => {
     if (!currentUser || !userData) {
       throw new Error("Usuário não autenticado");
     }
@@ -174,16 +175,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     currentUser,
     userData,
-    login: loginUser,
-    register: registerUser,
-    logout: logoutUser,
-    resetPassword: resetUserPassword,
+    login,
+    register,
+    logout,
+    resetPassword,
     loading,
     error,
-    updateProfile: updateUserProfile,
+    updateProfile,
     refreshUserData,
     isAdmin,
     isArtist,
