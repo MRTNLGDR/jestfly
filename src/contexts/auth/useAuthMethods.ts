@@ -1,4 +1,3 @@
-
 import { User } from '@supabase/supabase-js';
 import { UserProfile } from '../../models/User';
 import { 
@@ -7,7 +6,7 @@ import {
   logoutUser, 
   resetUserPassword,
   updateUserProfile
-} from './authMethods';
+} from './methods';
 
 interface UseAuthMethodsProps {
   currentUser: User | null;
