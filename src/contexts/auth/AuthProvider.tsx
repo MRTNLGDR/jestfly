@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Wrap the loginUser function to match the expected return type in AuthContextType
+  // Wrap the auth methods to match the expected return type in AuthContextType
   const login = async (email: string, password: string): Promise<void> => {
     try {
       setError(null);
