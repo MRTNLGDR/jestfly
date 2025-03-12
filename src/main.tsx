@@ -13,9 +13,7 @@ if (!rootElement) {
   
   try {
     root.render(
-      <StrictMode>
-        <App />
-      </StrictMode>
+      <App />
     );
     console.log("App rendered successfully");
   } catch (error) {

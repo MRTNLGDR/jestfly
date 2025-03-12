@@ -3,8 +3,6 @@ import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import GlassHeader from './components/GlassHeader';
 import { defaultModelParams } from './types/model';
-import Footer from './components/Footer';
-import LanguageProvider from './contexts/LanguageContext';
 import { Toaster } from 'sonner';
 import NotesPage from './pages/NotesPage';
 import HomePage from './pages/HomePage';
@@ -24,6 +22,8 @@ import { AuthProvider } from './contexts/auth'; // Updated path
 import { LoginForm } from './components/auth';
 import { RegisterForm } from './components/auth';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import Footer from './components/Footer';
+import LanguageProvider from './contexts/LanguageContext';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -89,6 +89,9 @@ function App() {
                   <ProtectedRoute>
                     <ProfilePage />
                   </ProtectedRoute>
+                } />
+                <Route path="/profile/:userId" element={
+                  <ProfilePage />
                 } />
                 <Route path="/demo-submission" element={
                   <ProtectedRoute>
