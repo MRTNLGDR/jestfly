@@ -1,4 +1,4 @@
 
 export { default as FolderUploader } from './FolderUploader';
-export { FileList } from './FileList';
-export { UploadArea } from './UploadArea';
+export * from './types';
+export * from './utils';

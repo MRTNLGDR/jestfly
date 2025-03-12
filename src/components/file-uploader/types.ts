@@ -7,7 +7,8 @@ export interface UploadedFile {
   url: string;
 }
 
-export interface DirectoryInputProps {
-  webkitdirectory: string;
-  directory: string;
+// Define a type that includes the non-standard directory attributes
+export interface DirectoryInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  webkitdirectory?: string;
+  directory?: string;
 }

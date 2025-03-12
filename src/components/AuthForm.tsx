@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/auth/useAuth';
+import { useAuth } from '../contexts/auth';
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -9,13 +9,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [username, setUsername] = useState('');
-  const [profileType, setProfileType] = useState<'fan' | 'artist' | 'collaborator' | 'admin'>('fan');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { signIn, signUp } = useAuth();
+  const { login, register } = useAuth();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,16 +21,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     
     try {
       if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) throw error;
+        await login(email, password);
       } else {
-        const userData = {
-          display_name: displayName,
-          username: username,
-          profile_type: profileType
-        };
-        const { error } = await signUp(email, password, userData);
-        if (error) throw error;
+        await register(email, password, {
+          displayName: email.split('@')[0],
+          username: email.split('@')[0],
+          profileType: 'fan'
+        });
       }
       
       if (onSuccess) onSuccess();
@@ -44,7 +38,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-8">
@@ -73,58 +67,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
               required
             />
           </div>
-          
-          {!isLogin && (
-            <>
-              <div className="mb-4">
-                <label className="block text-white/80 mb-2" htmlFor="displayName">
-                  Display Name
-                </label>
-                <input
-                  id="displayName"
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
-                  placeholder="Your display name"
-                  required={!isLogin}
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-white/80 mb-2" htmlFor="username">
-                  Username
-                </label>
-                <input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
-                  placeholder="username"
-                  required={!isLogin}
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label className="block text-white/80 mb-2" htmlFor="profileType">
-                  Account Type
-                </label>
-                <select
-                  id="profileType"
-                  value={profileType}
-                  onChange={(e) => setProfileType(e.target.value as 'fan' | 'artist' | 'collaborator' | 'admin')}
-                  className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
-                  required={!isLogin}
-                >
-                  <option value="fan">Fan</option>
-                  <option value="artist">Artist</option>
-                  <option value="collaborator">Collaborator</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-            </>
-          )}
           
           <div className="mb-6">
             <label className="block text-white/80 mb-2" htmlFor="password">

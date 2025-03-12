@@ -3,18 +3,29 @@ import React from 'react';
 import { Sidebar, SidebarContent, SidebarProvider } from '../components/ui/sidebar';
 import AdminSidebar from '../components/admin/AdminSidebar';
 import ModelEditor from '../components/admin/ModelEditor';
-import LightingEditor from '../components/admin/lighting'; // Updated import path to point to the index file
+import LightingEditor from '../components/admin/LightingEditor';
 import TextureEditor from '../components/admin/TextureEditor';
 import ModelGallery from '../components/admin/ModelGallery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Separator } from '../components/ui/separator';
 import GlassHeader from '../components/GlassHeader';
+import JestCoinManager from '../components/admin/jest-coin/JestCoinManager';
+import RaffleManager from '../components/admin/RaffleManager';
 
 const AdminPanel = () => {
+  const menuItems = [
+    { label: "Dashboard", href: "/admin" },
+    { label: "Models", href: "/admin/models" },
+    { label: "Assets", href: "/admin/assets" },
+    { label: "JestCoins", href: "/admin/jestcoins" },
+    { label: "Raffles", href: "/admin/raffles" },
+    { label: "Settings", href: "/admin/settings" }
+  ];
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex flex-col w-full bg-gradient-to-br from-gray-900 to-black">
-        <GlassHeader />
+        <GlassHeader menuItems={menuItems} />
         <div className="flex flex-1 pt-16">
           <AdminSidebar />
           <main className="flex-1 p-4 overflow-auto">
@@ -26,7 +37,7 @@ const AdminPanel = () => {
               
               <Tabs defaultValue="model-editor" className="w-full">
                 <div className="neo-blur p-3 rounded-lg mb-4">
-                  <TabsList className="grid grid-cols-4 gap-2 w-full">
+                  <TabsList className="grid grid-cols-6 gap-2 w-full">
                     <TabsTrigger value="model-editor" className="data-[state=active]:bg-purple-600">
                       Editor de Modelo
                     </TabsTrigger>
@@ -38,6 +49,12 @@ const AdminPanel = () => {
                     </TabsTrigger>
                     <TabsTrigger value="gallery" className="data-[state=active]:bg-purple-600">
                       Galeria
+                    </TabsTrigger>
+                    <TabsTrigger value="jestcoins" className="data-[state=active]:bg-purple-600">
+                      JestCoins
+                    </TabsTrigger>
+                    <TabsTrigger value="raffles" className="data-[state=active]:bg-purple-600">
+                      Sorteios
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -56,6 +73,14 @@ const AdminPanel = () => {
                 
                 <TabsContent value="gallery">
                   <ModelGallery />
+                </TabsContent>
+
+                <TabsContent value="jestcoins">
+                  <JestCoinManager />
+                </TabsContent>
+                
+                <TabsContent value="raffles">
+                  <RaffleManager />
                 </TabsContent>
               </Tabs>
             </div>

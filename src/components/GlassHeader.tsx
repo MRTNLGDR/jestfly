@@ -1,78 +1,91 @@
 
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import CyberMenu from './CyberMenu';
-import JestCoinTicker from './JestCoinTicker';
-import { useAuth } from '@/hooks/auth/useAuth';
-import { Button } from './ui/button';
-import { useIsMobile } from '@/hooks/use-mobile';
-import WalletWidget from './jestcoin/WalletWidget';
-import HeaderLogo from './header/HeaderLogo';
-import DesktopNavigation from './header/DesktopNavigation';
-import MobileNavigation from './header/MobileNavigation';
-import UserDropdown from './header/UserDropdown';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useIsMobile } from '../hooks/use-mobile';
+import Logo from './header/Logo';
+import WelcomeText from './header/WelcomeText';
+import DesktopNav from './header/DesktopNav';
+import MobileMenuToggle from './header/MobileMenuToggle';
+import HeaderControls from './header/HeaderControls';
+import MobileMenu from './header/MobileMenu';
 
-const GlassHeader = () => {
-  const location = useLocation();
-  const { user, profile } = useAuth();
+interface MenuItem {
+  label: string;
+  href: string;
+}
+
+interface GlassHeaderProps {
+  menuItems?: MenuItem[];
+}
+
+const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const isMobile = useIsMobile();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
+  const location = useLocation();
+  
+  // Track page changes and scrolling
   useEffect(() => {
+    // Add initial glassmorphism effect when navigating to a new page
+    setScrolled(true);
+    
+    // Reset the effect after a delay (for animation purposes)
+    const timer = setTimeout(() => {
+      setScrolled(false);
+    }, 1000);
+    
+    // Track scrolling
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      const isScrolled = window.scrollY > 10;
+      setScrolled(isScrolled);
     };
+    
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location]);
-
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(timer);
+    };
+  }, [location.pathname]); // Re-run when the path changes
+  
+  // Define glass effect classes based on scrolled state
+  const glassEffect = scrolled 
+    ? "bg-black/70 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
+    : "bg-black/40 backdrop-blur-md transition-all duration-500";
+  
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+  
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-black/80 backdrop-blur-md' : 'bg-transparent'}`}>
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <HeaderLogo />
+    <header className={`fixed top-0 left-0 w-full z-50 ${glassEffect}`}>
+      <div className="max-w-full mx-auto px-4 md:px-6 py-3 md:py-4">
+        <div className="flex items-center justify-between">
+          {/* Left side - Logo and welcome text */}
+          <div className="flex items-center space-x-4 md:space-x-12">
+            <Logo />
+            <WelcomeText />
+          </div>
           
-          {/* Desktop Navigation */}
-          <DesktopNavigation />
-
-          {/* Right side: JestCoin, Auth */}
-          <div className="flex items-center space-x-4">
-            {/* JestCoin Ticker (Desktop) */}
-            {!isMobile && <JestCoinTicker compact />}
-            
-            {/* Wallet Widget (when logged in) */}
-            {user && profile && <WalletWidget />}
-            
-            {/* Authentication */}
-            {user && profile ? (
-              <UserDropdown />
-            ) : (
-              <Link to="/auth">
-                <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-500/10">
-                  Entrar
-                </Button>
-              </Link>
-            )}
-            
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:bg-gray-800 hover:text-white focus:outline-none"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <CyberMenu isOpen={menuOpen} />
-            </button>
+          {/* Center - Navigation (desktop only) */}
+          <DesktopNav menuItems={menuItems} />
+          
+          {/* Right side - Controls and mobile menu toggle */}
+          <div className="flex items-center gap-2">
+            <HeaderControls />
+            <MobileMenuToggle isOpen={mobileMenuOpen} onToggle={toggleMobileMenu} />
           </div>
         </div>
       </div>
       
-      {/* Mobile Menu Overlay */}
-      <MobileNavigation isOpen={menuOpen} onClose={() => setMenuOpen(false)} />
+      {/* Mobile menu */}
+      <MobileMenu 
+        isOpen={mobileMenuOpen} 
+        menuItems={menuItems} 
+        onItemClick={() => setMobileMenuOpen(false)} 
+        activePathname={location.pathname}
+      />
     </header>
   );
 };

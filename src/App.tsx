@@ -1,144 +1,135 @@
-import { Routes, Route } from 'react-router-dom';
-import { Toaster } from "sonner";
+
 import './App.css';
-import HomePage from './pages/HomePage';
-import StorePage from './pages/StorePage';
-import JestCoinPage from './pages/JestCoinPage';
-import ProfilePage from './pages/ProfilePage';
-import CommunityPage from './pages/CommunityPage';
-import AuthPage from './pages/AuthPage';
-import AdminPanel from './pages/AdminPanel';
-import LogsPage from './pages/LogsPage';
-import BookingsPage from './pages/BookingsPage';
-import DemoSubmissionPage from './pages/DemoSubmissionPage';
-import PressKitPage from './pages/PressKitPage';
-import AssetUploader from './pages/AssetUploader';
-import AirdropPage from './pages/AirdropPage';
-import LiveStreamPage from './pages/LiveStreamPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import CheckoutPage from './pages/CheckoutPage';
-import OrderSuccessPage from './pages/OrderSuccessPage';
-import NotFound from './pages/NotFound';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import GlassHeader from './components/GlassHeader';
+import { defaultModelParams } from './types/model';
 import Footer from './components/Footer';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import { AuthProvider } from './contexts/AuthContext';
+import LanguageProvider from './contexts/LanguageContext';
+import { Toaster } from 'sonner';
+import NotesPage from './pages/NotesPage';
+import HomePage from './pages/HomePage';
+import NewStorePage from './pages/NewStorePage';
+import CommunityPage from './pages/CommunityPage';
+import BookingsPage from './pages/BookingsPage';
+import ProfilePage from './pages/ProfilePage';
+import DemoSubmissionPage from './pages/DemoSubmissionPage';
+import LiveStreamPage from './pages/LiveStreamPage';
+import PressKitPage from './pages/PressKitPage';
+import AirdropPage from './pages/AirdropPage';
+import EcommercePage from './pages/EcommercePage';
+import AdminPanel from './pages/AdminPanel';
+import UnauthorizedPage from './pages/UnauthorizedPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import { AuthProvider } from './contexts/auth'; // Updated path
+import { LoginForm } from './components/auth/LoginForm';
+import { RegisterForm } from './components/auth/RegisterForm';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
-  const defaultHomePageProps = {
-    crystalParams: {
-      size: 4,
-      position: [0, 0, 0],
-      rotation: [0, 0, 0],
-      color: '#9b59b6',
-      intensity: 1.5,
-      speed: 1,
-      metalness: 0.2,
-      roughness: 0.1,
-      transmission: 0.9,
-      thickness: 0.5,
-      envMapIntensity: 1,
-      clearcoat: 1,
-      clearcoatRoughness: 0.1,
-      ior: 2.33,
-      attenuationColor: '#ffffff',
-      attenuationDistance: 0,
-      reflectivity: 0.5,
-      iridescence: 1,
-      iridescenceIOR: 1.5,
-      sheen: 0,
-      sheenRoughness: 0.1,
-      sheenColor: '#ffffff',
-      specularIntensity: 1,
-      specularColor: '#ffffff',
-      lightIntensity: 1,
-      opacity: 1,
-      transparent: true,
-      textureMap: '',
-      normalMap: '',
-      roughnessMap: '',
-      metalnessMap: '',
-      emissiveMap: '',
-      emissiveColor: '#000000',
-      emissiveIntensity: 0,
-      aoMap: '',
-      aoMapIntensity: 1,
-      displacementMap: '',
-      displacementScale: 1,
-      displacementBias: 0,
-      wireframe: false,
-      side: "front" as const,
-    },
-    galleryImages: [
-      { src: '/placeholder.svg', alt: 'Placeholder 1', crystalPosition: "default" as const },
-      { src: '/placeholder.svg', alt: 'Placeholder 2', crystalPosition: "top-left" as const },
-      { src: '/placeholder.svg', alt: 'Placeholder 3', crystalPosition: "center" as const },
-    ],
+  // Crystal parameters with customized values for enhanced futuristic effect
+  const crystalParams = {
+    ...defaultModelParams,
+    color: "#ffffff", // Pure white base color for better refraction
+    metalness: 0.2, // Slight metalness for better reflections
+    roughness: 0.01, // Ultra smooth surface for crisp reflections
+    transmission: 0.98, // Near perfect transmission for glass effect
+    thickness: 0.8, // Increased thickness for more internal refraction
+    envMapIntensity: 5.0, // Boosted reflections to showcase neon environment
+    clearcoat: 1.0, // Maximum clearcoat for glossiness
+    clearcoatRoughness: 0.0, // Perfect clearcoat smoothness
+    ior: 2.5, // Higher index of refraction for diamond-like effect
+    iridescence: 1.0, // Strong iridescence for color shifts
+    iridescenceIOR: 2.0, // Enhanced iridescence refraction
+    transparent: true,
+    opacity: 0.8, // Reduced opacity for better visual effect
+    reflectivity: 1.0, // Maximum reflectivity
+    emissiveIntensity: 0.08, // Slight emission for added glow
+    emissiveColor: "#8B5CF6", // Subtle purple emission color
+    lightIntensity: 5.0 // Brighter lights to enhance the model
   };
-
+  
+  // Gallery images
+  const galleryImages = [
+    { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'default' as const },
+    { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'bottom-left' as const },
+    { src: '/assets/imagem1.jpg', alt: 'Imagem de exemplo', crystalPosition: 'center' as const }
+  ];
+  
+  // Menu items for the cyber menu
+  const menuItems = [
+    { label: 'Início', href: '/' },
+    { label: 'Store', href: '/store' },
+    { label: 'Community', href: '/community' },
+    { label: 'Bookings', href: '/bookings' },
+    { label: 'Resources', href: '/resources' },
+    { label: 'Notes', href: '/notes' },
+    { label: 'Profile', href: '/profile' },
+    { label: 'Demo Submission', href: '/demo-submission' },
+    { label: 'Live Stream', href: '/live-stream' },
+    { label: 'Press Kit', href: '/press-kit' },
+    { label: 'Airdrop', href: '/airdrop' },
+  ];
+  
   return (
-    <AuthProvider>
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-black to-gray-900">
-        <GlassHeader />
-        <main className="flex-grow pt-16">
-          <Routes>
-            <Route path="/" element={<HomePage {...defaultHomePageProps} />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/store" element={<StorePage />} />
-            <Route path="/store/:productId" element={<ProductDetailPage />} />
-            <Route path="/jestcoin" element={<JestCoinPage />} />
-            <Route path="/community/*" element={<CommunityPage />} />
-            <Route path="/bookings/*" element={<BookingsPage />} />
-            <Route path="/demo-submission" element={<DemoSubmissionPage />} />
-            <Route path="/press-kit" element={<PressKitPage />} />
-            <Route path="/airdrop" element={<AirdropPage />} />
-            <Route path="/live" element={<LiveStreamPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/order/success" element={<OrderSuccessPage />} />
-            
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <ProfilePage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/*" 
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminPanel />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/logs" 
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <LogsPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/assets" 
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AssetUploader />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-      <Toaster richColors position="top-right" />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <Router>
+          <div className="flex flex-col min-h-screen bg-black">
+            <GlassHeader menuItems={menuItems} />
+            <Toaster position="top-right" />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
+                <Route path="/store/*" element={<NewStorePage />} />
+                <Route path="/community/*" element={<CommunityPage />} />
+                <Route path="/bookings" element={<BookingsPage />} />
+                <Route path="/resources" element={<EcommercePage />} />
+                <Route path="/notes" element={<NotesPage />} />
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/demo-submission" element={
+                  <ProtectedRoute>
+                    <DemoSubmissionPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/live-stream" element={<LiveStreamPage />} />
+                <Route path="/press-kit" element={<PressKitPage />} />
+                <Route path="/airdrop" element={<AirdropPage />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute requiredRoles={['admin']}>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } />
+                <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                <Route path="/login" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <div className="container mx-auto py-20">
+                      <LoginForm />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/register" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <div className="container mx-auto py-20">
+                      <RegisterForm />
+                    </div>
+                  </ProtectedRoute>
+                } />
+                <Route path="/forgot-password" element={
+                  <ProtectedRoute requireAuth={false}>
+                    <ForgotPasswordPage />
+                  </ProtectedRoute>
+                } />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </Router>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

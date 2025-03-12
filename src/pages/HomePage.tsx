@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import CrystalHero from '../components/CrystalHero';
 import CrystalGallery from '../components/CrystalGallery';
 import NFTSection from '../components/NFTSection';
@@ -9,7 +10,6 @@ import ConnectionSection from '../components/ConnectionSection';
 import Footer from '../components/Footer';
 import { ModelParameters } from '../types/model';
 import ArtistShowcase from '../components/ArtistShowcase';
-import TypographyShowcase from '../components/TypographyShowcase';
 
 interface HomePageProps {
   crystalParams: ModelParameters;
@@ -59,9 +59,6 @@ const HomePage: React.FC<HomePageProps> = ({
         crystalParams={crystalParams}
       />
       
-      {/* Typography Showcase */}
-      <TypographyShowcase />
-      
       {/* Quick facts marquee like Nike's site */}
       <div className="w-full bg-black py-4 border-t border-b border-white/10 overflow-hidden">
         <div className="marquee-container">
@@ -71,7 +68,7 @@ const HomePage: React.FC<HomePageProps> = ({
         </div>
       </div>
       
-      {/* Artist Showcase Section - NEW */}
+      {/* Artist Showcase Section */}
       <ArtistShowcase />
       
       {/* NFT Section */}

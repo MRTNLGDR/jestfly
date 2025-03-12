@@ -1,9 +1,8 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { FileAxis3d, Search } from 'lucide-react';
-import SavedModelCard from './SavedModelCard';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from "@/components/ui/button";
+import { FileAxis3d, Loader2, Plus } from "lucide-react";
+import SavedModelCard from "./SavedModelCard";
+import { Json } from "@/integrations/supabase/types";
 
 interface SavedModel {
   id: string;
@@ -13,66 +12,60 @@ interface SavedModel {
   thumbnail_url: string | null;
   is_active: boolean | null;
   created_at: string;
-  updated_at?: string;
-  params?: any;
+  params?: Json | null;
 }
 
 interface SavedModelsProps {
   loadingModels: boolean;
   savedModels: SavedModel[];
-  onDeleteModel: (id: string) => Promise<void>;
-  onActivateModel: (id: string, url: string) => Promise<void>;
+  onDeleteModel: (id: string) => void;
+  onActivateModel: (id: string, url: string) => void;
   onSwitchToSearch: () => void;
 }
 
-const SavedModels: React.FC<SavedModelsProps> = ({
-  loadingModels,
-  savedModels,
-  onDeleteModel,
-  onActivateModel,
-  onSwitchToSearch
-}) => {
+const SavedModels = ({ 
+  loadingModels, 
+  savedModels, 
+  onDeleteModel, 
+  onActivateModel, 
+  onSwitchToSearch 
+}: SavedModelsProps) => {
+  
   if (loadingModels) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton key={index} className="h-64 rounded-lg" />
-        ))}
+      <div className="flex justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
       </div>
     );
   }
-
+  
   if (savedModels.length === 0) {
     return (
-      <div className="text-center py-12">
-        <FileAxis3d className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <h3 className="text-xl font-medium mb-2">Nenhum modelo salvo</h3>
-        <p className="text-gray-400 mb-6">
-          Você ainda não salvou nenhum modelo do Sketchfab.
-        </p>
+      <div className="text-center py-8 text-gray-400">
+        <FileAxis3d className="h-12 w-12 mx-auto mb-2 opacity-50" />
+        <p>Nenhum modelo salvo. Adicione modelos pela busca do Sketchfab.</p>
         <Button 
+          variant="outline" 
+          size="sm"
           onClick={onSwitchToSearch}
-          className="bg-indigo-600 hover:bg-indigo-700"
+          className="mt-4 backdrop-blur-md bg-white/5 border-white/10 hover:bg-white/10"
         >
-          <Search size={16} className="mr-2" />
-          Buscar Modelos
+          <Plus size={14} className="mr-1" /> Buscar Modelos
         </Button>
       </div>
     );
   }
-
+  
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {savedModels.map((model) => (
-          <SavedModelCard
-            key={model.id}
-            model={model}
-            onDelete={() => onDeleteModel(model.id)}
-            onActivate={() => model.url && onActivateModel(model.id, model.url)}
-          />
-        ))}
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {savedModels.map((model) => (
+        <SavedModelCard
+          key={model.id}
+          model={model}
+          onDelete={onDeleteModel}
+          onActivate={onActivateModel}
+        />
+      ))}
     </div>
   );
 };

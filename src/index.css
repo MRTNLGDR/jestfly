@@ -1,149 +1,51 @@
 
+@import './styles/base.css';
+@import './styles/components.css';
+@import './styles/utilities.css';
+@import './styles/animations.css';
+@import './styles/hero.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --radius: 0.75rem;
-  }
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
 }
 
-@layer base {
-  * {
-    @apply border-border selection:bg-white/10 selection:text-white;
-  }
-  
-  body {
-    @apply bg-black text-foreground font-sans antialiased overflow-x-hidden;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
-  }
-
-  html {
-    @apply scroll-smooth;
-  }
-  
-  h1 {
-    @apply text-display-lg font-light tracking-tight mb-4;
-  }
-  
-  h2 {
-    @apply text-display-sm font-normal tracking-tight mb-3;
-  }
-  
-  h3 {
-    @apply text-title-lg font-medium mb-2;
-  }
-  
-  h4 {
-    @apply text-title-md font-medium mb-2;
-  }
-  
-  h5 {
-    @apply text-title-sm font-medium mb-1;
-  }
-  
-  p {
-    @apply text-body-md text-white/80 mb-4;
-  }
-  
-  .lead {
-    @apply text-body-lg text-white/90;
-  }
-  
-  small, .text-small {
-    @apply text-body-sm text-white/70;
-  }
-  
-  .caption {
-    @apply text-caption text-white/60;
-  }
+body {
+  min-height: 100vh;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  padding-top: 70px; /* Add padding to account for fixed header */
 }
 
-@layer utilities {
-  /* Typography gradient effects */
-  .text-gradient-primary {
-    @apply bg-gradient-to-br from-white via-white/90 to-white/70 bg-clip-text text-transparent;
-  }
-  
-  .text-gradient-purple {
-    @apply bg-gradient-to-r from-purple-400 to-blue-500 bg-clip-text text-transparent;
-  }
-  
-  .text-gradient-blue {
-    @apply bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent;
-  }
-  
-  .text-gradient-gold {
-    @apply bg-gradient-to-r from-amber-200 to-yellow-400 bg-clip-text text-transparent;
-  }
-  
-  /* Letter spacing utilities */
-  .tracking-tightest {
-    letter-spacing: -0.04em;
-  }
-  
-  .tracking-tighter {
-    letter-spacing: -0.02em;
-  }
-  
-  .tracking-tight {
-    letter-spacing: -0.01em;
-  }
-  
-  .tracking-normal {
-    letter-spacing: 0em;
-  }
-  
-  .tracking-wide {
-    letter-spacing: 0.01em;
-  }
-  
-  .tracking-wider {
-    letter-spacing: 0.02em;
-  }
-  
-  .tracking-widest {
-    letter-spacing: 0.04em;
-  }
-  
-  /* Font weight utilities */
-  .font-light {
-    font-weight: 300;
-  }
-  
-  .font-normal {
-    font-weight: 400;
-  }
-  
-  .font-medium {
-    font-weight: 500;
-  }
-  
-  .font-semibold {
-    font-weight: 600;
-  }
-  
-  .font-bold {
-    font-weight: 700;
-  }
+/* Custom scrollbar for horizontal scrolling */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
