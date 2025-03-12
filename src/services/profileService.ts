@@ -29,6 +29,20 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         console.error('Erro ao buscar seguindo:', followingError);
       }
       
+      // Ensure social_links and preferences are properly typed
+      const socialLinks = typeof data.social_links === 'object' && data.social_links !== null 
+        ? data.social_links 
+        : {};
+        
+      const preferences = typeof data.preferences === 'object' && data.preferences !== null 
+        ? data.preferences 
+        : {
+            email_notifications: true,
+            push_notifications: true,
+            theme: 'dark' as 'dark' | 'light' | 'system',
+            language: 'pt'
+          };
+      
       // Convertendo para o formato esperado por UserProfile
       const userProfile: UserProfile = {
         id: data.id,
@@ -41,13 +55,8 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         following_count: followingCount || 0,
         profile_type: data.profile_type || 'fan',
         is_verified: Boolean(data.is_verified),
-        social_links: data.social_links || {},
-        preferences: data.preferences || {
-          email_notifications: true,
-          push_notifications: true,
-          theme: 'dark',
-          language: 'pt'
-        },
+        social_links: socialLinks as UserProfile['social_links'],
+        preferences: preferences as UserProfile['preferences'],
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
         last_login: data.last_login || new Date().toISOString()
