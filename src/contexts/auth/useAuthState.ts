@@ -6,6 +6,10 @@ import { UserProfile } from '../../models/User';
 import { PermissionType } from './types';
 import { fetchUserData } from './authMethods';
 import { toast } from 'sonner';
+import { hasPermission, isUserAdmin, isUserArtist } from './utils/permissionUtils';
+import { refreshUserSession } from './utils/sessionUtils';
+import { initializeAuthState } from './utils/initAuthState';
+import { logAuthDiagnostic } from './utils/diagnosticUtils';
 
 export const useAuthState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -14,22 +18,11 @@ export const useAuthState = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshAttempt, setLastRefreshAttempt] = useState<Date | null>(null);
 
-  const isAdmin = useMemo(() => {
-    return userData?.profile_type === 'admin';
-  }, [userData]);
+  const isAdmin = useMemo(() => isUserAdmin(userData), [userData]);
+  const isArtist = useMemo(() => isUserArtist(userData), [userData]);
 
-  const isArtist = useMemo(() => {
-    return userData?.profile_type === 'artist';
-  }, [userData]);
-
-  const hasPermission = (requiredPermission: PermissionType | PermissionType[]) => {
-    if (!userData) return false;
-    
-    if (Array.isArray(requiredPermission)) {
-      return requiredPermission.includes(userData.profile_type as PermissionType);
-    }
-    
-    return userData.profile_type === requiredPermission;
+  const checkPermission = (requiredPermission: PermissionType | PermissionType[]) => {
+    return hasPermission(userData, requiredPermission);
   };
 
   const refreshUserData = async () => {
@@ -46,42 +39,17 @@ export const useAuthState = () => {
     
     setLastRefreshAttempt(new Date());
     
-    try {
-      console.log("Refreshing user data for:", currentUser.id);
-      
-      // First refresh the session to ensure we have the latest token
-      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
-      
-      if (sessionError) {
-        console.error("Session refresh failed:", sessionError);
-        toast.error("Falha ao atualizar sessão. Tente fazer login novamente.");
-        return;
-      }
-      
-      if (!sessionData.session) {
-        console.warn("No session after refresh");
-        setCurrentUser(null);
-        setUserData(null);
-        return;
-      }
-      
-      setCurrentUser(sessionData.session.user);
-      
-      // Now get the latest user profile data
-      const refreshedData = await fetchUserData(sessionData.session.user.id);
-      
-      if (refreshedData) {
-        console.log("User data refreshed successfully:", refreshedData.display_name);
-        setUserData(refreshedData);
-        setError(null);
-      } else {
-        console.warn("Failed to refresh user data - no data returned from fetchUserData");
-        toast.error("Dados do usuário não encontrados. Entre em contato com o suporte.");
-        setError("Perfil de usuário não encontrado");
-      }
-    } catch (err) {
-      console.error("Error refreshing user data:", err);
-      toast.error("Não foi possível atualizar os dados do usuário. Tente novamente mais tarde.");
+    const { user, profile, error: refreshError } = await refreshUserSession(currentUser);
+    
+    if (user) {
+      setCurrentUser(user);
+    }
+    
+    if (profile) {
+      setUserData(profile);
+      setError(null);
+    } else if (refreshError) {
+      setError(refreshError);
     }
   };
 
@@ -118,22 +86,11 @@ export const useAuthState = () => {
             console.warn("No user profile found for authenticated user");
             
             // Log diagnostic information
-            try {
-              const { error } = await supabase.rpc('log_auth_diagnostic', {
-                message: 'No user profile found after auth state change',
-                metadata: {
-                  user_id: user.id,
-                  event,
-                  timestamp: new Date().toISOString()
-                }
-              });
-              
-              if (error) {
-                console.error("Failed to log diagnostic:", error);
-              }
-            } catch (logError) {
-              console.error("Exception logging diagnostic:", logError);
-            }
+            await logAuthDiagnostic('No user profile found after auth state change', {
+              user_id: user.id,
+              event,
+              timestamp: new Date().toISOString()
+            });
             
             setError("Perfil de usuário não encontrado");
             toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
@@ -141,29 +98,18 @@ export const useAuthState = () => {
             setUserData(userProfile);
             setError(null);
           }
-        } catch (err) {
+        } catch (err: any) {
           console.error("Error fetching user data after auth change:", err);
           setError("Erro ao buscar dados do usuário");
           toast.error("Erro ao buscar dados do usuário. Tente novamente mais tarde.");
           
           // Log diagnostic information
-          try {
-            const { error } = await supabase.rpc('log_auth_diagnostic', {
-              message: 'Error fetching user profile after auth state change',
-              metadata: {
-                user_id: user.id,
-                error: String(err),
-                event,
-                timestamp: new Date().toISOString()
-              }
-            });
-            
-            if (error) {
-              console.error("Failed to log diagnostic:", error);
-            }
-          } catch (logError) {
-            console.error("Exception logging diagnostic:", logError);
-          }
+          await logAuthDiagnostic('Error fetching user profile after auth state change', {
+            user_id: user.id,
+            error: String(err),
+            event,
+            timestamp: new Date().toISOString()
+          });
         }
       } else {
         setUserData(null);
@@ -173,108 +119,26 @@ export const useAuthState = () => {
     });
 
     // Verificar o estado inicial da autenticação
-    const initializeAuth = async () => {
-      try {
-        console.log("Initializing auth state");
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          setError(sessionError.message);
-          setLoading(false);
-          toast.error("Erro ao verificar sessão: " + sessionError.message);
-          return;
-        }
-        
-        console.log("Initial session:", session ? "exists" : "none");
-        
-        const user = session?.user ?? null;
+    const initAuth = async () => {
+      const { user, profile, error: initError } = await initializeAuthState();
+      
+      if (user) {
         setCurrentUser(user);
-        
-        if (user) {
-          console.log("Fetching initial user profile for:", user.id);
-          try {
-            const userProfile = await fetchUserData(user.id);
-            
-            if (userProfile) {
-              console.log("Initial user profile loaded successfully:", userProfile.display_name);
-              setUserData(userProfile);
-              setError(null);
-              
-              // Log successful auth initialization for diagnostics
-              try {
-                const { error } = await supabase.rpc('log_auth_diagnostic', {
-                  message: 'Auth initialization successful',
-                  metadata: {
-                    user_id: user.id,
-                    profile_type: userProfile.profile_type,
-                    timestamp: new Date().toISOString()
-                  }
-                });
-                
-                if (error) {
-                  console.error("Failed to log diagnostic:", error);
-                }
-              } catch (logError) {
-                console.error("Exception logging diagnostic:", logError);
-              }
-            } else {
-              console.warn("No user profile found for authenticated user on initialization");
-              setError("Perfil de usuário não encontrado");
-              toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
-              
-              // Log diagnostic information
-              try {
-                const { error } = await supabase.rpc('log_auth_diagnostic', {
-                  message: 'No user profile found during auth initialization',
-                  metadata: {
-                    user_id: user.id,
-                    timestamp: new Date().toISOString()
-                  }
-                });
-                
-                if (error) {
-                  console.error("Failed to log diagnostic:", error);
-                }
-              } catch (logError) {
-                console.error("Exception logging diagnostic:", logError);
-              }
-            }
-          } catch (profileError) {
-            console.error("Error fetching initial profile:", profileError);
-            setError("Erro ao buscar perfil inicial");
-            toast.error("Erro ao buscar seu perfil. Tente novamente mais tarde.");
-            
-            // Log diagnostic information
-            try {
-              const { error } = await supabase.rpc('log_auth_diagnostic', {
-                message: 'Error fetching initial profile',
-                metadata: {
-                  user_id: user.id,
-                  error: String(profileError),
-                  timestamp: new Date().toISOString()
-                }
-              });
-              
-              if (error) {
-                console.error("Failed to log diagnostic:", error);
-              }
-            } catch (logError) {
-              console.error("Exception logging diagnostic:", logError);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Error initializing auth:", err);
-        setError("Erro ao inicializar autenticação");
-        toast.error("Erro ao inicializar autenticação. Recarregue a página.");
-      } finally {
-        console.log("Auth initialization complete");
-        setLoading(false);
       }
+      
+      if (profile) {
+        setUserData(profile);
+      }
+      
+      if (initError) {
+        setError(initError);
+      }
+      
+      console.log("Auth initialization complete");
+      setLoading(false);
     };
 
-    initializeAuth();
+    initAuth();
 
     // Cleanup
     return () => {
@@ -294,7 +158,7 @@ export const useAuthState = () => {
     setError,
     isAdmin,
     isArtist,
-    hasPermission,
+    hasPermission: checkPermission,
     refreshUserData
   };
 };

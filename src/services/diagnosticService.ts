@@ -1,6 +1,7 @@
 
 import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
+import { logAuthDiagnostic } from '../contexts/auth/utils/diagnosticUtils';
 
 /**
  * Runs diagnostic checks for database connectivity and authentication
@@ -43,25 +44,14 @@ export const runAuthDiagnostics = async (userId?: string): Promise<Record<string
     }
     
     // Log the diagnostic information
-    try {
-      const { error: logError } = await supabase.rpc('log_auth_diagnostic', {
-        message: 'Auth diagnostics run from client',
-        metadata: {
-          connectivity: connectivityData,
-          user_data: userData,
-          user_error: userError ? userError.message : null,
-          timestamp: new Date().toISOString(),
-          page: 'profile',
-          browser: navigator.userAgent
-        }
-      });
-      
-      if (logError) {
-        console.error("Failed to log diagnostic:", logError);
-      }
-    } catch (logError) {
-      console.error("Exception logging diagnostic:", logError);
-    }
+    await logAuthDiagnostic('Auth diagnostics run from client', {
+      connectivity: connectivityData,
+      user_data: userData,
+      user_error: userError ? userError.message : null,
+      timestamp: new Date().toISOString(),
+      page: 'profile',
+      browser: navigator.userAgent
+    });
     
     return {
       success: true,
