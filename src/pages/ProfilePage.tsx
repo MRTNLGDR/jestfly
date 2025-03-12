@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchUserProfile } from '../services/profileService';
-import { UserProfile } from '../models/Post';
+import { UserProfile } from '../models/User';
 import { useAuth } from '../contexts/auth';
 import ProfileHeader from '../components/profile/ProfileHeader';
 import ProfileTabs from '../components/profile/ProfileTabs';
@@ -17,25 +17,31 @@ const ProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
       setIsLoading(true);
       try {
+        console.log("Loading profile with userId:", userId, "currentUser:", currentUser?.id);
+        
         // Se não houver userId no parâmetro, usa o ID do usuário atual
         const targetUserId = userId || (currentUser?.id || '');
         
         if (!targetUserId) {
-          toast.error('Usuário não encontrado');
-          navigate('/');
+          console.log("No target user ID found");
+          setError('Usuário não encontrado');
+          setIsLoading(false);
           return;
         }
         
         const profileData = await fetchUserProfile(targetUserId);
+        console.log("Profile data received:", profileData);
         
         if (!profileData) {
-          toast.error('Perfil não encontrado');
-          navigate('/');
+          console.log("No profile data found");
+          setError('Perfil não encontrado');
+          setIsLoading(false);
           return;
         }
         
@@ -47,13 +53,19 @@ const ProfilePage: React.FC = () => {
         );
       } catch (error) {
         console.error('Erro ao carregar perfil:', error);
-        toast.error('Erro ao carregar perfil');
+        setError('Erro ao carregar perfil');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadProfile();
+    if (currentUser || userId) {
+      loadProfile();
+    } else {
+      // If we don't have a user or userId, we can't load a profile
+      setIsLoading(false);
+      setError('Faça login para ver seu perfil');
+    }
   }, [userId, currentUser, navigate]);
 
   const handleBack = () => {
@@ -64,6 +76,24 @@ const ProfilePage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black to-purple-950 pt-20 flex items-center justify-center">
         <div className="animate-spin h-12 w-12 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black to-purple-950 pt-20 flex flex-col items-center justify-center">
+        <div className="neo-blur rounded-xl border border-white/10 p-8 text-center">
+          <h2 className="text-2xl font-bold text-white mb-3">Erro</h2>
+          <p className="text-white/70 mb-6">{error}</p>
+          <button
+            onClick={handleBack}
+            className="flex items-center justify-center px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-md"
+          >
+            <Undo2 className="mr-2 h-4 w-4" />
+            Voltar
+          </button>
+        </div>
       </div>
     );
   }

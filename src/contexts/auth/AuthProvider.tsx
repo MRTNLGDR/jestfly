@@ -20,6 +20,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Prevent infinite loading state
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log("Auth provider forced to stop loading after timeout");
+        setLoading(false);
+      }
+    }, 5000); // 5 second timeout
+    
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   const isAdmin = useMemo(() => {
     return userData?.profile_type === 'admin';
@@ -43,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!currentUser) return;
     
     try {
+      console.log("Refreshing user data for:", currentUser.id);
       const refreshedData = await fetchUserData(currentUser.id);
       if (refreshedData) {
         setUserData(refreshedData);
@@ -53,13 +66,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    console.log("Setting up auth state listener");
+    
     // Configurar o listener de mudança de estado de autenticação
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event);
       const user = session?.user ?? null;
       setCurrentUser(user);
       
       if (user) {
         try {
+          console.log("Fetching user profile after auth state change");
           const userProfile = await fetchUserData(user.id);
           setUserData(userProfile);
         } catch (err) {
@@ -75,17 +92,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Verificar o estado inicial da autenticação
     const initializeAuth = async () => {
       try {
+        console.log("Initializing auth state");
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session:", session ? "exists" : "none");
+        
         const user = session?.user ?? null;
         setCurrentUser(user);
         
         if (user) {
+          console.log("Fetching initial user profile");
           const userProfile = await fetchUserData(user.id);
           setUserData(userProfile);
         }
       } catch (err) {
         console.error("Error initializing auth:", err);
       } finally {
+        console.log("Auth initialization complete");
         setLoading(false);
       }
     };
@@ -94,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Cleanup
     return () => {
+      console.log("Cleaning up auth listener");
       authListener.subscription.unsubscribe();
     };
   }, []);
@@ -154,13 +177,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     currentUser,
     userData,
-    login,
-    register,
-    logout,
-    resetPassword,
+    login: loginUser,
+    register: registerUser,
+    logout: logoutUser,
+    resetPassword: resetUserPassword,
     loading,
     error,
-    updateProfile,
+    updateProfile: updateUserProfile,
     refreshUserData,
     isAdmin,
     isArtist,
@@ -169,11 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading ? children : (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      )}
+      {children}
     </AuthContext.Provider>
   );
 };
