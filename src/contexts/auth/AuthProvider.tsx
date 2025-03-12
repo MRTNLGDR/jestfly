@@ -1,179 +1,37 @@
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
-import { User } from '@supabase/supabase-js';
-import { supabase } from '../../integrations/supabase/client';
-import { UserProfile } from '../../models/User';
-import { AuthContextType, PermissionType } from './types';
-import { 
-  loginUser, 
-  registerUser, 
-  logoutUser, 
-  resetUserPassword,
-  updateUserProfile,
-  fetchUserData
-} from './authMethods';
+import React, { createContext, useContext } from 'react';
+import { AuthContextType } from './types';
+import { useAuthState } from './useAuthState';
+import { useAuthMethods } from './useAuthMethods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userData, setUserData] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Prevent infinite loading state
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.log("Auth provider forced to stop loading after timeout");
-        setLoading(false);
-      }
-    }, 5000); // 5 second timeout
-    
-    return () => clearTimeout(timeout);
-  }, [loading]);
+  const {
+    currentUser,
+    userData,
+    loading,
+    error,
+    setError,
+    setUserData,
+    isAdmin,
+    isArtist,
+    hasPermission,
+    refreshUserData
+  } = useAuthState();
 
-  const isAdmin = useMemo(() => {
-    return userData?.profile_type === 'admin';
-  }, [userData]);
-
-  const isArtist = useMemo(() => {
-    return userData?.profile_type === 'artist';
-  }, [userData]);
-
-  const hasPermission = (requiredPermission: PermissionType | PermissionType[]) => {
-    if (!userData) return false;
-    
-    if (Array.isArray(requiredPermission)) {
-      return requiredPermission.includes(userData.profile_type as PermissionType);
-    }
-    
-    return userData.profile_type === requiredPermission;
-  };
-
-  const refreshUserData = async () => {
-    if (!currentUser) return;
-    
-    try {
-      console.log("Refreshing user data for:", currentUser.id);
-      const refreshedData = await fetchUserData(currentUser.id);
-      if (refreshedData) {
-        setUserData(refreshedData);
-      }
-    } catch (err) {
-      console.error("Error refreshing user data:", err);
-    }
-  };
-
-  useEffect(() => {
-    console.log("Setting up auth state listener");
-    
-    // Configurar o listener de mudança de estado de autenticação
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event);
-      const user = session?.user ?? null;
-      setCurrentUser(user);
-      
-      if (user) {
-        try {
-          console.log("Fetching user profile after auth state change");
-          const userProfile = await fetchUserData(user.id);
-          setUserData(userProfile);
-        } catch (err) {
-          console.error("Error fetching user data:", err);
-        }
-      } else {
-        setUserData(null);
-      }
-      
-      setLoading(false);
-    });
-
-    // Verificar o estado inicial da autenticação
-    const initializeAuth = async () => {
-      try {
-        console.log("Initializing auth state");
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("Initial session:", session ? "exists" : "none");
-        
-        const user = session?.user ?? null;
-        setCurrentUser(user);
-        
-        if (user) {
-          console.log("Fetching initial user profile");
-          const userProfile = await fetchUserData(user.id);
-          setUserData(userProfile);
-        }
-      } catch (err) {
-        console.error("Error initializing auth:", err);
-      } finally {
-        console.log("Auth initialization complete");
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    // Cleanup
-    return () => {
-      console.log("Cleaning up auth listener");
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  // Wrap the auth methods to match the expected return type in AuthContextType
-  const login = async (email: string, password: string): Promise<void> => {
-    try {
-      setError(null);
-      await loginUser(email, password);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const register = async (email: string, password: string, userData: Partial<UserProfile>): Promise<void> => {
-    try {
-      setError(null);
-      await registerUser(email, password, userData);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const logout = async (): Promise<void> => {
-    try {
-      await logoutUser();
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const resetPassword = async (email: string): Promise<void> => {
-    try {
-      setError(null);
-      await resetUserPassword(email);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
-
-  const updateProfile = async (data: Partial<UserProfile>): Promise<void> => {
-    if (!currentUser || !userData) {
-      throw new Error("Usuário não autenticado");
-    }
-
-    try {
-      await updateUserProfile(currentUser.id, data);
-      setUserData(prev => prev ? { ...prev, ...data } : null);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    }
-  };
+  const {
+    login,
+    register,
+    logout,
+    resetPassword,
+    updateProfile
+  } = useAuthMethods({
+    currentUser,
+    userData,
+    setUserData,
+    setError
+  });
 
   const value: AuthContextType = {
     currentUser,
