@@ -1,17 +1,18 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/auth';
+import { toast } from 'react-toastify';
 
 interface AuthFormProps {
   type: 'login' | 'register';
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
+const AuthForm: React.FC<AuthFormProps> = ({ type, mode = 'login', onSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const { login, register } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,14 +23,27 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
       if (type === 'login') {
         await login(email, password);
       } else {
-        await register(email, password, {
-          display_name: displayName, // Corrigido para usar o nome correto da propriedade
-          username,
-          profile_type: 'fan'
-        });
+        await handleRegister();
       }
     } catch (err: any) {
       setError(err.message);
+    }
+  };
+
+  const handleRegister = async () => {
+    try {
+      setIsLoading(true);
+      await register(email, password, {
+        display_name: name,
+        username
+      });
+      toast.success('Conta criada com sucesso!');
+      onSuccess?.();
+    } catch (error: any) {
+      console.error('Erro no registro:', error);
+      toast.error(error.message || 'Erro ao criar conta');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,12 +78,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
       {type === 'register' && (
         <>
           <div>
-            <label htmlFor="displayName" className="block mb-1">Nome de Exibição</label>
+            <label htmlFor="name" className="block mb-1">Nome de Exibição</label>
             <input
-              id="displayName"
+              id="name"
               type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               required
               className="w-full p-2 border rounded"
             />

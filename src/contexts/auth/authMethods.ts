@@ -125,15 +125,31 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
     if (error) throw error;
     
     if (data) {
+      // Buscar contagens de seguidores e seguindo
+      const { data: followersCount, error: followersError } = await supabase
+        .rpc('count_followers', { user_id: userId });
+
+      const { data: followingCount, error: followingError } = await supabase
+        .rpc('count_following', { user_id: userId });
+
+      if (followersError) {
+        console.error('Erro ao buscar seguidores:', followersError);
+      }
+      
+      if (followingError) {
+        console.error('Erro ao buscar seguindo:', followingError);
+      }
+      
       // Fazendo cast seguro para UserProfile com valores padrão para os campos necessários
       const userProfile: UserProfile = {
         ...data,
-        // Adicionando campos obrigatórios que podem não estar no banco de dados
-        followers_count: 0, // Valor temporário para contagem
-        following_count: 0, // Valor temporário para contagem
+        followers_count: followersCount || 0,
+        following_count: followingCount || 0,
         is_verified: data.is_verified || false,
+        // Garantir que social_links seja do tipo correto
+        social_links: data.social_links as UserProfile['social_links'] || {},
         // Convertendo o tipo preferences para o formato esperado
-        preferences: data.preferences as any || {
+        preferences: data.preferences as UserProfile['preferences'] || {
           email_notifications: true,
           push_notifications: true,
           theme: 'dark',

@@ -28,12 +28,11 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
       return null;
     }
 
-    // Buscar contagens de seguidores e seguindo usando SQL diretamente
-    // para evitar problemas com a tabela não estar no supatype
-    const { count: followersCount, error: followersError } = await supabase
+    // Buscar contagens de seguidores e seguindo usando as funções RPC criadas
+    const { data: followersCount, error: followersError } = await supabase
       .rpc('count_followers', { user_id: userId });
 
-    const { count: followingCount, error: followingError } = await supabase
+    const { data: followingCount, error: followingError } = await supabase
       .rpc('count_following', { user_id: userId });
 
     if (followersError) {
@@ -56,7 +55,8 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         push_notifications: true,
         theme: 'dark',
         language: 'pt'
-      }
+      },
+      social_links: data.social_links || {}
     } as UserProfile;
   } catch (error) {
     console.error('Erro ao buscar perfil do usuário:', error);
@@ -111,7 +111,7 @@ export const followUser = async (
   currentUserId: string
 ): Promise<boolean> => {
   try {
-    // Verificar se já está seguindo usando a RPC
+    // Verificar se já está seguindo usando a função RPC
     const { data: isFollowing, error: checkError } = await supabase
       .rpc('is_following', { 
         follower: currentUserId, 
@@ -125,10 +125,11 @@ export const followUser = async (
 
     // Se já estiver seguindo, remover o follow
     if (isFollowing) {
-      const { error: deleteError } = await supabase.rpc('unfollow_user', {
-        follower: currentUserId,
-        following: followingId
-      });
+      const { error: deleteError } = await supabase
+        .rpc('unfollow_user', {
+          follower: currentUserId,
+          following: followingId
+        });
 
       if (deleteError) {
         console.error('Erro ao deixar de seguir:', deleteError);
@@ -139,10 +140,11 @@ export const followUser = async (
     } 
     // Se não estiver seguindo, adicionar o follow
     else {
-      const { error: insertError } = await supabase.rpc('follow_user', {
-        follower: currentUserId,
-        following: followingId
-      });
+      const { error: insertError } = await supabase
+        .rpc('follow_user', {
+          follower: currentUserId,
+          following: followingId
+        });
 
       if (insertError) {
         console.error('Erro ao seguir usuário:', insertError);
@@ -162,7 +164,7 @@ export const checkIfFollowing = async (
   currentUserId: string
 ): Promise<boolean> => {
   try {
-    const { data: isFollowing, error } = await supabase
+    const { data, error } = await supabase
       .rpc('is_following', { 
         follower: currentUserId, 
         following: followingId 
@@ -173,7 +175,7 @@ export const checkIfFollowing = async (
       return false;
     }
 
-    return isFollowing || false;
+    return data === true;
   } catch (error) {
     console.error('Erro ao verificar se está seguindo:', error);
     return false;

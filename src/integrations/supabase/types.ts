@@ -844,8 +844,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      count_followers: {
+        Args: {
+          user_id: string
+        }
+        Returns: number
+      }
+      count_following: {
+        Args: {
+          user_id: string
+        }
+        Returns: number
+      }
       create_demo_users: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      follow_user: {
+        Args: {
+          follower: string
+          following: string
+        }
         Returns: undefined
       }
       has_role: {
@@ -875,6 +894,13 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_following: {
+        Args: {
+          follower: string
+          following: string
+        }
+        Returns: boolean
+      }
       log_user_activity: {
         Args: {
           action: string
@@ -884,6 +910,13 @@ export type Database = {
           success?: boolean
         }
         Returns: string
+      }
+      unfollow_user: {
+        Args: {
+          follower: string
+          following: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
