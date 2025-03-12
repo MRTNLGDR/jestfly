@@ -25,7 +25,6 @@ body {
     )
     rgb(var(--background-start-rgb));
   padding-top: 70px; /* Add padding to account for fixed header */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 /* Custom scrollbar for horizontal scrolling */
@@ -49,31 +48,4 @@ body {
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
-}
-
-/* Responsive fixes */
-@media (max-width: 640px) {
-  body {
-    padding-top: 60px; /* Smaller top padding on small screens */
-  }
-}
-
-/* Fix for mobile navigation */
-.nav-wrapper {
-  position: relative;
-  z-index: 50;
-}
-
-/* Add media query for container padding on mobile */
-@media (max-width: 640px) {
-  .container {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
-  }
-}
-
-/* Fix for the disappearing header menu */
-header {
-  transform: translateZ(0); /* Force GPU acceleration */
-  will-change: transform; /* Optimize for animations */
 }

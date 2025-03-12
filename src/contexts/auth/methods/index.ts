@@ -1,11 +1,6 @@
 
-// Re-export auth methods
-export { 
-  loginUser, 
-  logoutUser,
-  registerUser,
-  resetUserPassword,
-  updateUserPassword,
-  updateUserProfile,
-  fetchUserData 
-} from '../methods';
+// Re-export auth methods from their respective modules
+export { loginUser, logoutUser } from './loginMethods';
+export { registerUser } from './registrationMethods';
+export { resetUserPassword, updateUserPassword } from './passwordMethods';
+export { updateUserProfile, fetchUserData } from './profileMethods';
