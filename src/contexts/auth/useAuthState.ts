@@ -5,6 +5,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { UserProfile } from '../../models/User';
 import { PermissionType } from './types';
 import { fetchUserData } from './authMethods';
+import { toast } from 'sonner';
 
 export const useAuthState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -37,10 +38,14 @@ export const useAuthState = () => {
       console.log("Refreshing user data for:", currentUser.id);
       const refreshedData = await fetchUserData(currentUser.id);
       if (refreshedData) {
+        console.log("User data refreshed successfully:", refreshedData.display_name);
         setUserData(refreshedData);
+      } else {
+        console.warn("Failed to refresh user data - no data returned from fetchUserData");
       }
     } catch (err) {
       console.error("Error refreshing user data:", err);
+      toast.error("Não foi possível atualizar os dados do usuário. Tente novamente mais tarde.");
     }
   };
 
@@ -50,6 +55,8 @@ export const useAuthState = () => {
       if (loading) {
         console.log("Auth provider forced to stop loading after timeout");
         setLoading(false);
+        setError("Tempo limite excedido ao carregar dados de autenticação");
+        toast.error("Tempo limite excedido ao carregar dados de autenticação. Tente novamente mais tarde.");
       }
     }, 5000); // 5 second timeout
     
@@ -67,11 +74,19 @@ export const useAuthState = () => {
       
       if (user) {
         try {
-          console.log("Fetching user profile after auth state change");
+          console.log("Fetching user profile after auth state change for:", user.id);
           const userProfile = await fetchUserData(user.id);
+          console.log("User profile retrieved:", userProfile ? "success" : "not found");
           setUserData(userProfile);
+          if (!userProfile) {
+            console.warn("No user profile found for authenticated user");
+            setError("Perfil de usuário não encontrado");
+            toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
+          }
         } catch (err) {
-          console.error("Error fetching user data:", err);
+          console.error("Error fetching user data after auth change:", err);
+          setError("Erro ao buscar dados do usuário");
+          toast.error("Erro ao buscar dados do usuário. Tente novamente mais tarde.");
         }
       } else {
         setUserData(null);
@@ -84,19 +99,44 @@ export const useAuthState = () => {
     const initializeAuth = async () => {
       try {
         console.log("Initializing auth state");
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          setError(sessionError.message);
+          setLoading(false);
+          toast.error("Erro ao verificar sessão: " + sessionError.message);
+          return;
+        }
+        
         console.log("Initial session:", session ? "exists" : "none");
         
         const user = session?.user ?? null;
         setCurrentUser(user);
         
         if (user) {
-          console.log("Fetching initial user profile");
-          const userProfile = await fetchUserData(user.id);
-          setUserData(userProfile);
+          console.log("Fetching initial user profile for:", user.id);
+          try {
+            const userProfile = await fetchUserData(user.id);
+            
+            if (userProfile) {
+              console.log("Initial user profile loaded successfully:", userProfile.display_name);
+              setUserData(userProfile);
+            } else {
+              console.warn("No user profile found for authenticated user on initialization");
+              setError("Perfil de usuário não encontrado");
+              toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
+            }
+          } catch (profileError) {
+            console.error("Error fetching initial profile:", profileError);
+            setError("Erro ao buscar perfil inicial");
+            toast.error("Erro ao buscar seu perfil. Tente novamente mais tarde.");
+          }
         }
       } catch (err) {
         console.error("Error initializing auth:", err);
+        setError("Erro ao inicializar autenticação");
+        toast.error("Erro ao inicializar autenticação. Recarregue a página.");
       } finally {
         console.log("Auth initialization complete");
         setLoading(false);

@@ -41,6 +41,7 @@ export const loginUser = async (email: string, password: string) => {
 
 export const registerUser = async (email: string, password: string, userData: Partial<UserProfile>) => {
   try {
+    console.log("Registering new user:", email, "with profile type:", userData.profile_type);
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -53,7 +54,12 @@ export const registerUser = async (email: string, password: string, userData: Pa
       }
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Registration error:", error);
+      throw error;
+    }
+    
+    console.log("Registration successful for:", email);
     
     const profileType = userData.profile_type || 'fan';
     toast.success(`Conta de ${profileType === 'artist' ? 'artista' : 
@@ -68,9 +74,19 @@ export const registerUser = async (email: string, password: string, userData: Pa
 };
 
 export const logoutUser = async () => {
-  const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-  toast.success('Logout realizado com sucesso');
+  try {
+    console.log("Logging out user");
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Logout error:", error);
+      throw error;
+    }
+    console.log("Logout successful");
+    toast.success('Logout realizado com sucesso');
+  } catch (error: any) {
+    console.error('Erro ao fazer logout:', error);
+    throw error;
+  }
 };
 
 export const resetUserPassword = async (email: string) => {
@@ -96,12 +112,17 @@ export const resetUserPassword = async (email: string) => {
 
 export const updateUserPassword = async (newPassword: string) => {
   try {
+    console.log("Updating user password");
     const { error } = await supabase.auth.updateUser({
       password: newPassword
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Update password error:", error);
+      throw error;
+    }
     
+    console.log("Password updated successfully");
     // O toast é feito no componente para melhor feedback visual
     return true;
   } catch (error: any) {
@@ -112,6 +133,7 @@ export const updateUserPassword = async (newPassword: string) => {
 
 export const updateUserProfile = async (userId: string, data: Partial<UserProfile>) => {
   try {
+    console.log("Updating profile for user:", userId);
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -120,7 +142,12 @@ export const updateUserProfile = async (userId: string, data: Partial<UserProfil
       })
       .eq('id', userId);
     
-    if (error) throw error;
+    if (error) {
+      console.error("Update profile error:", error);
+      throw error;
+    }
+    
+    console.log("Profile updated successfully");
     toast.success('Perfil atualizado com sucesso');
   } catch (error: any) {
     console.error('Erro ao atualizar perfil:', error);
@@ -138,34 +165,54 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
       .single();
     
     if (error) {
+      if (error.code === 'PGRST116') {
+        console.warn("No profile found for user:", userId);
+        return null;
+      }
       console.error("Error fetching user data:", error);
       throw error;
     }
     
-    console.log("User data received:", data);
+    console.log("User data received:", data ? "success" : "not found");
     
     if (data) {
       // Buscar contagens de seguidores e seguindo
       console.log("Fetching followers/following counts");
-      const { data: followersCount, error: followersError } = await supabase
-        .rpc('count_followers', { user_id: userId });
+      
+      let followersCount = 0;
+      let followingCount = 0;
+      
+      try {
+        const { data: followers, error: followersError } = await supabase
+          .rpc('count_followers', { user_id: userId });
 
-      const { data: followingCount, error: followingError } = await supabase
-        .rpc('count_following', { user_id: userId });
-
-      if (followersError) {
-        console.error('Erro ao buscar seguidores:', followersError);
+        if (followersError) {
+          console.error('Erro ao buscar seguidores:', followersError);
+        } else {
+          followersCount = followers || 0;
+        }
+      } catch (followerErr) {
+        console.error('Exceção ao buscar seguidores:', followerErr);
       }
       
-      if (followingError) {
-        console.error('Erro ao buscar seguindo:', followingError);
+      try {
+        const { data: following, error: followingError } = await supabase
+          .rpc('count_following', { user_id: userId });
+
+        if (followingError) {
+          console.error('Erro ao buscar seguindo:', followingError);
+        } else {
+          followingCount = following || 0;
+        }
+      } catch (followingErr) {
+        console.error('Exceção ao buscar seguindo:', followingErr);
       }
       
       // Fazendo cast seguro para UserProfile com valores padrão para os campos necessários
       const userProfile: UserProfile = {
         ...data,
-        followers_count: followersCount || 0,
-        following_count: followingCount || 0,
+        followers_count: followersCount,
+        following_count: followingCount,
         is_verified: data.is_verified || false,
         avatar_url: data.avatar || '',  // Map the database 'avatar' field to 'avatar_url'
         // Garantir que social_links seja do tipo correto
@@ -179,7 +226,7 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
         }
       };
       
-      console.log("User profile prepared:", userProfile);
+      console.log("User profile prepared:", userProfile.display_name);
       return userProfile;
     }
     
