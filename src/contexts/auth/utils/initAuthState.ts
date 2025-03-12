@@ -1,7 +1,7 @@
 
 import { toast } from 'sonner';
 import { supabase } from '../../../integrations/supabase/client';
-import { fetchUserData } from '../authMethods';
+import { fetchUserData } from '../methods';
 import { logAuthDiagnostic } from './diagnosticUtils';
 
 /**

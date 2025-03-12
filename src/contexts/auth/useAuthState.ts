@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '../../integrations/supabase/client';
 import { UserProfile } from '../../models/User';
 import { PermissionType } from './types';
-import { fetchUserData } from './authMethods';
+import { fetchUserData } from './methods';
 import { toast } from 'sonner';
 import { hasPermission, isUserAdmin, isUserArtist } from './utils/permissionUtils';
 import { refreshUserSession } from './utils/sessionUtils';

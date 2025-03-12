@@ -2,7 +2,7 @@
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../../../integrations/supabase/client';
 import { UserProfile } from '../../../models/User';
-import { fetchUserData } from '../authMethods';
+import { fetchUserData } from '../methods';
 import { toast } from 'sonner';
 import { logAuthDiagnostic } from './diagnosticUtils';
 
