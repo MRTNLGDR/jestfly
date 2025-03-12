@@ -51,21 +51,21 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
   
   // Define glass effect classes based on scrolled state
   const glassEffect = scrolled 
-    ? "bg-black/70 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
-    : "bg-black/40 backdrop-blur-md transition-all duration-500";
+    ? "bg-black/80 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
+    : "bg-black/60 backdrop-blur-md transition-all duration-500";
   
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
   };
   
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 ${glassEffect}`}>
-      <div className="max-w-full mx-auto px-4 md:px-6 py-3 md:py-4">
+    <header className={`fixed top-0 left-0 right-0 w-full z-50 ${glassEffect}`}>
+      <div className="container mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between">
           {/* Left side - Logo and welcome text */}
-          <div className="flex items-center space-x-4 md:space-x-12">
+          <div className="flex items-center space-x-2 md:space-x-4 lg:space-x-12">
             <Logo />
-            <WelcomeText />
+            {!isMobile && <WelcomeText />}
           </div>
           
           {/* Center - Navigation (desktop only) */}

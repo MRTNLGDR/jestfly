@@ -23,7 +23,7 @@ const HeaderControls: React.FC = () => {
   };
   
   return (
-    <div className="flex items-center space-x-2 md:space-x-4">
+    <div className="flex items-center space-x-1 md:space-x-2">
       {!isMobile && (
         <>
           <LanguageSwitcher />
@@ -31,17 +31,25 @@ const HeaderControls: React.FC = () => {
           <ZoomControls />
         </>
       )}
-      <PreOrderButton />
-      {!isMobile && (
-        currentUser ? (
-          <div className="flex items-center space-x-2">
-            <Link 
-              to="/profile" 
-              className="px-3 py-1.5 rounded-md flex items-center space-x-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
-            >
-              <User className="h-4 w-4 mr-1" />
-              <span>Profile</span>
-            </Link>
+      
+      {/* PreOrderButton mostrado em todos os dispositivos, mas com tamanho reduzido em mobile */}
+      <div className={isMobile ? "scale-90" : ""}>
+        <PreOrderButton />
+      </div>
+
+      {/* Profile/Login buttons */}
+      {currentUser ? (
+        <div className="flex items-center space-x-1">
+          <Link 
+            to="/profile" 
+            className="px-2 py-1 md:px-3 md:py-1.5 rounded-md flex items-center space-x-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs md:text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
+          >
+            <User className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+            <span className="hidden sm:inline">Profile</span>
+          </Link>
+          
+          {/* Logout button shown only on larger screens */}
+          {!isMobile && (
             <Button 
               variant="outline" 
               size="sm" 
@@ -50,15 +58,15 @@ const HeaderControls: React.FC = () => {
             >
               <LogOut className="h-4 w-4" />
             </Button>
-          </div>
-        ) : (
-          <Link 
-            to="/login" 
-            className="px-3 py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
-          >
-            Login
-          </Link>
-        )
+          )}
+        </div>
+      ) : (
+        <Link 
+          to="/login" 
+          className="px-2 py-1 md:px-3 md:py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs md:text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
+        >
+          Login
+        </Link>
       )}
     </div>
   );
