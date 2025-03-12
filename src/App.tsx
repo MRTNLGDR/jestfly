@@ -1,4 +1,3 @@
-
 import './App.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import GlassHeader from './components/GlassHeader';
@@ -24,6 +23,7 @@ import { AuthProvider } from './contexts/auth';
 import { LoginForm } from './components/auth';
 import { RegisterForm } from './components/auth';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import GiveawaysPage from './components/community/GiveawaysPage';
 
 function App() {
   // Crystal parameters with customized values for enhanced futuristic effect
@@ -82,6 +82,7 @@ function App() {
                 <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
                 <Route path="/store/*" element={<NewStorePage />} />
                 <Route path="/community/*" element={<CommunityPage />} />
+                <Route path="/community/giveaways" element={<GiveawaysPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
                 <Route path="/resources" element={<EcommercePage />} />
                 <Route path="/notes" element={<NotesPage />} />
