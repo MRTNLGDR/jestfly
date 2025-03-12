@@ -43,17 +43,25 @@ export const runAuthDiagnostics = async (userId?: string): Promise<Record<string
     }
     
     // Log the diagnostic information
-    await supabase.rpc('log_auth_diagnostic', {
-      message: 'Auth diagnostics run from client',
-      metadata: {
-        connectivity: connectivityData,
-        user_data: userData,
-        user_error: userError ? userError.message : null,
-        timestamp: new Date().toISOString(),
-        page: 'profile',
-        browser: navigator.userAgent
+    try {
+      const { error: logError } = await supabase.rpc('log_auth_diagnostic', {
+        message: 'Auth diagnostics run from client',
+        metadata: {
+          connectivity: connectivityData,
+          user_data: userData,
+          user_error: userError ? userError.message : null,
+          timestamp: new Date().toISOString(),
+          page: 'profile',
+          browser: navigator.userAgent
+        }
+      });
+      
+      if (logError) {
+        console.error("Failed to log diagnostic:", logError);
       }
-    });
+    } catch (logError) {
+      console.error("Exception logging diagnostic:", logError);
+    }
     
     return {
       success: true,

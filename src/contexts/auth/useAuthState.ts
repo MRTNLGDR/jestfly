@@ -118,14 +118,22 @@ export const useAuthState = () => {
             console.warn("No user profile found for authenticated user");
             
             // Log diagnostic information
-            await supabase.rpc('log_auth_diagnostic', {
-              message: 'No user profile found after auth state change',
-              metadata: {
-                user_id: user.id,
-                event,
-                timestamp: new Date().toISOString()
+            try {
+              const { error } = await supabase.rpc('log_auth_diagnostic', {
+                message: 'No user profile found after auth state change',
+                metadata: {
+                  user_id: user.id,
+                  event,
+                  timestamp: new Date().toISOString()
+                }
+              });
+              
+              if (error) {
+                console.error("Failed to log diagnostic:", error);
               }
-            }).catch(e => console.error("Failed to log diagnostic:", e));
+            } catch (logError) {
+              console.error("Exception logging diagnostic:", logError);
+            }
             
             setError("Perfil de usuário não encontrado");
             toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
@@ -139,15 +147,23 @@ export const useAuthState = () => {
           toast.error("Erro ao buscar dados do usuário. Tente novamente mais tarde.");
           
           // Log diagnostic information
-          await supabase.rpc('log_auth_diagnostic', {
-            message: 'Error fetching user profile after auth state change',
-            metadata: {
-              user_id: user.id,
-              error: String(err),
-              event,
-              timestamp: new Date().toISOString()
+          try {
+            const { error } = await supabase.rpc('log_auth_diagnostic', {
+              message: 'Error fetching user profile after auth state change',
+              metadata: {
+                user_id: user.id,
+                error: String(err),
+                event,
+                timestamp: new Date().toISOString()
+              }
+            });
+            
+            if (error) {
+              console.error("Failed to log diagnostic:", error);
             }
-          }).catch(e => console.error("Failed to log diagnostic:", e));
+          } catch (logError) {
+            console.error("Exception logging diagnostic:", logError);
+          }
         }
       } else {
         setUserData(null);
@@ -186,27 +202,43 @@ export const useAuthState = () => {
               setError(null);
               
               // Log successful auth initialization for diagnostics
-              await supabase.rpc('log_auth_diagnostic', {
-                message: 'Auth initialization successful',
-                metadata: {
-                  user_id: user.id,
-                  profile_type: userProfile.profile_type,
-                  timestamp: new Date().toISOString()
+              try {
+                const { error } = await supabase.rpc('log_auth_diagnostic', {
+                  message: 'Auth initialization successful',
+                  metadata: {
+                    user_id: user.id,
+                    profile_type: userProfile.profile_type,
+                    timestamp: new Date().toISOString()
+                  }
+                });
+                
+                if (error) {
+                  console.error("Failed to log diagnostic:", error);
                 }
-              }).catch(e => console.error("Failed to log diagnostic:", e));
+              } catch (logError) {
+                console.error("Exception logging diagnostic:", logError);
+              }
             } else {
               console.warn("No user profile found for authenticated user on initialization");
               setError("Perfil de usuário não encontrado");
               toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
               
               // Log diagnostic information
-              await supabase.rpc('log_auth_diagnostic', {
-                message: 'No user profile found during auth initialization',
-                metadata: {
-                  user_id: user.id,
-                  timestamp: new Date().toISOString()
+              try {
+                const { error } = await supabase.rpc('log_auth_diagnostic', {
+                  message: 'No user profile found during auth initialization',
+                  metadata: {
+                    user_id: user.id,
+                    timestamp: new Date().toISOString()
+                  }
+                });
+                
+                if (error) {
+                  console.error("Failed to log diagnostic:", error);
                 }
-              }).catch(e => console.error("Failed to log diagnostic:", e));
+              } catch (logError) {
+                console.error("Exception logging diagnostic:", logError);
+              }
             }
           } catch (profileError) {
             console.error("Error fetching initial profile:", profileError);
@@ -214,14 +246,22 @@ export const useAuthState = () => {
             toast.error("Erro ao buscar seu perfil. Tente novamente mais tarde.");
             
             // Log diagnostic information
-            await supabase.rpc('log_auth_diagnostic', {
-              message: 'Error fetching initial profile',
-              metadata: {
-                user_id: user.id,
-                error: String(profileError),
-                timestamp: new Date().toISOString()
+            try {
+              const { error } = await supabase.rpc('log_auth_diagnostic', {
+                message: 'Error fetching initial profile',
+                metadata: {
+                  user_id: user.id,
+                  error: String(profileError),
+                  timestamp: new Date().toISOString()
+                }
+              });
+              
+              if (error) {
+                console.error("Failed to log diagnostic:", error);
               }
-            }).catch(e => console.error("Failed to log diagnostic:", e));
+            } catch (logError) {
+              console.error("Exception logging diagnostic:", logError);
+            }
           }
         }
       } catch (err) {
