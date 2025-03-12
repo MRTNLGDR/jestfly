@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,17 +58,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
       password: "",
       profileType: 'fan',
     },
-  })
+  });
 
-  const {
-    handleSubmit,
-    formState: { errors },
-    watch,
-  } = form
+  const password = form.watch("password");
 
-  const password = watch("password");
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
@@ -98,7 +93,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   return (
     <div className="flex flex-col space-y-4 w-full">
       <Form {...form}>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
           <FormField
             control={form.control}
             name="name"

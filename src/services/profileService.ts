@@ -1,6 +1,6 @@
 
 import { supabase } from '../integrations/supabase/client';
-import { UserProfile, UserFollow } from '../models/User';
+import { UserProfile } from '../models/User';
 import { Post } from '../models/Post';
 
 export const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {

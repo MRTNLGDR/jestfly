@@ -1,113 +1,159 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { toast } from 'sonner';
 import { useAuth } from '../contexts/auth';
-import { toast } from 'react-toastify';
 
 interface AuthFormProps {
-  type: 'login' | 'register';
+  mode?: 'login' | 'register';
+  onSuccess?: () => void;
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ type, mode = 'login', onSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
+const loginFormSchema = z.object({
+  email: z.string().email({
+    message: "Por favor, insira um email válido.",
+  }),
+  password: z.string().min(8, {
+    message: "Senha deve ter pelo menos 8 caracteres",
+  }),
+});
+
+const registerFormSchema = z.object({
+  name: z.string().min(2, {
+    message: "Nome deve ter pelo menos 2 caracteres.",
+  }),
+  username: z.string().min(2, {
+    message: "Username deve ter pelo menos 2 caracteres.",
+  }),
+  email: z.string().email({
+    message: "Por favor, insira um email válido.",
+  }),
+  password: z.string().min(8, {
+    message: "Senha deve ter pelo menos 8 caracteres",
+  }),
+  profileType: z.enum(['fan', 'artist', 'collaborator', 'admin']).default('fan'),
+});
+
+const AuthForm: React.FC<AuthFormProps> = ({ mode = 'login', onSuccess }) => {
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm({
+    resolver: zodResolver(mode === 'login' ? loginFormSchema : registerFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      name: "",
+      username: "",
+      profileType: 'fan',
+    },
+  });
+
+  const onSubmit = async (data: any) => {
+    setLoading(true);
     setError(null);
 
     try {
-      if (type === 'login') {
-        await login(email, password);
+      if (mode === 'login') {
+        await login(data.email, data.password);
+        toast.success('Login realizado com sucesso!');
       } else {
-        await handleRegister();
+        await register(data.email, data.password, {
+          display_name: data.name, // changed from displayName to display_name
+          username: data.username,
+          profile_type: data.profileType || 'fan'
+        });
+        toast.success('Account created successfully!');
       }
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleRegister = async () => {
-    try {
-      setIsLoading(true);
-      await register(email, password, {
-        display_name: name,
-        username
-      });
-      toast.success('Conta criada com sucesso!');
-      onSuccess?.();
+      if (onSuccess) onSuccess();
     } catch (error: any) {
-      console.error('Erro no registro:', error);
-      toast.error(error.message || 'Erro ao criar conta');
+      setError(error.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>}
-      
-      <div>
-        <label htmlFor="email" className="block mb-1">Email</label>
-        <input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      
-      <div>
-        <label htmlFor="password" className="block mb-1">Senha</label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full p-2 border rounded"
-        />
-      </div>
-      
-      {type === 'register' && (
+    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col space-y-4 w-full">
+      {error && <p className="text-sm text-red-500">{error}</p>}
+      {mode === 'register' && (
         <>
           <div>
-            <label htmlFor="name" className="block mb-1">Nome de Exibição</label>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed" htmlFor="name">Nome</label>
             <input
+              type="text"
               id="name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full p-2 border rounded"
+              placeholder="Seu nome"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              {...form.register("name")}
             />
+            {form.formState.errors.name && (
+              <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+            )}
           </div>
-          
           <div>
-            <label htmlFor="username" className="block mb-1">Nome de Usuário</label>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed" htmlFor="username">Username</label>
             <input
-              id="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className="w-full p-2 border rounded"
+              id="username"
+              placeholder="username"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              {...form.register("username")}
             />
+            {form.formState.errors.username && (
+              <p className="text-sm text-red-500">{form.formState.errors.username.message}</p>
+            )}
           </div>
         </>
       )}
-      
-      <button
-        type="submit"
-        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-      >
-        {type === 'login' ? 'Entrar' : 'Cadastrar'}
+      <div>
+        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed" htmlFor="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="mail@example.com"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          {...form.register("email")}
+        />
+        {form.formState.errors.email && (
+          <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+        )}
+      </div>
+      <div>
+        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed" htmlFor="password">Senha</label>
+        <input
+          type="password"
+          id="password"
+          placeholder="Senha"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          {...form.register("password")}
+        />
+        {form.formState.errors.password && (
+          <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+        )}
+      </div>
+      {mode === 'register' && (
+        <div>
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed" htmlFor="profileType">Tipo de Perfil</label>
+          <select
+            id="profileType"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            {...form.register("profileType")}
+          >
+            <option value="fan">Fã</option>
+            <option value="artist">Artista</option>
+            <option value="collaborator">Colaborador</option>
+            <option value="admin">Administrador</option>
+          </select>
+          {form.formState.errors.profileType && (
+            <p className="text-sm text-red-500">{form.formState.errors.profileType.message}</p>
+          )}
+        </div>
+      )}
+      <button type="submit" disabled={loading} className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+        {loading ? 'Carregando...' : (mode === 'login' ? 'Login' : 'Criar Conta')}
       </button>
     </form>
   );
