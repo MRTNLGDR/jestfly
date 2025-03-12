@@ -1,117 +1,101 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/auth';
 
 interface AuthFormProps {
-  onSuccess?: () => void;
+  type: 'login' | 'register';
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
-  const [isLogin, setIsLogin] = useState(true);
+const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [error, setError] = useState<string | null>(null);
-  
   const { login, register } = useAuth();
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
-    
+
     try {
-      if (isLogin) {
+      if (type === 'login') {
         await login(email, password);
       } else {
         await register(email, password, {
-          displayName: email.split('@')[0],
-          username: email.split('@')[0],
-          profileType: 'fan'
+          display_name: displayName, // Corrigido para usar o nome correto da propriedade
+          username,
+          profile_type: 'fan'
         });
       }
-      
-      if (onSuccess) onSuccess();
-    } catch (err) {
-      console.error('Authentication error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred during authentication');
-    } finally {
-      setLoading(false);
+    } catch (err: any) {
+      setError(err.message);
     }
   };
-  
+
   return (
-    <div className="w-full max-w-md mx-auto">
-      <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-8">
-        <h2 className="text-2xl font-bold text-white mb-6 text-center">
-          {isLogin ? 'Sign In to JESTFLY' : 'Create a JESTFLY Account'}
-        </h2>
-        
-        {error && (
-          <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-white/80 mb-2" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
-              placeholder="your@email.com"
-              required
-            />
-          </div>
-          
-          <div className="mb-6">
-            <label className="block text-white/80 mb-2" htmlFor="password">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/5 border border-white/20 rounded-lg p-3 text-white focus:outline-none focus:border-purple-500"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 rounded-lg transition-colors ${
-              loading ? 'opacity-70 cursor-not-allowed' : ''
-            }`}
-          >
-            {loading ? 'Processing...' : isLogin ? 'Sign In' : 'Create Account'}
-          </button>
-        </form>
-        
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-purple-400 hover:text-purple-300 transition-colors"
-          >
-            {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-          </button>
-        </div>
-        
-        {isLogin && (
-          <div className="mt-4 text-center">
-            <button className="text-white/60 hover:text-white/80 transition-colors text-sm">
-              Forgot your password?
-            </button>
-          </div>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="bg-red-100 text-red-700 p-2 rounded">{error}</div>}
+      
+      <div>
+        <label htmlFor="email" className="block mb-1">Email</label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full p-2 border rounded"
+        />
       </div>
-    </div>
+      
+      <div>
+        <label htmlFor="password" className="block mb-1">Senha</label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="w-full p-2 border rounded"
+        />
+      </div>
+      
+      {type === 'register' && (
+        <>
+          <div>
+            <label htmlFor="displayName" className="block mb-1">Nome de Exibição</label>
+            <input
+              id="displayName"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+              className="w-full p-2 border rounded"
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="username" className="block mb-1">Nome de Usuário</label>
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        </>
+      )}
+      
+      <button
+        type="submit"
+        className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+      >
+        {type === 'login' ? 'Entrar' : 'Cadastrar'}
+      </button>
+    </form>
   );
 };
 

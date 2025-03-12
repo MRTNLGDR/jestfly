@@ -1,3 +1,4 @@
+
 import { supabase } from '../../integrations/supabase/client';
 import { UserProfile } from '../../models/User';
 import { toast } from 'sonner';
@@ -36,7 +37,7 @@ export const registerUser = async (email: string, password: string, userData: Pa
       password,
       options: {
         data: {
-          displayName: userData.display_name,
+          display_name: userData.display_name,
           username: userData.username,
           profileType: userData.profile_type || 'fan',
         }
@@ -124,7 +125,12 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
     if (error) throw error;
     
     if (data) {
-      return data as UserProfile;
+      // Aplicar tipagem segura adicionando as propriedades que podem estar faltando
+      return {
+        ...data,
+        followers_count: 0, // Valor temporário até implementarmos a contagem real
+        following_count: 0  // Valor temporário até implementarmos a contagem real
+      } as UserProfile;
     }
     
     return null;

@@ -46,9 +46,9 @@ export const RegisterForm: React.FC = () => {
     
     try {
       await register(formData.email, formData.password, {
-        displayName: formData.displayName,
+        display_name: formData.displayName,
         username: formData.username,
-        profileType: formData.profileType,
+        profile_type: formData.profileType,
       });
       
       navigate('/profile');
