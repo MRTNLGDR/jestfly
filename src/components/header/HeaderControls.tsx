@@ -23,7 +23,7 @@ const HeaderControls: React.FC = () => {
   };
   
   return (
-    <div className="flex items-center space-x-1">
+    <div className="flex items-center space-x-1 md:space-x-2">
       {!isMobile && (
         <>
           <LanguageSwitcher />
@@ -33,7 +33,7 @@ const HeaderControls: React.FC = () => {
       )}
       
       {/* PreOrderButton mostrado em todos os dispositivos, mas com tamanho reduzido em mobile */}
-      <div className={isMobile ? "scale-90 mr-1" : ""}>
+      <div className={isMobile ? "scale-90" : ""}>
         <PreOrderButton />
       </div>
 
@@ -42,10 +42,9 @@ const HeaderControls: React.FC = () => {
         <div className="flex items-center space-x-1">
           <Link 
             to="/profile" 
-            className="p-1.5 rounded-md flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
-            aria-label="Profile"
+            className="px-2 py-1 md:px-3 md:py-1.5 rounded-md flex items-center space-x-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs md:text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
           >
-            <User className="h-4 w-4 sm:mr-1" />
+            <User className="h-3 w-3 md:h-4 md:w-4 mr-1" />
             <span className="hidden sm:inline">Profile</span>
           </Link>
           
@@ -55,8 +54,7 @@ const HeaderControls: React.FC = () => {
               variant="outline" 
               size="sm" 
               onClick={handleLogout}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white p-1.5 h-auto"
-              aria-label="Logout"
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -65,11 +63,9 @@ const HeaderControls: React.FC = () => {
       ) : (
         <Link 
           to="/login" 
-          className="p-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center"
-          aria-label="Login"
+          className="px-2 py-1 md:px-3 md:py-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs md:text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
         >
-          <User className="h-4 w-4 sm:mr-1" />
-          <span className="hidden sm:inline">Login</span>
+          Login
         </Link>
       )}
     </div>

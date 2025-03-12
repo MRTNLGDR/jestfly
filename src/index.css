@@ -28,7 +28,7 @@ body {
   overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
-/* Custom scrollbar for needed horizontal scrolling only */
+/* Custom scrollbar for horizontal scrolling */
 .scrollbar-thin {
   scrollbar-width: thin;
 }
@@ -49,16 +49,6 @@ body {
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
-}
-
-/* Ocultar scrollbar mas manter funcionalidade */
-.hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;             /* Chrome, Safari, Opera */
 }
 
 /* Responsive fixes */
@@ -86,74 +76,4 @@ body {
 header {
   transform: translateZ(0); /* Force GPU acceleration */
   will-change: transform; /* Optimize for animations */
-  z-index: 100;
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* Prevenir scrolling horizontal em elementos de navegação */
-nav {
-  max-width: 100%;
-  width: 100%;
-}
-
-/* Ajustes específicos para menus */
-.menu-container {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-/* Ajuste para links de menu em dispositivos pequenos */
-@media (max-width: 768px) {
-  .menu-link {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-  }
-}
-
-/* Garantir que elementos não causem scrolling horizontal */
-* {
-  max-width: 100%;
-}
-
-/* Transições suaves para menus */
-.mobile-menu-enter {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-
-.mobile-menu-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 200ms, transform 200ms;
-}
-
-.mobile-menu-exit {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.mobile-menu-exit-active {
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 200ms, transform 200ms;
-}
-
-/* Ajustes para menus de navegação */
-.nav-icon-only {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Adicionar media queries para controlar visibilidade de texto/ícones */
-@media (min-width: 1024px) and (max-width: 1280px) {
-  .nav-text-hide {
-    display: none;
-  }
-  
-  .nav-icon-only {
-    padding: 0.5rem;
-  }
 }
