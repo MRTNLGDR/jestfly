@@ -5,22 +5,70 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
-import { Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { z } from 'zod';
+import { LoadingSpinner } from '../ui/loading-spinner';
+
+// Schema de validação para o formulário
+const loginSchema = z.object({
+  email: z.string().email('Por favor, insira um email válido'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres')
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof LoginFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const validateField = (name: keyof LoginFormData, value: string) => {
+    try {
+      const result = loginSchema.shape[name].parse(value);
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errorMessage = error.errors[0]?.message || `${name} inválido`;
+        setErrors(prev => ({ ...prev, [name]: errorMessage }));
+        return false;
+      }
+      return false;
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    validateField(name as keyof LoginFormData, value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validação completa do formulário
+    let isValid = true;
+    Object.entries(formData).forEach(([key, value]) => {
+      const fieldValid = validateField(key as keyof LoginFormData, value);
+      if (!fieldValid) isValid = false;
+    });
+    
+    if (!isValid) {
+      toast.error('Por favor, corrija os erros no formulário');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
-      await login(email, password);
+      await login(formData.email, formData.password);
       toast.success('Login realizado com sucesso!');
       navigate('/profile');
     } catch (error: any) {
@@ -54,12 +102,20 @@ export const LoginForm: React.FC = () => {
             <Input
               type="email"
               placeholder="seu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              onBlur={(e) => validateField('email', e.target.value)}
               required
-              className="bg-zinc-900/60 border-zinc-800 text-white"
+              className={`bg-zinc-900/60 border-zinc-800 text-white ${errors.email ? 'border-red-500' : ''}`}
               disabled={isSubmitting}
             />
+            {errors.email && (
+              <div className="text-red-500 text-xs flex items-center mt-1">
+                <AlertCircle size={12} className="mr-1" /> 
+                {errors.email}
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -68,15 +124,32 @@ export const LoginForm: React.FC = () => {
                 Esqueceu a senha?
               </Link>
             </div>
-            <Input
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="bg-zinc-900/60 border-zinc-800 text-white"
-              disabled={isSubmitting}
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                onBlur={(e) => validateField('password', e.target.value)}
+                required
+                className={`bg-zinc-900/60 border-zinc-800 text-white ${errors.password ? 'border-red-500' : ''}`}
+                disabled={isSubmitting}
+              />
+              <button 
+                type="button" 
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-400 hover:text-zinc-300 text-xs"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
+            </div>
+            {errors.password && (
+              <div className="text-red-500 text-xs flex items-center mt-1">
+                <AlertCircle size={12} className="mr-1" /> 
+                {errors.password}
+              </div>
+            )}
           </div>
           <Button 
             type="submit" 
@@ -85,7 +158,7 @@ export const LoginForm: React.FC = () => {
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <LoadingSpinner size="sm" className="mr-2" />
                 Autenticando...
               </span>
             ) : (
