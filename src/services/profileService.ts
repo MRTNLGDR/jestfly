@@ -49,7 +49,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         email: data.email || '',
         display_name: data.display_name || '',
         username: data.username || '',
-        avatar: data.avatar || '',
+        avatar_url: data.avatar || '',
         bio: data.bio || '',
         followers_count: followersCount || 0,
         following_count: followingCount || 0,

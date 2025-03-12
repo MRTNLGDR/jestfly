@@ -117,7 +117,7 @@ const CommentsList: React.FC<CommentsListProps> = ({ postId, onClose }) => {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <p className="text-white">Carregando...</p>
+              <div className="animate-spin h-8 w-8 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"></div>
             </div>
           ) : comments.length === 0 ? (
             <div className="text-center py-8 text-white/60">
