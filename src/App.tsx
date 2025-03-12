@@ -20,7 +20,7 @@ import EcommercePage from './pages/EcommercePage';
 import AdminPanel from './pages/AdminPanel';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import { AuthProvider } from './contexts/auth'; // Updated path
+import { AuthProvider } from './contexts/auth';
 import { LoginForm } from './components/auth';
 import { RegisterForm } from './components/auth';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -77,7 +77,7 @@ function App() {
           <div className="flex flex-col min-h-screen bg-black">
             <GlassHeader menuItems={menuItems} />
             <Toaster position="top-right" />
-            <main className="flex-grow">
+            <main className="flex-grow pt-20">
               <Routes>
                 <Route path="/" element={<HomePage crystalParams={crystalParams} galleryImages={galleryImages} />} />
                 <Route path="/store/*" element={<NewStorePage />} />
