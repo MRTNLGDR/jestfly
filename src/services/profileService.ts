@@ -35,7 +35,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         email: data.email || '',
         display_name: data.display_name || '',
         username: data.username || '',
-        avatar_url: data.avatar_url || '',
+        avatar_url: data.avatar || '',
         bio: data.bio || '',
         followers_count: followersCount || 0,
         following_count: followingCount || 0,
@@ -95,10 +95,9 @@ export const updateUserProfile = async (
 export const followUser = async (userId: string, targetUserId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('follows')
-      .insert({
-        follower_id: userId,
-        following_id: targetUserId
+      .rpc('follow_user', { 
+        follower: userId, 
+        following: targetUserId 
       });
     
     if (error) throw error;
@@ -113,11 +112,9 @@ export const followUser = async (userId: string, targetUserId: string): Promise<
 export const unfollowUser = async (userId: string, targetUserId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('follows')
-      .delete()
-      .match({
-        follower_id: userId,
-        following_id: targetUserId
+      .rpc('unfollow_user', { 
+        follower: userId, 
+        following: targetUserId 
       });
     
     if (error) throw error;
@@ -132,16 +129,14 @@ export const unfollowUser = async (userId: string, targetUserId: string): Promis
 export const checkIfFollowing = async (userId: string, targetUserId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
-      .from('follows')
-      .select('*')
-      .match({
-        follower_id: userId,
-        following_id: targetUserId
+      .rpc('is_following', { 
+        follower: userId, 
+        following: targetUserId 
       });
     
     if (error) throw error;
     
-    return data && data.length > 0;
+    return Boolean(data);
   } catch (error) {
     console.error("Erro ao verificar se segue usuário:", error);
     return false;
@@ -151,14 +146,14 @@ export const checkIfFollowing = async (userId: string, targetUserId: string): Pr
 export const fetchUserPosts = async (userId: string): Promise<Post[]> => {
   try {
     const { data, error } = await supabase
-      .from('posts')
-      .select('*, profiles(display_name, username, avatar_url)')
+      .from('community_posts')
+      .select('*, profiles:profiles(*)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
     
-    return data || [];
+    return data as unknown as Post[] || [];
   } catch (error) {
     console.error("Erro ao buscar posts do usuário:", error);
     return [];

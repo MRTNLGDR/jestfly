@@ -21,8 +21,8 @@ import AdminPanel from './pages/AdminPanel';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import { AuthProvider } from './contexts/auth'; // Updated path
-import LoginForm from './components/auth/LoginForm';
-import RegisterForm from './components/auth/RegisterForm';
+import { LoginForm } from './components/auth';
+import { RegisterForm } from './components/auth';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {

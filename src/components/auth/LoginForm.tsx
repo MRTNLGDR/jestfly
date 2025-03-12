@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export const LoginForm: React.FC = () => {
+const LoginForm: React.FC = () => {
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: ''
@@ -181,3 +181,5 @@ export const LoginForm: React.FC = () => {
     </Card>
   );
 };
+
+export default LoginForm;
