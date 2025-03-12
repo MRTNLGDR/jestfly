@@ -10,9 +10,9 @@ interface MobileMenuToggleProps {
 const MobileMenuToggle: React.FC<MobileMenuToggleProps> = ({ isOpen, onToggle }) => {
   return (
     <button 
-      className="text-white p-1.5 bg-black/60 rounded-md border border-white/10 lg:hidden flex items-center justify-center"
+      className="text-white p-1.5 bg-purple-600/80 backdrop-blur-sm rounded-md border border-purple-500/30 hover:bg-purple-700/90 transition-colors lg:hidden flex items-center justify-center"
       onClick={onToggle}
-      aria-label={isOpen ? 'Close menu' : 'Open menu'}
+      aria-label={isOpen ? 'Fechar menu' : 'Abrir menu'}
     >
       {isOpen ? <X size={18} /> : <Menu size={18} />}
     </button>

@@ -51,6 +51,16 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Ocultar scrollbar mas manter funcionalidade */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+
 /* Responsive fixes */
 @media (max-width: 640px) {
   body {
@@ -128,4 +138,22 @@ nav {
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 200ms, transform 200ms;
+}
+
+/* Ajustes para menus de navegação */
+.nav-icon-only {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Adicionar media queries para controlar visibilidade de texto/ícones */
+@media (min-width: 1024px) and (max-width: 1280px) {
+  .nav-text-hide {
+    display: none;
+  }
+  
+  .nav-icon-only {
+    padding: 0.5rem;
+  }
 }

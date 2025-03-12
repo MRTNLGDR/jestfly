@@ -18,14 +18,14 @@ const CommunityNav: React.FC = () => {
   return (
     <div className="backdrop-blur-md bg-black/40 border-b border-white/10 sticky top-[60px] md:top-[70px] z-10">
       <div className="container mx-auto px-2 md:px-4">
-        <nav className="flex flex-wrap overflow-visible py-1">
+        <nav className="flex justify-between md:justify-start overflow-x-auto hide-scrollbar py-1">
           {navItems.map((item) => (
             <NavLink
               key={item.label}
               to={item.path}
               end={item.path === '/community'}
               className={({ isActive }) =>
-                `flex items-center px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium transition-colors ${
+                `flex items-center px-2 md:px-4 py-2 md:py-3 text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive
                     ? 'text-white border-b-2 border-purple-500'
                     : 'text-white/60 hover:text-white'
@@ -33,7 +33,7 @@ const CommunityNav: React.FC = () => {
               }
             >
               <span className="mr-1 md:mr-2">{item.icon}</span>
-              {isMobile ? <span className="hidden sm:inline">{item.label}</span> : item.label}
+              {isMobile ? '' : item.label}
             </NavLink>
           ))}
         </nav>

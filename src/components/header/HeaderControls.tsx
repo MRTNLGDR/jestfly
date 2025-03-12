@@ -42,9 +42,10 @@ const HeaderControls: React.FC = () => {
         <div className="flex items-center space-x-1">
           <Link 
             to="/profile" 
-            className="px-2 py-1 rounded-md flex items-center space-x-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
+            className="p-1.5 rounded-md flex items-center justify-center bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
+            aria-label="Profile"
           >
-            <User className="h-3 w-3 mr-1" />
+            <User className="h-4 w-4 sm:mr-1" />
             <span className="hidden sm:inline">Profile</span>
           </Link>
           
@@ -54,7 +55,8 @@ const HeaderControls: React.FC = () => {
               variant="outline" 
               size="sm" 
               onClick={handleLogout}
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white p-1.5 h-auto"
+              aria-label="Logout"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -63,9 +65,11 @@ const HeaderControls: React.FC = () => {
       ) : (
         <Link 
           to="/login" 
-          className="px-2 py-1 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-colors"
+          className="p-1.5 rounded-md bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium hover:from-purple-700 hover:to-blue-700 transition-colors flex items-center justify-center"
+          aria-label="Login"
         >
-          Login
+          <User className="h-4 w-4 sm:mr-1" />
+          <span className="hidden sm:inline">Login</span>
         </Link>
       )}
     </div>

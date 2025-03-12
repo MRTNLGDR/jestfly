@@ -1,144 +1,155 @@
 
-// Implement and export all auth methods
-import { User } from '@supabase/supabase-js';
 import { supabase } from '../../integrations/supabase/client';
-import { UserProfile } from '../../models/User';
-import { toast } from 'sonner';
+import { Auth, User } from '@supabase/supabase-js';
+import { 
+  AuthCredentials, 
+  PasswordResetDetails, 
+  UserProfile,
+  UserRegistrationData, 
+  ProfileUpdateData 
+} from './types';
 
-// Login methods
-export const loginUser = async (email: string, password: string): Promise<User> => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    console.error("Login error:", error.message);
-    throw new Error(error.message);
-  }
-
-  if (!data.user) {
-    throw new Error("No user returned from login");
-  }
-
-  return data.user;
-};
-
-export const logoutUser = async (): Promise<void> => {
-  const { error } = await supabase.auth.signOut();
-  
-  if (error) {
-    console.error("Logout error:", error.message);
-    throw new Error(error.message);
-  }
-};
-
-// Registration methods
-export const registerUser = async (
-  email: string, 
-  password: string, 
-  userData: Partial<UserProfile>
-): Promise<User> => {
-  // Register the user with Supabase
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        display_name: userData.display_name,
-        profile_type: userData.profile_type
-      }
-    }
-  });
-
-  if (error) {
-    console.error("Registration error:", error.message);
-    throw new Error(error.message);
-  }
-
-  if (!data.user) {
-    throw new Error("No user returned from registration");
-  }
-
+// Função de login de usuário
+export const loginUser = async ({ email, password }: AuthCredentials) => {
   try {
-    // Create user profile in our profiles table
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
+};
+
+// Função de registro de usuário
+export const registerUser = async (userData: UserRegistrationData) => {
+  try {
+    const { email, password, profile_type, display_name } = userData;
+
+    // Registrar o usuário com Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          profile_type,
+          display_name,
+        },
+      },
+    });
+
+    if (authError) throw authError;
+    if (!authData.user) throw new Error('Falha no registro do usuário');
+
+    // Criar perfil na tabela profiles
+    // Inclua o username obrigatório
+    const profile = {
+      id: authData.user.id,
+      email: email,
+      display_name: display_name,
+      profile_type: profile_type,
+      username: `user_${Date.now().toString().slice(-6)}`, // Gerando um username único
+    };
+
     const { error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        id: data.user.id,
-        email: userData.email || email,
-        display_name: userData.display_name || '',
-        profile_type: userData.profile_type || 'fan'
-      });
+      .insert(profile);
 
     if (profileError) {
-      console.error("Error creating user profile:", profileError);
-      // We don't throw here as the auth user was created successfully
-      toast.error("Conta criada, mas ocorreu um erro ao criar seu perfil");
+      // Caso haja erro na criação do perfil, tentar deletar o usuário auth
+      console.error('Erro ao criar perfil:', profileError);
+      throw profileError;
     }
-  } catch (err) {
-    console.error("Profile creation error:", err);
-    toast.error("Conta criada, mas ocorreu um erro ao criar seu perfil");
-  }
 
-  return data.user;
-};
-
-// Password methods
-export const resetUserPassword = async (email: string): Promise<void> => {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`
-  });
-
-  if (error) {
-    console.error("Password reset error:", error.message);
-    throw new Error(error.message);
+    return authData;
+  } catch (error) {
+    console.error('Erro no registro:', error);
+    throw error;
   }
 };
 
-export const updateUserPassword = async (password: string): Promise<void> => {
-  const { error } = await supabase.auth.updateUser({
-    password
-  });
-
-  if (error) {
-    console.error("Password update error:", error.message);
-    throw new Error(error.message);
+// Função de logout
+export const logoutUser = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro no logout:', error);
+    throw error;
   }
 };
 
-// Profile methods
-export const updateUserProfile = async (
-  userId: string, 
-  data: Partial<UserProfile>
-): Promise<void> => {
-  const { error } = await supabase
-    .from('profiles')
-    .update(data)
-    .eq('id', userId);
+// Função para buscar dados do usuário
+export const fetchUserData = async (userId: string): Promise<UserProfile> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
 
-  if (error) {
-    console.error("Profile update error:", error.message);
-    throw new Error(error.message);
+    if (error) throw error;
+    if (!data) throw new Error('Perfil não encontrado');
+
+    // Converter para o formato UserProfile
+    const profile: UserProfile = {
+      id: data.id,
+      email: data.email,
+      display_name: data.display_name,
+      username: data.username,
+      profile_type: data.profile_type,
+      avatar_url: data.avatar || '',
+      bio: data.bio || '',
+      created_at: data.created_at || '',
+      is_verified: data.is_verified || false,
+      last_login: data.last_login || '',
+      permissions: data.permissions || [],
+      preferences: data.preferences || {},
+      social_links: data.social_links || {},
+      wallet_address: data.wallet_address || '',
+      followers_count: 0, // Adicionando os campos faltantes
+      following_count: 0  // Adicionando os campos faltantes
+    };
+
+    return profile;
+  } catch (error) {
+    console.error('Erro ao buscar dados do usuário:', error);
+    throw error;
   }
 };
 
-export const fetchUserData = async (userId: string): Promise<UserProfile | null> => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
+// Função para atualizar a senha
+export const resetUserPassword = async ({ email }: PasswordResetDetails) => {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // No user profile found
-      console.warn(`No profile found for user: ${userId}`);
-      return null;
-    }
-    console.error("Error fetching user data:", error.message);
-    throw new Error(error.message);
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro ao solicitar redefinição de senha:', error);
+    throw error;
   }
+};
 
-  return data as UserProfile;
+// Função para atualizar o perfil do usuário
+export const updateUserProfile = async (userId: string, profileData: ProfileUpdateData) => {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update(profileData)
+      .eq('id', userId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    throw error;
+  }
 };
