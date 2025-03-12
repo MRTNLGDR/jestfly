@@ -1,122 +1,143 @@
-
-import React from 'react';
-import { Badge } from '../ui/badge';
-import { Heart, MessageCircle, Repeat } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Button } from '../ui/button';
+import { Plus } from 'lucide-react';
+import { Post } from '../../models/Post';
+import { fetchPosts } from '../../services/feedService';
+import { useAuth } from '../../contexts/auth';
+import { toast } from 'sonner';
 import CommunityNav from './CommunityNav';
+import PostCard from './PostCard';
+import CommentsList from './CommentsList';
+import CreatePostModal from './CreatePostModal';
+import { supabase } from '../../integrations/supabase/client';
 
 const JestFlyersHubPage: React.FC = () => {
-  // Sample data for Instagram-like posts
-  const instagramPosts = [
-    {
-      id: 1,
-      username: '@jestfly',
-      avatar: '/assets/avatar1.jpg',
-      image: '/assets/image1.jpg',
-      caption: 'Creating the future of immersive sound experiences #jestfly #music #futuristic',
-      likes: 456,
-      comments: 32,
-      timestamp: '2h ago'
-    },
-    {
-      id: 2,
-      username: '@producer_jay',
-      avatar: '/assets/avatar2.jpg',
-      image: '/assets/image2.jpg',
-      caption: 'Studio session with @jestfly - magic in the making 🔥',
-      likes: 843,
-      comments: 56,
-      timestamp: '5h ago'
-    },
-    {
-      id: 3,
-      username: '@jestfly',
-      avatar: '/assets/avatar1.jpg',
-      image: '/assets/image3.jpg',
-      caption: 'Next show announced! Get your tickets before they sell out #tour #music',
-      likes: 1245,
-      comments: 98,
-      timestamp: '1d ago'
-    },
-    {
-      id: 4,
-      username: '@visual_artist',
-      avatar: '/assets/avatar3.jpg',
-      image: '/assets/image4.jpg',
-      caption: 'Working on visual concepts for the upcoming @jestfly tour. Sneak peek!',
-      likes: 721,
-      comments: 42,
-      timestamp: '2d ago'
+  const { currentUser } = useAuth();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    loadPosts();
+    
+    // Configurar realtime (opcional para essa implementação)
+    const channel = supabase
+      .channel('public:community_posts')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'community_posts' }, 
+        handleNewPost
+      )
+      .subscribe();
+      
+    return () => { channel.unsubscribe() };
+  }, []);
+  
+  const handleNewPost = (payload: any) => {
+    // Implementação básica para atualizar a lista quando um novo post é criado
+    // Em uma implementação completa, você buscaria os dados do autor também
+    toast.info('Novo post publicado!');
+    loadPosts();
+  };
+
+  const loadPosts = async () => {
+    setIsLoading(true);
+    try {
+      const postsData = await fetchPosts();
+      setPosts(postsData);
+    } catch (error) {
+      console.error('Erro ao carregar posts:', error);
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+
+  const handleCommentClick = (postId: string) => {
+    setSelectedPostId(postId);
+  };
+
+  const handleCloseComments = () => {
+    setSelectedPostId(null);
+  };
+
+  const handleCreatePost = () => {
+    if (!currentUser) {
+      toast.error('Você precisa estar logado para criar um post');
+      return;
+    }
+    setShowCreateModal(true);
+  };
+
+  const handlePostCreated = () => {
+    loadPosts();
+  };
 
   return (
     <div className="bg-gradient-to-b from-black to-purple-950 min-h-screen pt-20">
       <CommunityNav />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
-            JestFlyers Hub
-          </h1>
-          <p className="text-white/70">Connect with the community and see what's happening.</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+              JestFlyers Hub
+            </h1>
+            <p className="text-white/70">Conecte-se com a comunidade e veja o que está acontecendo.</p>
+          </div>
+          
+          <Button 
+            onClick={handleCreatePost} 
+            className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Criar Post
+          </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {instagramPosts.map((post) => (
-            <div key={post.id} className="neo-blur rounded-xl overflow-hidden border border-white/10">
-              {/* Post header */}
-              <div className="p-4 flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <span className="text-white font-bold">{post.username.charAt(1).toUpperCase()}</span>
-                </div>
-                <div>
-                  <p className="font-medium text-white">{post.username}</p>
-                  <p className="text-xs text-white/60">{post.timestamp}</p>
-                </div>
-              </div>
-              
-              {/* Post image */}
-              <div className="aspect-square w-full bg-gradient-to-br from-purple-900/20 to-pink-900/20 flex items-center justify-center">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 blur-2xl opacity-30"></div>
-                <p className="absolute text-white/80 font-medium">Image Preview</p>
-              </div>
-              
-              {/* Post actions */}
-              <div className="p-4 flex items-center space-x-6">
-                <button className="text-white/80 hover:text-pink-500 transition-colors">
-                  <Heart className="h-5 w-5" />
-                </button>
-                <button className="text-white/80 hover:text-blue-500 transition-colors">
-                  <MessageCircle className="h-5 w-5" />
-                </button>
-                <button className="text-white/80 hover:text-green-500 transition-colors">
-                  <Repeat className="h-5 w-5" />
-                </button>
-                <span className="text-xs text-white/60 ml-auto">{post.likes} likes</span>
-              </div>
-              
-              {/* Caption */}
-              <div className="px-4 pb-4">
-                <p className="text-white/90 text-sm">
-                  <span className="font-medium">{post.username}</span>{' '}
-                  {post.caption}
-                </p>
-                <p className="text-white/60 text-xs mt-2">View all {post.comments} comments</p>
-              </div>
-              
-              {/* Badges */}
-              <div className="px-4 pb-5 flex flex-wrap gap-2">
-                <Badge variant="outline" className="bg-purple-900/30 text-purple-400 border-purple-700/40">
-                  #jestfly
-                </Badge>
-                <Badge variant="outline" className="bg-blue-900/30 text-blue-400 border-blue-700/40">
-                  #community
-                </Badge>
-              </div>
-            </div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <div className="animate-spin h-12 w-12 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"></div>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="neo-blur rounded-xl p-8 text-center border border-white/10">
+            <h3 className="text-xl font-semibold text-white mb-2">Nenhum post ainda</h3>
+            <p className="text-white/70 mb-4">Seja o primeiro a compartilhar algo com a comunidade!</p>
+            <Button
+              onClick={handleCreatePost}
+              className="bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Criar Post
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onCommentClick={handleCommentClick}
+              />
+            ))}
+          </div>
+        )}
       </div>
+      
+      {/* Modal de comentários */}
+      {selectedPostId && (
+        <CommentsList 
+          postId={selectedPostId} 
+          onClose={handleCloseComments}
+        />
+      )}
+      
+      {/* Modal de criação de post */}
+      {showCreateModal && (
+        <CreatePostModal
+          onClose={() => setShowCreateModal(false)}
+          onPostCreated={handlePostCreated}
+        />
+      )}
     </div>
   );
 };
