@@ -12,6 +12,7 @@ export const useAuthState = () => {
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastRefreshAttempt, setLastRefreshAttempt] = useState<Date | null>(null);
 
   const isAdmin = useMemo(() => {
     return userData?.profile_type === 'admin';
@@ -32,16 +33,51 @@ export const useAuthState = () => {
   };
 
   const refreshUserData = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.warn("Cannot refresh user data: No current user");
+      return;
+    }
+    
+    // Prevent multiple rapid refresh attempts
+    if (lastRefreshAttempt && new Date().getTime() - lastRefreshAttempt.getTime() < 2000) {
+      console.log("Skipping refresh - too soon since last attempt");
+      return;
+    }
+    
+    setLastRefreshAttempt(new Date());
     
     try {
       console.log("Refreshing user data for:", currentUser.id);
-      const refreshedData = await fetchUserData(currentUser.id);
+      
+      // First refresh the session to ensure we have the latest token
+      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
+      
+      if (sessionError) {
+        console.error("Session refresh failed:", sessionError);
+        toast.error("Falha ao atualizar sessão. Tente fazer login novamente.");
+        return;
+      }
+      
+      if (!sessionData.session) {
+        console.warn("No session after refresh");
+        setCurrentUser(null);
+        setUserData(null);
+        return;
+      }
+      
+      setCurrentUser(sessionData.session.user);
+      
+      // Now get the latest user profile data
+      const refreshedData = await fetchUserData(sessionData.session.user.id);
+      
       if (refreshedData) {
         console.log("User data refreshed successfully:", refreshedData.display_name);
         setUserData(refreshedData);
+        setError(null);
       } else {
         console.warn("Failed to refresh user data - no data returned from fetchUserData");
+        toast.error("Dados do usuário não encontrados. Entre em contato com o suporte.");
+        setError("Perfil de usuário não encontrado");
       }
     } catch (err) {
       console.error("Error refreshing user data:", err);
@@ -77,16 +113,41 @@ export const useAuthState = () => {
           console.log("Fetching user profile after auth state change for:", user.id);
           const userProfile = await fetchUserData(user.id);
           console.log("User profile retrieved:", userProfile ? "success" : "not found");
-          setUserData(userProfile);
+          
           if (!userProfile) {
             console.warn("No user profile found for authenticated user");
+            
+            // Log diagnostic information
+            await supabase.rpc('log_auth_diagnostic', {
+              message: 'No user profile found after auth state change',
+              metadata: {
+                user_id: user.id,
+                event,
+                timestamp: new Date().toISOString()
+              }
+            }).catch(e => console.error("Failed to log diagnostic:", e));
+            
             setError("Perfil de usuário não encontrado");
             toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
+          } else {
+            setUserData(userProfile);
+            setError(null);
           }
         } catch (err) {
           console.error("Error fetching user data after auth change:", err);
           setError("Erro ao buscar dados do usuário");
           toast.error("Erro ao buscar dados do usuário. Tente novamente mais tarde.");
+          
+          // Log diagnostic information
+          await supabase.rpc('log_auth_diagnostic', {
+            message: 'Error fetching user profile after auth state change',
+            metadata: {
+              user_id: user.id,
+              error: String(err),
+              event,
+              timestamp: new Date().toISOString()
+            }
+          }).catch(e => console.error("Failed to log diagnostic:", e));
         }
       } else {
         setUserData(null);
@@ -122,15 +183,45 @@ export const useAuthState = () => {
             if (userProfile) {
               console.log("Initial user profile loaded successfully:", userProfile.display_name);
               setUserData(userProfile);
+              setError(null);
+              
+              // Log successful auth initialization for diagnostics
+              await supabase.rpc('log_auth_diagnostic', {
+                message: 'Auth initialization successful',
+                metadata: {
+                  user_id: user.id,
+                  profile_type: userProfile.profile_type,
+                  timestamp: new Date().toISOString()
+                }
+              }).catch(e => console.error("Failed to log diagnostic:", e));
             } else {
               console.warn("No user profile found for authenticated user on initialization");
               setError("Perfil de usuário não encontrado");
               toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
+              
+              // Log diagnostic information
+              await supabase.rpc('log_auth_diagnostic', {
+                message: 'No user profile found during auth initialization',
+                metadata: {
+                  user_id: user.id,
+                  timestamp: new Date().toISOString()
+                }
+              }).catch(e => console.error("Failed to log diagnostic:", e));
             }
           } catch (profileError) {
             console.error("Error fetching initial profile:", profileError);
             setError("Erro ao buscar perfil inicial");
             toast.error("Erro ao buscar seu perfil. Tente novamente mais tarde.");
+            
+            // Log diagnostic information
+            await supabase.rpc('log_auth_diagnostic', {
+              message: 'Error fetching initial profile',
+              metadata: {
+                user_id: user.id,
+                error: String(profileError),
+                timestamp: new Date().toISOString()
+              }
+            }).catch(e => console.error("Failed to log diagnostic:", e));
           }
         }
       } catch (err) {

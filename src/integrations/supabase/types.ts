@@ -838,6 +838,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_auth_connectivity: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      check_user_data: {
+        Args: {
+          user_id: string
+        }
+        Returns: Json
+      }
       check_user_profile_type: {
         Args: {
           required_type: string
@@ -900,6 +910,13 @@ export type Database = {
           following: string
         }
         Returns: boolean
+      }
+      log_auth_diagnostic: {
+        Args: {
+          message: string
+          metadata?: Json
+        }
+        Returns: string
       }
       log_user_activity: {
         Args: {
