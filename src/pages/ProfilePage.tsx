@@ -9,6 +9,7 @@ import ProfileTabs from '../components/profile/ProfileTabs';
 import Footer from '../components/Footer';
 import { toast } from 'sonner';
 import { Undo2 } from 'lucide-react';
+import { LoadingSpinner } from '../components/ui/loading-spinner';
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -25,8 +26,8 @@ const ProfilePage: React.FC = () => {
       try {
         console.log("Loading profile with userId:", userId, "currentUser:", currentUser?.id);
         
-        // Se não houver userId no parâmetro, usa o ID do usuário atual
-        const targetUserId = userId || (currentUser?.id || '');
+        // If there's no userId in the parameter, use the current user's ID
+        const targetUserId = userId || currentUser?.id;
         
         if (!targetUserId) {
           console.log("No target user ID found");
@@ -47,7 +48,7 @@ const ProfilePage: React.FC = () => {
         
         setProfile(profileData);
         
-        // Verifica se é o perfil do usuário atual
+        // Check if this is the current user's profile
         setIsCurrentUser(
           !!(currentUser && currentUser.id === profileData.id)
         );
@@ -75,7 +76,7 @@ const ProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black to-purple-950 pt-20 flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"></div>
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
