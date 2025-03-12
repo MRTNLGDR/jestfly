@@ -1,27 +1,15 @@
 
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { Form } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { useAuth } from '../../contexts/auth';
+import PersonalInfoFields from './register/PersonalInfoFields';
+import PasswordFields from './register/PasswordFields';
+import ProfileTypeField from './register/ProfileTypeField';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -92,103 +80,22 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
   return (
     <div className="flex flex-col space-y-4 w-full">
-      <Form {...form}>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nome</FormLabel>
-                <FormControl>
-                  <Input placeholder="Seu nome" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
-                <FormControl>
-                  <Input placeholder="username" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="mail@example.com" type="email" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Senha</FormLabel>
-                <FormControl>
-                  <Input type="password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <div className="grid gap-2">
-            <FormItem>
-              <FormLabel>Confirmar Senha</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </FormControl>
-              {error && (
-                <p className="text-sm text-red-500">{error}</p>
-              )}
-            </FormItem>
-          </div>
-          <FormField
-            control={form.control}
-            name="profileType"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Perfil</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um tipo de perfil" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="fan">Fã</SelectItem>
-                    <SelectItem value="artist">Artista</SelectItem>
-                    <SelectItem value="collaborator">Colaborador</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button disabled={loading} type="submit">
-            {loading ? 'Criando...' : 'Criar Conta'}
-          </Button>
-        </form>
-      </Form>
+      <FormProvider {...form}>
+        <Form {...form}>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <PersonalInfoFields />
+            <PasswordFields 
+              confirmPassword={confirmPassword}
+              setConfirmPassword={setConfirmPassword}
+              error={error}
+            />
+            <ProfileTypeField />
+            <Button disabled={loading} type="submit">
+              {loading ? 'Criando...' : 'Criar Conta'}
+            </Button>
+          </form>
+        </Form>
+      </FormProvider>
     </div>
   );
 };
