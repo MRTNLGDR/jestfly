@@ -65,11 +65,35 @@ export const logoutUser = async () => {
 };
 
 export const resetUserPassword = async (email: string) => {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
-  });
-  if (error) throw error;
-  toast.success('Email de recuperação de senha enviado');
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    
+    if (error) throw error;
+    
+    // O toast é feito no componente para melhor feedback visual
+    return true;
+  } catch (error: any) {
+    console.error('Erro ao solicitar redefinição de senha:', error);
+    throw error;
+  }
+};
+
+export const updateUserPassword = async (newPassword: string) => {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    
+    if (error) throw error;
+    
+    // O toast é feito no componente para melhor feedback visual
+    return true;
+  } catch (error: any) {
+    console.error('Erro ao atualizar senha:', error);
+    throw error;
+  }
 };
 
 export const updateUserProfile = async (userId: string, data: Partial<User>) => {
