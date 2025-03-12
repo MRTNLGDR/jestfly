@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile } from '../../models/Post';
+import { UserProfile } from '../../models/User';
 import { followUser, checkIfFollowing } from '../../services/profileService';
 import { useAuth } from '../../contexts/auth';
 import { toast } from 'sonner';

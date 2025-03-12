@@ -1,4 +1,3 @@
-
 import { supabase } from '../integrations/supabase/client';
 import { UserProfile } from '../models/User';
 import { Post } from '../models/Post';
@@ -49,7 +48,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         email: data.email || '',
         display_name: data.display_name || '',
         username: data.username || '',
-        avatar_url: data.avatar || '',
+        avatar_url: data.avatar || '', // Map the database 'avatar' field to the expected 'avatar_url'
         bio: data.bio || '',
         followers_count: followersCount || 0,
         following_count: followingCount || 0,
@@ -100,7 +99,6 @@ export const updateUserProfile = async (
   }
 };
 
-// Add these missing exported functions
 export const followUser = async (userId: string, targetUserId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
