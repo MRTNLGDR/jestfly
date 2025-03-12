@@ -1,6 +1,7 @@
 
 import { supabase } from '../integrations/supabase/client';
 import { UserProfile } from '../models/User';
+import { Post } from '../models/Post';
 
 export const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
@@ -87,5 +88,79 @@ export const updateUserProfile = async (
   } catch (error) {
     console.error("Erro ao atualizar perfil:", error);
     return null;
+  }
+};
+
+// Add these missing exported functions
+export const followUser = async (userId: string, targetUserId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('follows')
+      .insert({
+        follower_id: userId,
+        following_id: targetUserId
+      });
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error("Erro ao seguir usuário:", error);
+    return false;
+  }
+};
+
+export const unfollowUser = async (userId: string, targetUserId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('follows')
+      .delete()
+      .match({
+        follower_id: userId,
+        following_id: targetUserId
+      });
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error("Erro ao deixar de seguir usuário:", error);
+    return false;
+  }
+};
+
+export const checkIfFollowing = async (userId: string, targetUserId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('follows')
+      .select('*')
+      .match({
+        follower_id: userId,
+        following_id: targetUserId
+      });
+    
+    if (error) throw error;
+    
+    return data && data.length > 0;
+  } catch (error) {
+    console.error("Erro ao verificar se segue usuário:", error);
+    return false;
+  }
+};
+
+export const fetchUserPosts = async (userId: string): Promise<Post[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*, profiles(display_name, username, avatar_url)')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error("Erro ao buscar posts do usuário:", error);
+    return [];
   }
 };
