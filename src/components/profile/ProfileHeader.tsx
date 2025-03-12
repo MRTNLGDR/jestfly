@@ -146,14 +146,14 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, isCurrentUser })
                     {isFollowing ? 'Seguindo' : 'Seguir'}
                   </Button>
                 ) : (
-                  <Button
-                    as={Link}
-                    to="/settings"
-                    variant="outline"
-                    className="mt-3 md:mt-0 border-gray-700 text-gray-300"
-                  >
-                    Editar Perfil
-                  </Button>
+                  <Link to="/settings" className="mt-3 md:mt-0">
+                    <Button
+                      variant="outline"
+                      className="border-gray-700 text-gray-300"
+                    >
+                      Editar Perfil
+                    </Button>
+                  </Link>
                 )}
               </div>
               

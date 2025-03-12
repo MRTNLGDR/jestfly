@@ -1,6 +1,5 @@
-
 import { supabase } from '../../integrations/supabase/client';
-import { User } from '../../models/User';
+import { UserProfile } from '../../models/User';
 import { toast } from 'sonner';
 
 export const loginUser = async (email: string, password: string) => {
@@ -30,23 +29,23 @@ export const loginUser = async (email: string, password: string) => {
   }
 };
 
-export const registerUser = async (email: string, password: string, userData: Partial<User>) => {
+export const registerUser = async (email: string, password: string, userData: Partial<UserProfile>) => {
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          displayName: userData.displayName,
+          displayName: userData.display_name,
           username: userData.username,
-          profileType: userData.profileType || 'fan',
+          profileType: userData.profile_type || 'fan',
         }
       }
     });
     
     if (error) throw error;
     
-    const profileType = userData.profileType || 'fan';
+    const profileType = userData.profile_type || 'fan';
     toast.success(`Conta de ${profileType === 'artist' ? 'artista' : 
                   profileType === 'admin' ? 'administrador' : 
                   profileType === 'collaborator' ? 'colaborador' : 'fã'} 
@@ -96,7 +95,7 @@ export const updateUserPassword = async (newPassword: string) => {
   }
 };
 
-export const updateUserProfile = async (userId: string, data: Partial<User>) => {
+export const updateUserProfile = async (userId: string, data: Partial<UserProfile>) => {
   try {
     const { error } = await supabase
       .from('profiles')
@@ -114,7 +113,7 @@ export const updateUserProfile = async (userId: string, data: Partial<User>) => 
   }
 };
 
-export const fetchUserData = async (userId: string): Promise<User | null> => {
+export const fetchUserData = async (userId: string): Promise<UserProfile | null> => {
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -124,17 +123,8 @@ export const fetchUserData = async (userId: string): Promise<User | null> => {
     
     if (error) throw error;
     
-    // Converter os campos de data de string para Date
     if (data) {
-      // Converter as datas para objetos Date
-      const userData = {
-        ...data,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at),
-        lastLogin: data.last_login ? new Date(data.last_login) : new Date(),
-      } as unknown as User;
-      
-      return userData;
+      return data as UserProfile;
     }
     
     return null;

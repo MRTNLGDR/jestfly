@@ -26,22 +26,14 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
     return null;
   }
 
-  // Buscar contagem de seguidores
-  const { count: followersCount, error: followersError } = await supabase
-    .from('user_follows')
-    .select('id', { count: 'exact', head: true })
-    .eq('following_id', userId);
-
-  // Buscar contagem de seguindo
-  const { count: followingCount, error: followingError } = await supabase
-    .from('user_follows')
-    .select('id', { count: 'exact', head: true })
-    .eq('follower_id', userId);
+  // Como não temos a tabela user_follows ainda, estamos definindo valores de exemplo
+  const followersCount = 0;
+  const followingCount = 0;
 
   return {
     ...data,
-    followers_count: followersCount || 0,
-    following_count: followingCount || 0,
+    followers_count: followersCount,
+    following_count: followingCount,
   } as UserProfile;
 };
 
@@ -82,68 +74,22 @@ export const fetchUserPosts = async (userId: string): Promise<Post[]> => {
   }));
 };
 
+// Esta é uma implementação temporária até criarmos a tabela user_follows
 export const followUser = async (
   followingId: string,
   currentUserId: string
 ): Promise<boolean> => {
-  // Verificar se já segue o usuário
-  const { data: existingFollow, error: checkError } = await supabase
-    .from('user_follows')
-    .select('id')
-    .eq('follower_id', currentUserId)
-    .eq('following_id', followingId)
-    .maybeSingle();
-
-  if (checkError) {
-    console.error('Erro ao verificar seguidor:', checkError);
-    return false;
-  }
-
-  // Se já segue, remover o follow (unfollow)
-  if (existingFollow) {
-    const { error: deleteError } = await supabase
-      .from('user_follows')
-      .delete()
-      .eq('id', existingFollow.id);
-
-    if (deleteError) {
-      console.error('Erro ao deixar de seguir:', deleteError);
-      return false;
-    }
-    return false; // Retorna falso indicando que não está mais seguindo
-  }
-
-  // Se não segue, adicionar novo follow
-  const { error: insertError } = await supabase
-    .from('user_follows')
-    .insert({
-      follower_id: currentUserId,
-      following_id: followingId,
-    });
-
-  if (insertError) {
-    console.error('Erro ao seguir usuário:', insertError);
-    return false;
-  }
-
-  return true; // Retorna verdadeiro indicando que agora está seguindo
+  console.log(`Simulando seguir usuário: ${currentUserId} seguindo ${followingId}`);
+  // Retornando true para simular que agora está seguindo
+  return true;
 };
 
+// Esta é uma implementação temporária até criarmos a tabela user_follows
 export const checkIfFollowing = async (
   followingId: string,
   currentUserId: string
 ): Promise<boolean> => {
-  const { data, error } = await supabase
-    .from('user_follows')
-    .select('id')
-    .eq('follower_id', currentUserId)
-    .eq('following_id', followingId)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Erro ao verificar se segue usuário:', error);
-    return false;
-  }
-
-  return !!data;
+  console.log(`Simulando verificação de seguidor: ${currentUserId} segue ${followingId}?`);
+  // Retornando false para simular que não está seguindo ainda
+  return false;
 };

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../../integrations/supabase/client';
-import { User as UserModel } from '../../models/User';
+import { UserProfile } from '../../models/User';
 import { AuthContextType, PermissionType } from './types';
 import { 
   loginUser, 
@@ -17,26 +17,26 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userData, setUserData] = useState<UserModel | null>(null);
+  const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const isAdmin = useMemo(() => {
-    return userData?.profileType === 'admin';
+    return userData?.profile_type === 'admin';
   }, [userData]);
 
   const isArtist = useMemo(() => {
-    return userData?.profileType === 'artist';
+    return userData?.profile_type === 'artist';
   }, [userData]);
 
   const hasPermission = (requiredPermission: PermissionType | PermissionType[]) => {
     if (!userData) return false;
     
     if (Array.isArray(requiredPermission)) {
-      return requiredPermission.includes(userData.profileType as PermissionType);
+      return requiredPermission.includes(userData.profile_type as PermissionType);
     }
     
-    return userData.profileType === requiredPermission;
+    return userData.profile_type === requiredPermission;
   };
 
   const refreshUserData = async () => {
@@ -108,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, userData: Partial<UserModel>) => {
+  const register = async (email: string, password: string, userData: Partial<UserProfile>) => {
     try {
       setError(null);
       await registerUser(email, password, userData);
@@ -137,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: Partial<UserModel>) => {
+  const updateProfile = async (data: Partial<UserProfile>) => {
     if (!currentUser || !userData) {
       throw new Error("Usuário não autenticado");
     }
