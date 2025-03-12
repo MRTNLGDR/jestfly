@@ -29,9 +29,9 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
   );
   
   return (
-    <nav className="hidden lg:flex items-center overflow-x-auto scrollbar-thin">
+    <nav className="hidden lg:flex items-center flex-wrap">
       {/* Seção Principal */}
-      <div className="flex items-center space-x-1 xl:space-x-3 whitespace-nowrap">
+      <div className="flex items-center flex-wrap space-x-1 xl:space-x-2">
         {mainMenuItems.map((item) => (
           <Link 
             key={item.href} 
@@ -48,7 +48,7 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
       <div className="h-6 mx-2 xl:mx-3 border-l border-white/20"></div>
       
       {/* Seção de Recursos */}
-      <div className="flex items-center space-x-1 xl:space-x-3 whitespace-nowrap">
+      <div className="flex items-center flex-wrap space-x-1 xl:space-x-2">
         {resourceMenuItems.map((item) => (
           <Link 
             key={item.href} 
@@ -65,7 +65,7 @@ const DesktopNav: React.FC<DesktopNavProps> = ({ menuItems }) => {
       <div className="h-6 mx-2 xl:mx-3 border-l border-white/20"></div>
       
       {/* Seção do Usuário */}
-      <div className="flex items-center space-x-1 xl:space-x-3 whitespace-nowrap">
+      <div className="flex items-center flex-wrap space-x-1 xl:space-x-2">
         {userMenuItems.map((item) => (
           <Link 
             key={item.href} 

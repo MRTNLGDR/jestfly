@@ -49,69 +49,75 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
         {/* Principal */}
         <div className="mb-3">
           <h3 className="text-xs font-semibold text-zinc-500 uppercase mb-2 tracking-wider">Principal</h3>
-          {mainMenuItems.map((item) => (
-            <Link 
-              key={item.href} 
-              to={item.href}
-              className={`block text-white py-2 hover:text-purple-400 transition-colors ${
-                activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
-              }`}
-              onClick={onItemClick}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <div className="space-y-1">
+            {mainMenuItems.map((item) => (
+              <Link 
+                key={item.href} 
+                to={item.href}
+                className={`block text-white py-2 hover:text-purple-400 transition-colors ${
+                  activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+                }`}
+                onClick={onItemClick}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
         
         {/* Recursos */}
         <div className="mb-3 pt-2 border-t border-zinc-800">
           <h3 className="text-xs font-semibold text-zinc-500 uppercase mb-2 tracking-wider">Recursos</h3>
-          {resourceMenuItems.map((item) => (
-            <Link 
-              key={item.href} 
-              to={item.href}
-              className={`block text-white py-2 hover:text-purple-400 transition-colors ${
-                activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
-              }`}
-              onClick={onItemClick}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <div className="space-y-1">
+            {resourceMenuItems.map((item) => (
+              <Link 
+                key={item.href} 
+                to={item.href}
+                className={`block text-white py-2 hover:text-purple-400 transition-colors ${
+                  activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+                }`}
+                onClick={onItemClick}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
         
         {/* Usuário */}
         <div className="mb-3 pt-2 border-t border-zinc-800">
           <h3 className="text-xs font-semibold text-zinc-500 uppercase mb-2 tracking-wider">Conta</h3>
-          {userMenuItems.map((item) => (
+          <div className="space-y-1">
+            {userMenuItems.map((item) => (
+              <Link 
+                key={item.href} 
+                to={item.href}
+                className={`block text-white py-2 hover:text-purple-400 transition-colors ${
+                  activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+                }`}
+                onClick={onItemClick}
+              >
+                {item.label}
+              </Link>
+            ))}
+            
             <Link 
-              key={item.href} 
-              to={item.href}
-              className={`block text-white py-2 hover:text-purple-400 transition-colors ${
-                activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
-              }`}
+              to="/login" 
+              className="block text-white py-2 hover:text-purple-400 transition-colors"
               onClick={onItemClick}
             >
-              {item.label}
+              Login
             </Link>
-          ))}
-          
-          <Link 
-            to="/login" 
-            className="block text-white py-2 hover:text-purple-400 transition-colors"
-            onClick={onItemClick}
-          >
-            Login
-          </Link>
-          
-          <Link 
-            to="/admin" 
-            className="flex items-center text-white py-2 hover:text-purple-400 transition-colors"
-            onClick={onItemClick}
-          >
-            <Settings className="h-4 w-4 mr-2" />
-            Admin
-          </Link>
+            
+            <Link 
+              to="/admin" 
+              className="flex items-center text-white py-2 hover:text-purple-400 transition-colors"
+              onClick={onItemClick}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Admin
+            </Link>
+          </div>
         </div>
         
         {/* JestCoin ticker for mobile */}
