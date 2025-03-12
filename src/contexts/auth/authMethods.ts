@@ -146,6 +146,7 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
         followers_count: followersCount || 0,
         following_count: followingCount || 0,
         is_verified: data.is_verified || false,
+        avatar_url: data.avatar || '',
         // Garantir que social_links seja do tipo correto
         social_links: data.social_links as UserProfile['social_links'] || {},
         // Convertendo o tipo preferences para o formato esperado

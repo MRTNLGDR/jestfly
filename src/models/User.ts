@@ -5,7 +5,7 @@ export interface UserProfile {
   username: string;
   display_name: string;
   bio?: string;
-  avatar?: string;
+  avatar_url: string;
   cover_image?: string;
   website?: string;
   social_links?: {
