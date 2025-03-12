@@ -125,12 +125,23 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
     if (error) throw error;
     
     if (data) {
-      // Aplicar tipagem segura adicionando as propriedades que podem estar faltando
-      return {
+      // Fazendo cast seguro para UserProfile com valores padrão para os campos necessários
+      const userProfile: UserProfile = {
         ...data,
-        followers_count: 0, // Valor temporário até implementarmos a contagem real
-        following_count: 0  // Valor temporário até implementarmos a contagem real
-      } as UserProfile;
+        // Adicionando campos obrigatórios que podem não estar no banco de dados
+        followers_count: 0, // Valor temporário para contagem
+        following_count: 0, // Valor temporário para contagem
+        is_verified: data.is_verified || false,
+        // Convertendo o tipo preferences para o formato esperado
+        preferences: data.preferences as any || {
+          email_notifications: true,
+          push_notifications: true,
+          theme: 'dark',
+          language: 'pt'
+        }
+      };
+      
+      return userProfile;
     }
     
     return null;
