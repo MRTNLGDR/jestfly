@@ -63,7 +63,7 @@ const ProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black to-purple-950 pt-20 flex items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"></div>
+        <p className="text-white">Carregando...</p>
       </div>
     );
   }

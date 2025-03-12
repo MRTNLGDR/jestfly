@@ -1,14 +1,12 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/auth';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../ui/card";
-import { Loader2, ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { LoadingSpinner } from '../ui/loading-spinner';
 
 // Schema de validação para o formulário
 const loginSchema = z.object({
@@ -158,7 +156,6 @@ const LoginForm: React.FC = () => {
           >
             {isSubmitting ? (
               <span className="flex items-center justify-center">
-                <LoadingSpinner size="sm" className="mr-2" />
                 Autenticando...
               </span>
             ) : (

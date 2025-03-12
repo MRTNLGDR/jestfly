@@ -37,7 +37,7 @@ const ProfilePosts: React.FC<ProfilePostsProps> = ({ userId }) => {
   if (isLoading) {
     return (
       <div className="flex justify-center py-10">
-        <div className="animate-spin h-12 w-12 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"></div>
+        <p className="text-white">Carregando...</p>
       </div>
     );
   }

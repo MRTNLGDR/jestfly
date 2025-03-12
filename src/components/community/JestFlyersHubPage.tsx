@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
@@ -96,7 +97,7 @@ const JestFlyersHubPage: React.FC = () => {
         
         {isLoading ? (
           <div className="flex justify-center py-20">
-            <div className="animate-spin h-12 w-12 border-4 border-t-purple-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"></div>
+            <p className="text-white">Carregando...</p>
           </div>
         ) : posts.length === 0 ? (
           <div className="neo-blur rounded-xl p-8 text-center border border-white/10">
