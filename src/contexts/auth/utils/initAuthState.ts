@@ -25,6 +25,55 @@ export const initializeAuthState = async () => {
     if (user) {
       console.log("Fetching initial user profile for:", user.id);
       try {
+        // Verifique se o perfil existe
+        const { data: profileExists, error: checkError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (checkError) {
+          console.error("Error checking if profile exists:", checkError);
+        }
+        
+        // Se o perfil não existir, crie-o com dados básicos
+        if (!profileExists) {
+          console.log("Profile does not exist, creating one for user:", user.id);
+          try {
+            const userMetadata = user.user_metadata || {};
+            
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert({
+                id: user.id,
+                email: user.email,
+                display_name: userMetadata.display_name || userMetadata.name || user.email?.split('@')[0] || 'User',
+                username: userMetadata.username || user.email?.split('@')[0] || `user_${Date.now()}`,
+                profile_type: userMetadata.profile_type || 'fan',
+                avatar: userMetadata.avatar_url || null,
+                is_verified: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                last_login: new Date().toISOString()
+              });
+            
+            if (insertError) {
+              console.error("Error creating profile:", insertError);
+              // Log diagnostic information
+              await logAuthDiagnostic('Error creating profile during init', {
+                user_id: user.id,
+                error: String(insertError),
+                timestamp: new Date().toISOString()
+              });
+            } else {
+              console.log("Successfully created profile for:", user.id);
+            }
+          } catch (createErr) {
+            console.error("Exception when creating profile:", createErr);
+          }
+        }
+        
+        // Agora busque o perfil completo
         const userProfile = await fetchUserData(user.id);
         
         if (userProfile) {

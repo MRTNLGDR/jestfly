@@ -20,8 +20,47 @@ export const loginUser = async (email: string, password: string) => {
     
     console.log("Login successful for:", email);
     
-    // Atualizar o timestamp de último login
+    // Verificar se o perfil existe
     if (data.user) {
+      const { data: profileExists, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', data.user.id)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error("Error checking if profile exists:", checkError);
+      }
+      
+      // Se o perfil não existir, crie-o
+      if (!profileExists) {
+        console.log("Profile does not exist after login, creating one");
+        try {
+          const { error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: data.user.email,
+              display_name: data.user.email?.split('@')[0] || 'User',
+              username: data.user.email?.split('@')[0] || `user_${Date.now()}`,
+              profile_type: data.user.email?.includes('admin') ? 'admin' : 'fan',
+              is_verified: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              last_login: new Date().toISOString()
+            });
+          
+          if (createError) {
+            console.error("Error creating missing profile after login:", createError);
+          } else {
+            console.log("Successfully created missing profile after login");
+          }
+        } catch (createErr) {
+          console.error("Exception creating missing profile after login:", createErr);
+        }
+      }
+      
+      // Atualizar o timestamp de último login
       console.log("Updating last login for user:", data.user.id);
       const { error: updateError } = await supabase
         .from('profiles')

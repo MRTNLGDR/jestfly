@@ -24,7 +24,7 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
-  const { login } = useAuth();
+  const { login, refreshUserData } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +48,10 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
     try {
       console.log('Attempting login with:', formData.email);
       await login(formData.email, formData.password);
+      
+      // Garantir que os dados do usuário sejam carregados
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await refreshUserData();
       
       // Fechar o toast de carregamento
       toast.dismiss(loadingToast);
