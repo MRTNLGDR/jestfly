@@ -1,7 +1,7 @@
-
 import { fetchBasicProfile, updateProfile, createProfileIfNotExists } from './core';
 import { followUser, unfollowUser, checkIfFollowing, fetchFollowers, fetchFollowing } from './social';
 import { supabase } from '../../integrations/supabase/client';
+export type { FollowResult } from './types';
 
 /**
  * Busca o perfil completo do usuário, incluindo contagens de seguidores

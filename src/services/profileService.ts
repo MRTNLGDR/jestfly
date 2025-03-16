@@ -10,3 +10,6 @@ export {
   checkIfFollowing,
   fetchUserPosts
 } from './profile';
+
+// Export types for better type checking across the application
+export type { FollowResult } from './profile/types';
