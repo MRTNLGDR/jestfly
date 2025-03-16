@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,18 +21,7 @@ import { ModelParameters } from "@/types/modelParameters";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
-
-interface SavedModel {
-  id: string;
-  name: string;
-  model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
-  url: string | null;
-  thumbnail_url: string | null;
-  is_active: boolean | null;
-  created_at: string;
-  updated_at?: string;
-  params?: Json | null;
-}
+import { ModelType, SavedModel } from "@/types/model";
 
 interface ModelTabProps {
   uploadedModels: Array<{ name: string; file: File; preview?: string }>;
@@ -76,7 +64,13 @@ const ModelTab = ({
         }
         
         console.log("Modelos carregados:", data);
-        setSavedModels(data || []);
+        // Add type casting to ensure model_type is the correct type
+        const typedData = data?.map(model => ({
+          ...model,
+          model_type: model.model_type as ModelType
+        })) || [];
+        
+        setSavedModels(typedData as SavedModel[]);
       } catch (error) {
         console.error("Erro ao carregar modelos:", error);
         toast({

@@ -11,6 +11,7 @@ import SearchForm from "@/components/admin/sketchfab/SearchForm";
 import SearchResults from "@/components/admin/sketchfab/SearchResults";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
+import { ModelType, SavedModel } from "@/types/model";
 
 interface SketchfabModel {
   uid: string;
@@ -24,18 +25,6 @@ interface SketchfabModel {
   };
   viewerUrl: string;
   embedUrl: string;
-}
-
-interface SavedModel {
-  id: string;
-  name: string;
-  model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
-  url: string | null;
-  thumbnail_url: string | null;
-  is_active: boolean | null;
-  created_at: string;
-  updated_at?: string;
-  params?: Json | null;
 }
 
 interface SketchfabTabProps {
@@ -67,7 +56,13 @@ const SketchfabTab = ({ changeActiveModel }: SketchfabTabProps) => {
           throw error;
         }
         
-        setSavedModels(data || []);
+        // Add type casting to ensure model_type is the correct type
+        const typedData = data?.map(model => ({
+          ...model,
+          model_type: model.model_type as ModelType
+        })) || [];
+        
+        setSavedModels(typedData as SavedModel[]);
       } catch (error) {
         console.error("Erro ao carregar modelos do Sketchfab:", error);
         toast({
@@ -134,7 +129,7 @@ const SketchfabTab = ({ changeActiveModel }: SketchfabTabProps) => {
         .insert([
           {
             name: model.name,
-            model_type: 'sketchfab',
+            model_type: 'sketchfab' as ModelType,
             url: model.viewerUrl,
             thumbnail_url: model.thumbnails?.images?.[0]?.url || null,
             is_active: false,
@@ -150,7 +145,13 @@ const SketchfabTab = ({ changeActiveModel }: SketchfabTabProps) => {
       
       // Adicionar o novo modelo à lista local
       if (data && data.length > 0) {
-        setSavedModels([...data, ...savedModels]);
+        // Ensure proper typing for the newly added models
+        const typedData = data.map(model => ({
+          ...model,
+          model_type: model.model_type as ModelType
+        }));
+        
+        setSavedModels([...typedData, ...savedModels] as SavedModel[]);
         
         toast({
           title: "Modelo salvo",
@@ -254,7 +255,13 @@ const SketchfabTab = ({ changeActiveModel }: SketchfabTabProps) => {
           throw error;
         }
         
-        setSavedModels(data || []);
+        // Add type casting to ensure model_type is the correct type
+        const typedData = data?.map(model => ({
+          ...model,
+          model_type: model.model_type as ModelType
+        })) || [];
+        
+        setSavedModels(typedData as SavedModel[]);
       } catch (error) {
         console.error("Erro ao recarregar modelos:", error);
       } finally {

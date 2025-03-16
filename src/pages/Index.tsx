@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -9,18 +8,7 @@ import { Settings, Loader2 } from "lucide-react";
 import { ModelParameters, defaultModelParams } from "@/types/modelParameters";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
-
-interface SavedModel {
-  id: string;
-  name: string;
-  model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
-  url: string | null;
-  thumbnail_url: string | null;
-  is_active: boolean | null;
-  created_at: string;
-  updated_at?: string;
-  params?: Json | null;
-}
+import { ModelType, SavedModel } from "@/types/model";
 
 const Index = () => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -89,13 +77,19 @@ const Index = () => {
         
         if (data) {
           console.log("Modelo ativo encontrado:", data);
-          localStorage.setItem("preferredModel", data.model_type);
-          setCurrentModel(data.model_type);
+          // Cast model_type to ensure type safety
+          const typedData = {
+            ...data,
+            model_type: data.model_type as ModelType
+          };
           
-          if (data.model_type === 'sketchfab' && data.url) {
-            setSketchfabUrl(data.url);
-            setSketchfabModelData(data);
-            localStorage.setItem("sketchfabUrl", data.url);
+          localStorage.setItem("preferredModel", typedData.model_type);
+          setCurrentModel(typedData.model_type);
+          
+          if (typedData.model_type === 'sketchfab' && typedData.url) {
+            setSketchfabUrl(typedData.url);
+            setSketchfabModelData(typedData as SavedModel);
+            localStorage.setItem("sketchfabUrl", typedData.url);
           }
         }
       } catch (error) {

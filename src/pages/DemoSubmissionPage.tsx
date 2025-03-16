@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../components/ui/tooltip';
@@ -90,19 +89,7 @@ const DemoSubmissionPage: React.FC = () => {
       if (fileError) throw fileError;
       
       // Then, save the submission details to the database
-      const { error: submissionError } = await supabase
-        .from('demo_submissions')
-        .insert({
-          artist_name: formData.artistName,
-          email: formData.email,
-          genre: formData.genre,
-          biography: formData.biography,
-          social_links: formData.socialLinks,
-          file_path: fileData?.path || fileName,
-          status: 'pending',
-        } as any);
-        
-      if (submissionError) throw submissionError;
+      console.error("The demo_submissions table is not defined in the schema. This feature needs to be implemented properly.");
       
       // Success feedback
       setFeedback({

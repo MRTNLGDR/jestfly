@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { FileAxis3d, Loader2, Plus } from "lucide-react";
 import SavedModelCard from "./SavedModelCard";
 import { Json } from "@/integrations/supabase/types";
+import { ModelType } from "@/types/model";
 
 interface SavedModel {
   id: string;
   name: string;
-  model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+  model_type: ModelType;
   url: string | null;
   thumbnail_url: string | null;
   is_active: boolean | null;
