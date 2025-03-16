@@ -83,6 +83,8 @@ export const updateProfile = async (
     if (error) throw error;
     
     if (updatedData) {
+      // Import the function dynamically to avoid circular dependency
+      const { fetchUserProfile } = await import('./index');
       return await fetchUserProfile(userId);
     }
     
@@ -172,6 +174,3 @@ export const createEmptyProfile = async (userId: string, user: any): Promise<boo
     return false;
   }
 };
-
-// Re-export da função principal para manter compatibilidade
-export { fetchUserProfile } from './index';
