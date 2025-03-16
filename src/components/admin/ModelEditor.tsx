@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Slider } from '../ui/slider';
@@ -9,9 +10,9 @@ import CrystalPreview from './CrystalPreview';
 import { ModelParameters, defaultModelParams } from '../../types/model';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Database } from '@/integrations/supabase/types';
+import { ModelType } from '@/types/model';
 
-type ModelType = Database['public']['Enums']['model_type'];
+type ModelType = 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
 
 const ModelEditor = () => {
   const [parameters, setParameters] = useState<ModelParameters>({...defaultModelParams});
@@ -97,7 +98,7 @@ const ModelEditor = () => {
       
       const modelData = {
         name: modelName,
-        params: parameters as unknown as Database['public']['Tables']['models']['Insert']['params'],
+        params: parameters,
         model_type: 'crystal' as ModelType,
         is_active: true
       };

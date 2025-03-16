@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Check, ExternalLink, FileAxis3d, Trash2 } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
-import { ModelType } from "@/integrations/supabase/schema";
+import { ModelType } from "@/types/model";
 
 interface SavedModel {
   id: string;

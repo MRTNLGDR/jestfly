@@ -1,4 +1,3 @@
-
 import { Json } from './types';
 
 /**
