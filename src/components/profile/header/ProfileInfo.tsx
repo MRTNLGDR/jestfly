@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserProfile } from '../../../models/Post';
+import { UserProfile } from '../../../models/User';
 import ProfileBadges from './ProfileBadges';
 import ProfileStats from './ProfileStats';
 import SocialLinks from './SocialLinks';

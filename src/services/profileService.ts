@@ -1,6 +1,6 @@
 
-// Este arquivo agora serve como um ponto de entrada para os serviços de perfil
-// reorganizados em módulos menores para maior manutenibilidade
+// This file now serves as a point of entry for the services of profile
+// reorganized in modules smaller for greater maintainability
 
 export {
   fetchUserProfile,

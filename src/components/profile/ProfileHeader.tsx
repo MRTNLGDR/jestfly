@@ -44,10 +44,13 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ profile, isCurrentUser })
     try {
       const result = await followUser(profile.id, currentUser.id);
       
+      // Fixing type checking issue - ensure we're comparing boolean values
+      const followSuccess = typeof result === 'object' ? result.alreadyFollowing : result;
+      
       // Se a resposta da API for diferente do que esperamos, revertemos
-      if (result !== !isFollowing) {
-        setIsFollowing(result);
-        setFollowersCount(prev => result ? prev + 1 : prev - 1);
+      if (followSuccess !== !isFollowing) {
+        setIsFollowing(followSuccess);
+        setFollowersCount(prev => followSuccess ? prev + 1 : prev - 1);
       }
     } catch (error) {
       // Em caso de erro, revertemos para o estado anterior
