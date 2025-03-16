@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "../../ui/button";
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { FormInputs } from './FormInputs';
 import { LoginFormData } from './types';
+import { LoadingSpinner } from '../../ui/loading-spinner';
 
 interface LoginFormProps {
   formData: LoginFormData;
@@ -27,7 +28,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         handleChange={handleChange} 
       />
       
-      <SubmitButton 
+      <LoginButton 
         isSubmitting={isSubmitting} 
         isAdminLogin={isAdminLogin} 
       />
@@ -35,13 +36,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   );
 };
 
-// Create a separate component for the submit button
-interface SubmitButtonProps {
+// Componente separado para o botão de login com estado de carregamento
+const LoginButton: React.FC<{
   isSubmitting: boolean;
   isAdminLogin: boolean;
-}
-
-const SubmitButton: React.FC<SubmitButtonProps> = ({ isSubmitting, isAdminLogin }) => {
+}> = ({ isSubmitting, isAdminLogin }) => {
   const buttonGradientClass = isAdminLogin 
     ? 'bg-gradient-to-r from-red-600/90 to-purple-600/90 hover:from-red-700 hover:to-purple-700' 
     : 'bg-gradient-to-r from-purple-600/90 to-blue-600/90 hover:from-purple-700 hover:to-blue-700';
@@ -50,14 +49,15 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({ isSubmitting, isAdminLogin 
     <Button 
       type="submit" 
       disabled={isSubmitting} 
-      className={`w-full group ${buttonGradientClass}`}
+      className={`w-full group ${buttonGradientClass} transition-all duration-300`}
     >
       {isSubmitting ? (
-        <span className="flex items-center">
-          Autenticando <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+        <span className="flex items-center justify-center">
+          <LoadingSpinner size="sm" className="mr-2" />
+          Entrando...
         </span>
       ) : (
-        <span className="flex items-center">
+        <span className="flex items-center justify-center">
           {isAdminLogin ? 'Admin Login' : 'Entrar'} 
           <ArrowRight className="ml-2 w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
         </span>

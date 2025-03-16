@@ -1,33 +1,42 @@
 
 import React from 'react';
-import { Button } from "../../ui/button";
 import { CardHeader, CardTitle, CardDescription } from "../../ui/card";
-import { ShieldAlert } from 'lucide-react';
+import { Switch } from "../../ui/switch";
+import { Shield } from 'lucide-react';
 
 interface LoginHeaderProps {
   isAdminLogin: boolean;
   toggleAdminLogin: () => void;
 }
 
-export const LoginHeader: React.FC<LoginHeaderProps> = ({ isAdminLogin, toggleAdminLogin }) => {
+export const LoginHeader: React.FC<LoginHeaderProps> = ({
+  isAdminLogin,
+  toggleAdminLogin
+}) => {
   return (
-    <CardHeader className="space-y-1">
-      <div className="flex items-center justify-between">
-        <CardTitle className="text-2xl font-bold text-white">
-          {isAdminLogin ? 'Admin Login' : 'Login'}
+    <CardHeader>
+      <div className="flex items-center justify-between mb-2">
+        <CardTitle className={`text-2xl font-bold ${isAdminLogin ? 'text-red-400' : 'text-white'}`}>
+          {isAdminLogin ? 'Admin Login' : 'Bem-vindo de volta'}
         </CardTitle>
         
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={toggleAdminLogin}
-          className={`rounded-full p-2 ${isAdminLogin ? 'text-red-400 hover:text-red-300' : 'text-zinc-400 hover:text-zinc-300'}`}
-        >
-          <ShieldAlert className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Switch 
+            checked={isAdminLogin}
+            onCheckedChange={toggleAdminLogin}
+            className={isAdminLogin ? "data-[state=checked]:bg-red-500" : ""}
+          />
+          <Shield 
+            size={16} 
+            className={isAdminLogin ? "text-red-400" : "text-zinc-500"} 
+          />
+        </div>
       </div>
+      
       <CardDescription className="text-zinc-400">
-        {isAdminLogin ? 'Acesso administrativo restrito' : 'Entre com suas credenciais para acessar'}
+        {isAdminLogin 
+          ? 'Acesso restrito para administradores' 
+          : 'Faça login para acessar sua conta JESTFLY'}
       </CardDescription>
     </CardHeader>
   );

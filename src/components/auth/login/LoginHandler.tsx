@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { LoginFormData } from './types';
-import { forceCreateProfile } from '../../../services/diagnosticService';
 
 interface LoginHandlerProps {
   children: (props: {
@@ -39,70 +37,59 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.email || !formData.password) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Mostrar feedback visual de carregamento
-    const loadingToast = toast.loading('Autenticando...', {
-      icon: <Loader2 className="h-5 w-5 animate-spin" />
-    });
+    // Mostrar toast de carregamento
+    const loadingToastId = toast.loading('Entrando...');
     
     try {
-      console.log('Attempting login with:', formData.email);
+      console.log('Tentando login com:', formData.email);
       await login(formData.email, formData.password);
       
-      // Garantir que os dados do usuário sejam carregados
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Esperar um momento para garantir que a sessão foi estabelecida
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Tente garantir que o perfil exista
-      if (currentUser) {
-        await forceCreateProfile(currentUser);
-      }
-      
-      // Tente atualizar os dados do usuário
+      // Atualizar dados do usuário
       await refreshUserData();
       
-      // Fechar o toast de carregamento
-      toast.dismiss(loadingToast);
+      // Fechar o toast de carregamento e mostrar sucesso
+      toast.dismiss(loadingToastId);
+      toast.success('Login realizado com sucesso!');
       
-      // Mostrar feedback visual de sucesso
-      toast.success('Login bem-sucedido!', {
-        duration: 5000,
-        icon: <CheckCircle className="h-5 w-5 text-green-500" />
-      });
-      
-      // Verificar se é um e-mail de admin para redirecionar ao painel de admin
-      if (isAdminLogin || formData.email.includes('admin') || formData.email === 'lucas@martynlegrand.com') {
+      // Redirecionar com base no tipo de usuário
+      if (isAdminLogin || formData.email.includes('admin')) {
         navigate('/admin');
       } else {
         navigate('/profile');
       }
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Erro de login:', error);
       
       // Fechar o toast de carregamento
-      toast.dismiss(loadingToast);
+      toast.dismiss(loadingToastId);
       
+      // Mensagens de erro mais amigáveis
       let errorMessage = 'Falha ao fazer login';
       
       if (error.message?.includes('user-not-found') || error.message?.includes('Invalid login credentials')) {
-        errorMessage = 'Usuário não encontrado ou senha incorreta';
-      } else if (error.message?.includes('wrong-password') || error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Email ou senha incorretos';
+      } else if (error.message?.includes('wrong-password')) {
         errorMessage = 'Senha incorreta';
       } else if (error.message?.includes('invalid-email')) {
         errorMessage = 'Email inválido';
       } else if (error.message?.includes('too-many-requests')) {
-        errorMessage = 'Muitas tentativas de login. Tente novamente mais tarde';
-      } else if (error.message?.includes('api-key-not-valid')) {
-        errorMessage = 'Erro de configuração do sistema. Entre em contato com o suporte.';
-      } else if (error.message?.includes('timeout') || error.message?.includes('network')) {
-        errorMessage = 'Tempo limite excedido. Verifique sua conexão e tente novamente.';
+        errorMessage = 'Tente novamente mais tarde';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Problema de conexão. Verifique sua internet.';
       }
       
-      // Mostrar feedback visual de erro
-      toast.error(errorMessage, {
-        duration: 5000,
-        icon: <XCircle className="h-5 w-5 text-red-500" />
-      });
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import LanguageSwitcher from './LanguageSwitcher';
 import CurrencySwitcher from './CurrencySwitcher';
@@ -8,23 +8,30 @@ import PreOrderButton from './PreOrderButton';
 import { useIsMobile } from '../../hooks/use-mobile';
 import { useAuth } from '../../contexts/auth';
 import { Button } from '../ui/button';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const HeaderControls: React.FC = () => {
   const isMobile = useIsMobile();
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const handleLogout = async () => {
     try {
-      toast.loading('Saindo...');
+      setIsLoggingOut(true);
+      const loadingToastId = toast.loading('Saindo...');
+      
       await logout();
+      
+      toast.dismiss(loadingToastId);
       toast.success('Logout realizado com sucesso!');
       navigate('/');
     } catch (error) {
       console.error("Logout failed:", error);
       toast.error('Falha ao fazer logout. Tente novamente.');
+    } finally {
+      setIsLoggingOut(false);
     }
   };
   
@@ -51,9 +58,14 @@ const HeaderControls: React.FC = () => {
             variant="outline" 
             size="sm" 
             onClick={handleLogout}
+            disabled={isLoggingOut}
             className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
           >
-            <LogOut className="h-4 w-4" />
+            {isLoggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
           </Button>
         </div>
       ) : (

@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { FormField } from './FormField';
-import { Mail, LockKeyhole } from 'lucide-react';
+import { Mail, LockKeyhole, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoginFormData } from './types';
 
@@ -14,6 +14,12 @@ export const FormInputs: React.FC<FormInputsProps> = ({
   formData,
   handleChange
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <>
       <FormField
@@ -28,16 +34,25 @@ export const FormInputs: React.FC<FormInputsProps> = ({
       
       <FormField
         name="password"
-        type="password"
+        type={showPassword ? "text" : "password"}
         placeholder="••••••••"
         value={formData.password}
         onChange={handleChange}
         label="Senha"
         icon={LockKeyhole}
         rightElement={
-          <Link to="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300 hover:underline">
-            Esqueceu a senha?
-          </Link>
+          <div className="flex space-x-3 items-center">
+            <button 
+              type="button" 
+              onClick={togglePasswordVisibility}
+              className="text-zinc-400 hover:text-zinc-200 transition-colors"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+            <Link to="/forgot-password" className="text-xs text-purple-400 hover:text-purple-300 hover:underline transition-colors">
+              Esqueceu?
+            </Link>
+          </div>
         }
       />
     </>
