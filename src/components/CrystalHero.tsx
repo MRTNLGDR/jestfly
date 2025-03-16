@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import CrystalComponent from '../CrystalComponent';
 import { ModelParameters, defaultModelParams } from '../types/model';
@@ -6,42 +5,39 @@ import { Calendar } from 'lucide-react';
 import { useIsMobile } from '../hooks/use-mobile';
 import GlassAudioPlayer from './GlassAudioPlayer';
 import JestCoinTicker from './JestCoinTicker';
-
 interface CrystalHeroProps {
   title?: string;
   subtitle?: string;
   crystalParams?: Partial<ModelParameters>;
   className?: string;
 }
-
 const CrystalHero: React.FC<CrystalHeroProps> = ({
   title = "JESTFLY",
   subtitle = "Descubra efeitos de vidro hiper-realista",
   crystalParams = defaultModelParams,
-  className = "",
+  className = ""
 }) => {
   const isMobile = useIsMobile();
   const [isPlayerMinimized, setIsPlayerMinimized] = useState(true);
   const [scrollPosition, setScrollPosition] = useState(0);
-  
+
   // Listen to scroll events
   useEffect(() => {
     const handleScroll = () => {
       setScrollPosition(window.scrollY);
     };
-    
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
-  return (
-    <section className={`hero relative h-screen flex flex-col pt-20 overflow-hidden ${className}`}>
+  return <section className={`hero relative h-screen flex flex-col pt-20 overflow-hidden ${className}`}>
       {/* Dark gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-[#0d0d15] to-[#1A1F2C] z-0"></div>
       
       {/* Dynamic light effects */}
       <div className="absolute top-0 right-0 w-[50vw] h-[50vw] rounded-full bg-[#8B5CF6]/10 blur-[100px] animate-float z-10"></div>
-      <div className="absolute bottom-[5%] left-[10%] w-[40vw] h-[40vw] rounded-full bg-[#4ade80]/10 blur-[100px] animate-float z-10" style={{ animationDelay: '-5s' }}></div>
+      <div className="absolute bottom-[5%] left-[10%] w-[40vw] h-[40vw] rounded-full bg-[#4ade80]/10 blur-[100px] animate-float z-10" style={{
+      animationDelay: '-5s'
+    }}></div>
       
       {/* Side captions - hidden on mobile */}
       <div className="absolute top-1/3 left-4 sm:left-8 z-30 hidden md:block">
@@ -62,9 +58,7 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         </div>
         
         {/* JestCoin ticker positioned near "inspired" */}
-        <div className="mt-6">
-          <JestCoinTicker compact={true} />
-        </div>
+        
       </div>
       
       {/* Crystal with z-index to appear in front of the title */}
@@ -75,10 +69,7 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
       </div>
       
       {/* Glassmorphism audio player - fixed in the corner */}
-      <GlassAudioPlayer 
-        isMinimized={isPlayerMinimized}
-        setIsMinimized={setIsPlayerMinimized}
-      />
+      <GlassAudioPlayer isMinimized={isPlayerMinimized} setIsMinimized={setIsPlayerMinimized} />
       
       {/* JestCoin ticker in a more prominent position for mobile */}
       <div className="absolute top-24 right-4 z-30 md:hidden">
@@ -101,8 +92,6 @@ const CrystalHero: React.FC<CrystalHeroProps> = ({
         
         <div className="hidden md:block">50°05'36.2"N 14°26'51.3"E</div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default CrystalHero;
