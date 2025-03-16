@@ -15,7 +15,7 @@ export const initializeAuthState = async () => {
     // Use a timeout promise para evitar que a operação fique presa
     const sessionPromise = supabase.auth.getSession();
     const timeoutPromise = new Promise<{data: {session: null}, error: Error}>((_, reject) => {
-      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar sessão")), 8000);
+      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar sessão")), 15000);
     });
     
     // Race entre a operação normal e o timeout
@@ -45,7 +45,7 @@ export const initializeAuthState = async () => {
           .maybeSingle();
           
         const checkTimeoutPromise = new Promise<{data: null, error: Error}>((_, reject) => {
-          setTimeout(() => reject(new Error("Tempo limite excedido ao verificar perfil")), 8000);
+          setTimeout(() => reject(new Error("Tempo limite excedido ao verificar perfil")), 15000);
         });
         
         const { data: profileExists, error: checkError } = await Promise.race([
@@ -102,7 +102,7 @@ export const initializeAuthState = async () => {
         // Agora busque o perfil completo com timeout
         const fetchProfilePromise = fetchUserData(user.id);
         const fetchTimeoutPromise = new Promise<null>((_, reject) => {
-          setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados de perfil")), 10000);
+          setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados de perfil")), 15000);
         });
         
         const userProfile = await Promise.race([fetchProfilePromise, fetchTimeoutPromise])

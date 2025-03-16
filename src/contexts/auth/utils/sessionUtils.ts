@@ -50,7 +50,7 @@ export const refreshUserSession = async (
     // Now get the latest user profile data with a longer timeout
     const fetchPromise = fetchUserData(refreshedUser.id);
     const timeoutPromise = new Promise<null>((_, reject) => {
-      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados do perfil")), 10000);
+      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados do perfil")), 15000);
     });
     
     // Race between fetch and timeout
@@ -66,7 +66,7 @@ export const refreshUserSession = async (
     
     if (refreshedData) {
       console.log("User data refreshed successfully:", refreshedData.display_name);
-      return { user: refreshedUser, profile: refreshedData, error: null };
+      return { user: refreshedUser, profile: refreshedData as UserProfile, error: null };
     } else {
       console.warn("Failed to refresh user data - no data returned from fetchUserData");
       toast.error("Dados do usuário não encontrados. Entre em contato com o suporte.");

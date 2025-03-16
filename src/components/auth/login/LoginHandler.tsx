@@ -50,7 +50,7 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
       await login(formData.email, formData.password);
       
       // Garantir que os dados do usuário sejam carregados
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       await refreshUserData();
       
       // Fechar o toast de carregamento
@@ -85,7 +85,9 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
       } else if (error.message?.includes('too-many-requests')) {
         errorMessage = 'Muitas tentativas de login. Tente novamente mais tarde';
       } else if (error.message?.includes('api-key-not-valid')) {
-        errorMessage = 'Erro de configuração do Firebase. Entre em contato com o suporte.';
+        errorMessage = 'Erro de configuração do sistema. Entre em contato com o suporte.';
+      } else if (error.message?.includes('timeout') || error.message?.includes('network')) {
+        errorMessage = 'Tempo limite excedido. Verifique sua conexão e tente novamente.';
       }
       
       // Mostrar feedback visual de erro

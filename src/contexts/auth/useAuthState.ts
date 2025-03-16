@@ -17,6 +17,7 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshAttempt, setLastRefreshAttempt] = useState<Date | null>(null);
+  const [authInitialized, setAuthInitialized] = useState<boolean>(false);
 
   const isAdmin = useMemo(() => isUserAdmin(userData), [userData]);
   const isArtist = useMemo(() => isUserArtist(userData), [userData]);
@@ -38,6 +39,7 @@ export const useAuthState = () => {
     }
     
     setLastRefreshAttempt(new Date());
+    setLoading(true);
     
     try {
       const { user, profile, error: refreshError } = await refreshUserSession(currentUser);
@@ -55,22 +57,24 @@ export const useAuthState = () => {
     } catch (err: any) {
       console.error("Error in refreshUserData:", err.message);
       toast.error("Erro ao atualizar dados do usuário: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   // Prevent infinite loading state with a longer timeout
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (loading) {
+      if (loading && authInitialized) {
         console.log("Auth provider forced to stop loading after timeout");
         setLoading(false);
         setError("Tempo limite excedido ao carregar dados de autenticação");
         toast.error("Tempo limite excedido ao carregar dados de autenticação. Tente novamente mais tarde.");
       }
-    }, 15000); // Aumentado para 15 segundos
+    }, 20000); // Aumentado para 20 segundos
     
     return () => clearTimeout(timeout);
-  }, [loading]);
+  }, [loading, authInitialized]);
 
   useEffect(() => {
     console.log("Setting up auth state listener");
@@ -153,6 +157,7 @@ export const useAuthState = () => {
         }
         
         console.log("Auth initialization complete");
+        setAuthInitialized(true);
       } catch (err: any) {
         console.error("Error during auth initialization:", err.message);
         setError("Erro durante inicialização da autenticação: " + err.message);

@@ -38,19 +38,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return;
     }
     
-    // Set a timeout to stop loading after 8 seconds (increased from 3)
+    // Set a timeout to stop loading after 10 seconds
     const timeout = setTimeout(() => {
       console.log("Protected route loading timeout reached");
       setLocalLoading(false);
       toast.error("Tempo limite excedido ao verificar autenticação");
-    }, 8000);
+    }, 10000);
     
     return () => clearTimeout(timeout);
   }, [loading]);
   
   // Auto retry logic
   useEffect(() => {
-    if (!loading && error && loadAttempts < 2) {
+    if (!loading && error && loadAttempts < 3) {
       const retryTimeout = setTimeout(() => {
         console.log(`Auto retry attempt ${loadAttempts + 1}`);
         setLoadAttempts(prev => prev + 1);
@@ -81,7 +81,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Se temos erro após tentativas de carregamento, mostrar opção de retry manual
-  if (error && loadAttempts >= 2) {
+  if (error && loadAttempts >= 3) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-black to-purple-950">
         <div className="neo-blur rounded-xl border border-white/10 p-8 text-center max-w-md w-full">
