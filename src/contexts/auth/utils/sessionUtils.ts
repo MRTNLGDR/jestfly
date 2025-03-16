@@ -50,7 +50,7 @@ export const refreshUserSession = async (
     // Now get the latest user profile data with a longer timeout
     const fetchPromise = fetchUserData(refreshedUser.id);
     const timeoutPromise = new Promise<null>((_, reject) => {
-      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados do perfil")), 15000);
+      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados do perfil")), 30000); // Aumentado para 30 segundos
     });
     
     // Race between fetch and timeout
@@ -69,7 +69,41 @@ export const refreshUserSession = async (
       return { user: refreshedUser, profile: refreshedData as UserProfile, error: null };
     } else {
       console.warn("Failed to refresh user data - no data returned from fetchUserData");
-      toast.error("Dados do usuário não encontrados. Entre em contato com o suporte.");
+      
+      // Attempt profile creation/fix automatically
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: refreshedUser.id,
+          email: refreshedUser.email,
+          display_name: refreshedUser.user_metadata?.display_name || refreshedUser.email?.split('@')[0] || 'User',
+          username: refreshedUser.user_metadata?.username || refreshedUser.email?.split('@')[0] || `user_${Date.now()}`,
+          profile_type: refreshedUser.user_metadata?.profile_type || 'fan',
+          avatar: refreshedUser.user_metadata?.avatar_url || null,
+          is_verified: false,
+          updated_at: new Date().toISOString(),
+          last_login: new Date().toISOString()
+        }, { onConflict: 'id' });
+      
+      if (insertError) {
+        console.error("Error auto-creating profile during refresh:", insertError);
+        toast.error("Não foi possível recuperar seu perfil. Tente novamente ou entre em contato com o suporte.");
+        return { user: refreshedUser, profile: null, error: "Perfil de usuário não encontrado" };
+      }
+      
+      // Try fetching again after auto-creation
+      try {
+        const newData = await fetchUserData(refreshedUser.id);
+        if (newData) {
+          toast.success("Perfil recuperado com sucesso!");
+          return { user: refreshedUser, profile: newData as UserProfile, error: null };
+        }
+      } catch (err) {
+        console.error("Error fetching profile after auto-creation:", err);
+      }
+      
+      // If we still couldn't load, show error
+      toast.error("Dados do usuário não encontrados. Tente novamente ou entre em contato com o suporte.");
       
       // Log diagnostic information
       await logAuthDiagnostic('No user profile found during refresh', {

@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { LoginFormData } from './types';
+import { forceCreateProfile } from '../../../services/diagnosticService';
 
 interface LoginHandlerProps {
   children: (props: {
@@ -24,7 +25,7 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
-  const { login, refreshUserData } = useAuth();
+  const { login, refreshUserData, currentUser } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +52,13 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
       
       // Garantir que os dados do usuário sejam carregados
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Tente garantir que o perfil exista
+      if (currentUser) {
+        await forceCreateProfile(currentUser);
+      }
+      
+      // Tente atualizar os dados do usuário
       await refreshUserData();
       
       // Fechar o toast de carregamento

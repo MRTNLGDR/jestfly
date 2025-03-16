@@ -3,6 +3,7 @@ import { supabase } from '../integrations/supabase/client';
 import { UserProfile } from '../models/User';
 import { Post } from '../models/Post';
 import { ProfileType } from '../integrations/supabase/schema';
+import { toast } from 'sonner';
 
 export const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
@@ -19,12 +20,69 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
     
     if (error) {
       console.error(`Erro ao buscar perfil: ${error.message}`, error);
+      
+      // Se for um erro de RLS, mostre uma mensagem mais amigável
+      if (error.message.includes('policy') || error.message.includes('permission')) {
+        toast.error("Erro de permissão ao buscar perfil. Tente fazer login novamente.");
+      }
+      
       throw error;
     }
     
     if (!data) {
       console.warn(`Nenhum perfil encontrado para o usuário: ${userId}`);
-      return null;
+      
+      // Tente criar um perfil vazio para correção automática
+      const { error: sessionError, data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionError && sessionData.session?.user) {
+        const user = sessionData.session.user;
+        const userMetadata = user.user_metadata || {};
+        
+        try {
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: user.email,
+              display_name: userMetadata.display_name || userMetadata.name || user.email?.split('@')[0] || 'User',
+              username: userMetadata.username || user.email?.split('@')[0] || `user_${Date.now()}`,
+              profile_type: userMetadata.profile_type || 'fan',
+              avatar: userMetadata.avatar_url || null,
+              is_verified: false,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              last_login: new Date().toISOString()
+            });
+            
+          if (!insertError) {
+            console.log("Perfil criado automaticamente. Tentando buscar novamente.");
+            const { data: newData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', userId)
+              .maybeSingle();
+              
+            if (newData) {
+              toast.success("Perfil recuperado com sucesso!");
+              console.log("Perfil recuperado após criar automaticamente");
+              
+              // Continue com o processamento normal usando o novo perfil
+              data = newData;
+            } else {
+              return null; // Ainda não conseguimos encontrar mesmo após criar
+            }
+          } else {
+            console.error("Erro ao criar perfil automaticamente:", insertError);
+            return null;
+          }
+        } catch (e) {
+          console.error("Erro ao tentar criar perfil automaticamente:", e);
+          return null;
+        }
+      } else {
+        return null;
+      }
     }
     
     // Buscar contagens de seguidores e seguindo

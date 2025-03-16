@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
 import { Button } from "../ui/button";
-import { runAuthDiagnostics, attemptProfileFix } from '../../services/diagnosticService';
+import { runAuthDiagnostics, attemptProfileFix, forceCreateProfile } from '../../services/diagnosticService';
 import { useAuth } from '../../contexts/auth';
 import { toast } from 'sonner';
-import { AlertTriangle, RefreshCw, Bug, Activity, Database } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Bug, Activity, Database, ArrowClockwise, Tool } from 'lucide-react';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
 interface ProfileDiagnosticProps {
@@ -16,6 +16,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
   const { currentUser, refreshUserData } = useAuth();
   const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false);
   const [isFixing, setIsFixing] = useState(false);
+  const [isForceCreating, setIsForceCreating] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<Record<string, any> | null>(null);
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
@@ -57,12 +58,42 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
         
         toast.success("Correção aplicada com sucesso! Recarregando dados do perfil...");
       } else {
-        toast.error("A correção automática não foi bem-sucedida. Entre em contato com o suporte.");
+        toast.error("A correção automática não foi bem-sucedida. Tente a criação forçada de perfil.");
       }
     } catch (error: any) {
       toast.error("Erro ao tentar correção: " + error.message);
     } finally {
       setIsFixing(false);
+    }
+  };
+
+  const handleForceCreateProfile = async () => {
+    if (!currentUser) {
+      toast.error("Você precisa estar logado para usar esta função");
+      return;
+    }
+    
+    setIsForceCreating(true);
+    try {
+      const success = await forceCreateProfile(currentUser);
+      
+      if (success) {
+        if (refreshUserData) {
+          await refreshUserData();
+        }
+        
+        if (onRefresh) {
+          onRefresh();
+        }
+        
+        toast.success("Perfil criado com sucesso! Recarregando dados...");
+      } else {
+        toast.error("Falha ao criar perfil. Por favor, entre em contato com o suporte.");
+      }
+    } catch (error: any) {
+      toast.error("Erro ao criar perfil: " + error.message);
+    } finally {
+      setIsForceCreating(false);
     }
   };
 
@@ -118,6 +149,17 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
           <Button 
             variant="outline" 
             size="sm"
+            onClick={handleForceCreateProfile}
+            disabled={isForceCreating}
+            className="flex items-center gap-2 bg-red-900/20 border-red-700/50 hover:bg-red-900/40"
+          >
+            {isForceCreating ? <LoadingSpinner size="sm" /> : <Tool className="h-4 w-4" />}
+            Forçar Criação de Perfil
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
             onClick={refreshProfile}
             className="flex items-center gap-2 bg-blue-900/20 border-blue-700/50 hover:bg-blue-900/40"
           >
@@ -131,7 +173,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
             onClick={() => window.location.reload()}
             className="flex items-center gap-2 bg-green-900/20 border-green-700/50 hover:bg-green-900/40"
           >
-            <Database className="h-4 w-4" />
+            <ArrowClockwise className="h-4 w-4" />
             Recarregar Página
           </Button>
         </div>
