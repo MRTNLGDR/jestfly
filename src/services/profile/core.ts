@@ -26,13 +26,12 @@ export const fetchBasicProfile = async (userId: string) => {
       if (error.message.includes('permission') || error.message.includes('policy')) {
         try {
           // Verificar se existe algum perfil com este ID diretamente
-          const { data: checkData, error: checkError } = await supabase
+          const { count, error: checkError } = await supabase
             .from('profiles')
-            .select('count(*)')
-            .eq('id', userId)
-            .single();
+            .select('*', { count: 'exact', head: true })
+            .eq('id', userId);
             
-          if (checkError || !checkData || checkData.count === 0) {
+          if (checkError || !count || count === 0) {
             console.error("Perfil não encontrado via verificação direta:", checkError || "Count 0");
             return null;
           }

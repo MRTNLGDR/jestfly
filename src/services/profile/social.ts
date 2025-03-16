@@ -20,11 +20,13 @@ export const followUser = async (userId: string, targetUserId: string) => {
       return { success: true, alreadyFollowing: true };
     }
     
-    // Seguir usuário via RPC para evitar problemas com RLS
+    // Seguir usuário via insert diretamente
     const { error } = await supabase
-      .rpc('follow_user', { 
-        follower: userId, 
-        following: targetUserId 
+      .from('user_follows')
+      .insert({
+        follower_id: userId,
+        following_id: targetUserId,
+        created_at: new Date().toISOString()
       });
       
     if (error) {
@@ -45,12 +47,12 @@ export const followUser = async (userId: string, targetUserId: string) => {
  */
 export const unfollowUser = async (userId: string, targetUserId: string) => {
   try {
-    // Deixar de seguir via RPC para evitar problemas com RLS
+    // Deixar de seguir via delete direto
     const { error } = await supabase
-      .rpc('unfollow_user', { 
-        follower: userId, 
-        following: targetUserId 
-      });
+      .from('user_follows')
+      .delete()
+      .eq('follower_id', userId)
+      .eq('following_id', targetUserId);
       
     if (error) {
       console.error('Erro ao deixar de seguir usuário:', error);
@@ -71,17 +73,18 @@ export const unfollowUser = async (userId: string, targetUserId: string) => {
 export const checkIfFollowing = async (userId: string, targetUserId: string) => {
   try {
     const { data, error } = await supabase
-      .rpc('is_following', { 
-        follower: userId, 
-        following: targetUserId 
-      });
+      .from('user_follows')
+      .select('id')
+      .eq('follower_id', userId)
+      .eq('following_id', targetUserId)
+      .maybeSingle();
       
     if (error) {
       console.error('Erro ao verificar se está seguindo:', error);
       throw error;
     }
     
-    return data || false;
+    return !!data;
   } catch (err) {
     console.error('Erro ao verificar se está seguindo:', err);
     return false;
