@@ -24,7 +24,13 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
-  padding-top: 70px; /* Add padding to account for fixed header */
+  padding-top: 60px; /* Reduzido para melhor visualização em dispositivos móveis */
+}
+
+@media (min-width: 768px) {
+  body {
+    padding-top: 70px; /* Restaura o padding original em telas maiores */
+  }
 }
 
 /* Custom scrollbar for horizontal scrolling */
