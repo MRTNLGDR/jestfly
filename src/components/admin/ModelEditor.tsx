@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Slider } from '../ui/slider';
@@ -10,9 +9,8 @@ import CrystalPreview from './CrystalPreview';
 import { ModelParameters, defaultModelParams } from '../../types/model';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { ModelType } from '@/types/model';
-
-type ModelType = 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+import { ModelType } from '@/integrations/supabase/schema';
+import { Json } from '@/integrations/supabase/types';
 
 const ModelEditor = () => {
   const [parameters, setParameters] = useState<ModelParameters>({...defaultModelParams});
@@ -98,7 +96,7 @@ const ModelEditor = () => {
       
       const modelData = {
         name: modelName,
-        params: parameters,
+        params: parameters as unknown as Json,
         model_type: 'crystal' as ModelType,
         is_active: true
       };
