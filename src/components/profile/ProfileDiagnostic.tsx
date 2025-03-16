@@ -4,7 +4,15 @@ import { Button } from "../ui/button";
 import { runAuthDiagnostics, attemptProfileFix, forceCreateProfile } from '../../services/diagnosticService';
 import { useAuth } from '../../contexts/auth';
 import { toast } from 'sonner';
-import { AlertTriangle, RefreshCw, Bug, Activity, Database, ArrowClockwise, Tool } from 'lucide-react';
+import { 
+  AlertTriangle, 
+  RefreshCw, 
+  Bug, 
+  Activity, 
+  Database, 
+  RotateCw, 
+  Wrench 
+} from 'lucide-react';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
 interface ProfileDiagnosticProps {
@@ -153,7 +161,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
             disabled={isForceCreating}
             className="flex items-center gap-2 bg-red-900/20 border-red-700/50 hover:bg-red-900/40"
           >
-            {isForceCreating ? <LoadingSpinner size="sm" /> : <Tool className="h-4 w-4" />}
+            {isForceCreating ? <LoadingSpinner size="sm" /> : <Wrench className="h-4 w-4" />}
             Forçar Criação de Perfil
           </Button>
           
@@ -173,7 +181,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
             onClick={() => window.location.reload()}
             className="flex items-center gap-2 bg-green-900/20 border-green-700/50 hover:bg-green-900/40"
           >
-            <ArrowClockwise className="h-4 w-4" />
+            <RotateCw className="h-4 w-4" />
             Recarregar Página
           </Button>
         </div>
