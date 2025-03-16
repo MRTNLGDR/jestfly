@@ -1,12 +1,12 @@
 
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
 import { PermissionType } from '../contexts/auth/types';
 import { Skeleton } from './ui/skeleton';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
-import { RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,8 +19,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requiredRoles = []
 }) => {
-  const { currentUser, userData, loading, error, hasPermission, refreshUserData } = useAuth();
+  const { currentUser, userData, loading, error, hasPermission, refreshUserData, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [localLoading, setLocalLoading] = useState(true);
   const [loadAttempts, setLoadAttempts] = useState(0);
   
@@ -38,12 +39,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return;
     }
     
-    // Set a timeout to stop loading after 10 seconds
+    // Set a timeout to stop loading after 15 seconds
     const timeout = setTimeout(() => {
       console.log("Protected route loading timeout reached");
       setLocalLoading(false);
       toast.error("Tempo limite excedido ao verificar autenticação");
-    }, 10000);
+    }, 15000);
     
     return () => clearTimeout(timeout);
   }, [loading]);
@@ -64,7 +65,18 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   const handleManualRetry = () => {
     setLocalLoading(true);
+    setLoadAttempts(0);
     refreshUserData();
+  };
+
+  const handleForceLogout = async () => {
+    try {
+      await logout();
+      toast.success("Logout forçado realizado com sucesso");
+      navigate('/login');
+    } catch (err) {
+      toast.error("Falha no logout forçado. Tente recarregar a página.");
+    }
   };
 
   // If still in initial loading, show skeleton
@@ -80,20 +92,28 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Se temos erro após tentativas de carregamento, mostrar opção de retry manual
+  // Se temos erro após tentativas de carregamento, mostrar opção de retry manual e logout forçado
   if (error && loadAttempts >= 3) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-black to-purple-950">
         <div className="neo-blur rounded-xl border border-white/10 p-8 text-center max-w-md w-full">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-3">Erro de Autenticação</h2>
           <p className="text-white/70 mb-6">{error}</p>
           <div className="flex flex-col space-y-4">
             <Button
               onClick={handleManualRetry}
-              className="flex items-center justify-center space-x-2"
+              className="flex items-center justify-center space-x-2 bg-purple-700 hover:bg-purple-800"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw className="h-4 w-4 mr-2" />
               <span>Tentar Novamente</span>
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleForceLogout}
+              className="bg-red-700 hover:bg-red-800"
+            >
+              Forçar Logout
             </Button>
             <Button 
               variant="outline" 

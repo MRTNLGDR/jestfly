@@ -1,103 +1,124 @@
 
+import { User } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
-import { User } from '@supabase/supabase-js';
 
-export const runAuthDiagnostics = async (userId?: string) => {
-  if (!userId) {
-    return {
-      success: false,
-      error: "ID de usuário não fornecido",
-      timestamp: new Date().toISOString()
-    };
-  }
-
+/**
+ * Executa diagnósticos de autenticação para resolver problemas
+ */
+export const runAuthDiagnostics = async (userId?: string): Promise<Record<string, any>> => {
   try {
-    // Teste de conectividade
-    const connectivityStart = Date.now();
-    const { data: connectivityTest, error: connectivityError } = await supabase
-      .from('diagnostic_logs')
-      .select('id')
-      .limit(1);
+    if (!userId) {
+      return {
+        success: false,
+        error: "ID de usuário não fornecido",
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    console.log("Executando diagnóstico para usuário:", userId);
     
-    const connectivityTime = Date.now() - connectivityStart;
+    // Verificar conectividade básica com Supabase
+    const connectivityTest = await testSupabaseConnectivity();
     
-    // Verificar existência do usuário na autenticação
-    let authUser = null;
-    let authError = null;
+    // Verificar se o usuário existe na auth.users
+    let authUserExists = false;
+    let userProfile = null;
+    let profileError = null;
     
     try {
-      const { data, error } = await supabase.auth.getUser();
-      authUser = data?.user || null;
-      authError = error;
-    } catch (err: any) {
-      authError = { message: err.message };
+      // Tentar buscar perfil público
+      const { data: profile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+      
+      if (profileErr) {
+        console.error("Erro ao buscar perfil durante diagnóstico:", profileErr);
+        profileError = profileErr;
+      } else if (profile) {
+        userProfile = profile;
+        authUserExists = true; // Se o perfil existe, assumimos que o auth user também existe
+      }
+    } catch (err) {
+      console.error("Exceção ao buscar perfil durante diagnóstico:", err);
+      profileError = err;
     }
     
-    // Verificar existência do perfil
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-    
-    // Registrar o diagnóstico
+    // Registrar resultados do diagnóstico
     try {
       await supabase.from('diagnostic_logs').insert({
-        message: 'Auth diagnostics run',
+        message: 'Diagnóstico de autenticação executado',
         metadata: {
           user_id: userId,
-          auth_found: !!authUser,
+          connectivity: connectivityTest,
           profile_found: !!userProfile,
-          connectivity_time_ms: connectivityTime,
           timestamp: new Date().toISOString()
         }
       });
-    } catch (logError: any) {
-      console.error("Error logging diagnostic:", logError);
+    } catch (logErr) {
+      console.error("Erro ao registrar diagnóstico:", logErr);
     }
     
     return {
       success: true,
-      timestamp: new Date().toISOString(),
-      connectivity: {
-        success: !connectivityError,
-        time_ms: connectivityTime,
-        error: connectivityError ? connectivityError.message : null
-      },
-      auth_user: authUser ? {
-        id: authUser.id,
-        email: authUser.email,
-        created_at: authUser.created_at
-      } : null,
+      connectivity: connectivityTest,
+      auth_user_exists: authUserExists,
       user_data: userProfile,
       errors: {
-        connectivity: connectivityError ? connectivityError.message : null,
-        auth: authError ? authError.message : null,
-        profile: profileError ? profileError.message : null
-      }
+        profile_error: profileError ? String(profileError) : null
+      },
+      timestamp: new Date().toISOString()
     };
-  } catch (error: any) {
-    console.error("Erro ao executar diagnóstico:", error);
+  } catch (err) {
+    console.error("Erro durante diagnóstico de autenticação:", err);
     return {
       success: false,
-      error: error.message,
+      error: String(err),
       timestamp: new Date().toISOString()
     };
   }
 };
 
+/**
+ * Testa a conectividade básica com o Supabase
+ */
+export const testSupabaseConnectivity = async () => {
+  try {
+    const start = Date.now();
+    const { data, error } = await supabase.from('profiles').select('id').limit(1);
+    const duration = Date.now() - start;
+    
+    return {
+      success: !error,
+      error: error ? String(error) : null,
+      duration_ms: duration,
+      timestamp: new Date().toISOString()
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: String(err),
+      timestamp: new Date().toISOString()
+    };
+  }
+};
+
+/**
+ * Tenta corrigir problemas de perfil detectados
+ */
 export const attemptProfileFix = async () => {
   try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (sessionError || !session) {
-      console.error("Error getting session for fix:", sessionError);
-      toast.error("Erro ao obter sessão. Faça login novamente.");
+    if (!session || !session.user) {
+      console.error("Nenhuma sessão de usuário para tentar correção de perfil");
       return false;
     }
     
     const user = session.user;
+    console.log("Tentando correção de perfil para:", user.id);
     
     // Verificar se o perfil existe
     const { data: existingProfile, error: checkError } = await supabase
@@ -107,100 +128,108 @@ export const attemptProfileFix = async () => {
       .maybeSingle();
     
     if (checkError) {
-      console.error("Error checking profile for fix:", checkError);
+      console.error("Erro ao verificar perfil existente:", checkError);
       return false;
     }
     
-    // Se o perfil não existir, crie-o
-    if (!existingProfile) {
-      const userMetadata = user.user_metadata || {};
-      
-      const { error: insertError } = await supabase
+    // Se o perfil já existe, atualizar timestamp
+    if (existingProfile) {
+      console.log("Perfil encontrado, atualizando last_login");
+      const { error: updateError } = await supabase
         .from('profiles')
-        .insert({
-          id: user.id,
-          email: user.email,
-          display_name: userMetadata.display_name || userMetadata.name || user.email?.split('@')[0] || 'User',
-          username: userMetadata.username || user.email?.split('@')[0] || `user_${Date.now()}`,
-          profile_type: userMetadata.profile_type || 'fan',
-          avatar: userMetadata.avatar_url || null,
-          is_verified: false,
-          created_at: new Date().toISOString(),
+        .update({ 
           updated_at: new Date().toISOString(),
           last_login: new Date().toISOString()
-        });
+        })
+        .eq('id', user.id);
       
-      if (insertError) {
-        console.error("Error creating profile during fix:", insertError);
-        toast.error("Erro ao criar perfil. Tente novamente mais tarde.");
+      if (updateError) {
+        console.error("Erro ao atualizar perfil:", updateError);
         return false;
       }
       
-      console.log("Successfully created missing profile during fix");
-      toast.success("Perfil criado com sucesso!");
       return true;
     }
     
-    // Se o perfil existe, atualize-o com os metadados mais recentes
-    const userMetadata = user.user_metadata || {};
-    
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        email: user.email,
-        display_name: userMetadata.display_name || userMetadata.name || undefined,
-        username: userMetadata.username || undefined,
-        avatar: userMetadata.avatar_url || undefined,
-        updated_at: new Date().toISOString(),
-        last_login: new Date().toISOString()
-      })
-      .eq('id', user.id);
-    
-    if (updateError) {
-      console.error("Error updating profile during fix:", updateError);
-      toast.error("Erro ao atualizar perfil. Tente novamente mais tarde.");
-      return false;
-    }
-    
-    console.log("Successfully updated profile during fix");
-    toast.success("Perfil atualizado com sucesso!");
-    return true;
-  } catch (error: any) {
-    console.error("Exception during profile fix:", error);
-    toast.error("Erro ao corrigir perfil: " + error.message);
+    // Se o perfil não existe, criar um novo
+    return await forceCreateProfile(user);
+  } catch (err) {
+    console.error("Erro durante tentativa de correção de perfil:", err);
     return false;
   }
 };
 
+/**
+ * Força a criação de um perfil para o usuário
+ */
 export const forceCreateProfile = async (user: User) => {
+  if (!user || !user.id) {
+    toast.error("Dados de usuário inválidos para criação de perfil");
+    return false;
+  }
+  
   try {
-    const userMetadata = user.user_metadata || {};
+    console.log("Criando perfil forçado para:", user.id);
     
-    // Usar upsert para garantir que não haverá conflito
-    const { error: upsertError } = await supabase
+    // Tentar excluir qualquer perfil existente com erro
+    try {
+      await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+    } catch (deleteErr) {
+      console.log("Nenhum perfil existente para excluir ou erro:", deleteErr);
+      // Continuar mesmo se falhar
+    }
+    
+    // Criar novo perfil
+    const { error: insertError } = await supabase
       .from('profiles')
-      .upsert({
+      .insert({
         id: user.id,
         email: user.email,
-        display_name: userMetadata.display_name || userMetadata.name || user.email?.split('@')[0] || 'User',
-        username: userMetadata.username || user.email?.split('@')[0] || `user_${Date.now()}`,
-        profile_type: userMetadata.profile_type || 'fan',
-        avatar: userMetadata.avatar_url || null,
+        display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+        username: user.user_metadata?.username || user.email?.split('@')[0] || `user_${Date.now()}`,
+        profile_type: user.email?.includes('admin') ? 'admin' : 'fan',
         is_verified: false,
+        avatar: user.user_metadata?.avatar_url || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         last_login: new Date().toISOString()
-      }, { onConflict: 'id' });
+      });
     
-    if (upsertError) {
-      console.error("Error force creating profile:", upsertError);
+    if (insertError) {
+      console.error("Erro ao criar perfil forçado:", insertError);
+      
+      // Registrar diagnóstico
+      await supabase.from('diagnostic_logs').insert({
+        message: 'Falha na criação forçada de perfil',
+        metadata: {
+          user_id: user.id,
+          error: String(insertError),
+          timestamp: new Date().toISOString()
+        }
+      });
+      
       return false;
     }
     
-    console.log("Successfully force created profile");
+    console.log("Perfil forçado criado com sucesso");
+    
+    // Registrar diagnóstico
+    await supabase.from('diagnostic_logs').insert({
+      message: 'Perfil forçado criado com sucesso',
+      metadata: {
+        user_id: user.id,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    toast.success("Perfil criado com sucesso!");
     return true;
-  } catch (error: any) {
-    console.error("Exception during force profile creation:", error);
+  } catch (err) {
+    console.error("Exceção durante criação forçada de perfil:", err);
+    toast.error("Erro ao criar perfil: " + String(err));
     return false;
   }
 };

@@ -1,77 +1,96 @@
 
-import { UserProfile } from '../../models/User';
-import { toast } from 'sonner';
-import { 
-  fetchBasicProfile, 
-  fetchFollowCounts, 
-  mapToUserProfile, 
-  createEmptyProfile,
-  updateProfile as updateProfileCore
-} from './core';
+import { fetchBasicProfile, updateProfile, createProfileIfNotExists } from './core';
+import { followUser, unfollowUser, checkIfFollowing, fetchFollowers, fetchFollowing } from './social';
 import { supabase } from '../../integrations/supabase/client';
 
 /**
- * Busca o perfil completo de um usuário
+ * Busca o perfil completo do usuário, incluindo contagens de seguidores
  */
-export const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
+export const fetchUserProfile = async (userId: string) => {
   try {
-    console.log(`Iniciando busca de perfil para usuário: ${userId}`);
-    const startTime = Date.now();
+    console.log("Iniciando busca de perfil para usuário:", userId);
+    const basicProfile = await fetchBasicProfile(userId);
     
-    // Buscar dados básicos do perfil
-    let profileData = await fetchBasicProfile(userId);
-    
-    if (!profileData) {
-      console.warn(`Nenhum perfil encontrado para o usuário: ${userId}`);
-      
-      // Tente criar um perfil vazio para correção automática
-      const { error: sessionError, data: sessionData } = await supabase.auth.getSession();
-      
-      if (!sessionError && sessionData.session?.user) {
-        const user = sessionData.session.user;
-        const success = await createEmptyProfile(userId, user);
-              
-        if (success) {
-          toast.success("Perfil recuperado com sucesso!");
-          console.log("Perfil recuperado após criar automaticamente");
-          
-          // Tente buscar o perfil novamente
-          profileData = await fetchBasicProfile(userId);
-          
-          if (!profileData) {
-            return null; // Ainda não conseguimos encontrar mesmo após criar
-          }
-        } else {
-          return null;
-        }
-      } else {
-        return null;
-      }
+    if (!basicProfile) {
+      console.log("Perfil básico não encontrado para:", userId);
+      return null;
     }
     
     // Buscar contagens de seguidores e seguindo
-    const { followersCount, followingCount } = await fetchFollowCounts(userId);
+    let followersCount = 0;
+    let followingCount = 0;
     
-    // Converter para o formato UserProfile
-    const userProfile = mapToUserProfile(profileData, followersCount, followingCount);
+    try {
+      // Usar funções RPC para evitar problemas de recursão infinita em RLS
+      const { data: followers, error: followersError } = await supabase
+        .rpc('count_followers', { user_id: userId });
+        
+      if (followersError) {
+        console.error("Erro ao buscar contagem de seguidores:", followersError);
+      } else {
+        followersCount = followers || 0;
+      }
+      
+      const { data: following, error: followingError } = await supabase
+        .rpc('count_following', { user_id: userId });
+        
+      if (followingError) {
+        console.error("Erro ao buscar contagem de seguindo:", followingError);
+      } else {
+        followingCount = following || 0;
+      }
+    } catch (err) {
+      console.error("Erro ao buscar contagens sociais:", err);
+    }
     
-    console.log(`Perfil completo carregado: ${userProfile.display_name}`);
-    return userProfile;
-  } catch (error: any) {
-    console.error(`Erro ao buscar perfil do usuário: ${error.message}`, error);
-    throw error;
+    // Combinar perfil básico com dados sociais
+    const completeProfile = {
+      ...basicProfile,
+      followers_count: followersCount,
+      following_count: followingCount,
+      // Garantir campos necessários com valores padrão
+      social_links: basicProfile.social_links || {},
+      avatar_url: basicProfile.avatar || '',
+      is_verified: basicProfile.is_verified || false
+    };
+    
+    return completeProfile;
+  } catch (err) {
+    console.error("Erro ao buscar perfil do usuário:", err);
+    throw err;
   }
 };
 
-/**
- * Atualiza o perfil de um usuário
- */
-export const updateUserProfile = updateProfileCore;
-
-// Exportar funções sociais para manter compatibilidade
-export { 
+// Re-exportar funções
+export {
+  updateProfile,
+  createProfileIfNotExists,
   followUser,
   unfollowUser,
   checkIfFollowing,
-  fetchUserPosts
-} from './social';
+  fetchFollowers,
+  fetchFollowing
+};
+
+/**
+ * Busca posts do usuário
+ */
+export const fetchUserPosts = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('community_posts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error("Erro ao buscar posts do usuário:", error);
+      throw error;
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error("Erro ao buscar posts do usuário:", err);
+    throw err;
+  }
+};

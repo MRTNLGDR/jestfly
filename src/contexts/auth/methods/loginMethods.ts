@@ -1,6 +1,7 @@
 
 import { supabase } from '../../../integrations/supabase/client';
 import { toast } from 'sonner';
+import { logAuthDiagnostic } from '../utils/diagnosticUtils';
 
 /**
  * Logs in a user with email and password
@@ -15,6 +16,11 @@ export const loginUser = async (email: string, password: string) => {
     
     if (error) {
       console.error("Login error:", error);
+      await logAuthDiagnostic('Login error', {
+        error: error.message,
+        email: email,
+        timestamp: new Date().toISOString()
+      });
       throw error;
     }
     
@@ -72,7 +78,12 @@ export const loginUser = async (email: string, password: string) => {
       }
     }
     
-    toast.success('Login realizado com sucesso!');
+    await logAuthDiagnostic('Login successful', {
+      user_id: data.user?.id,
+      email: email,
+      timestamp: new Date().toISOString()
+    });
+    
     return data;
   } catch (error: any) {
     console.error('Erro ao fazer login:', error);
@@ -86,13 +97,65 @@ export const loginUser = async (email: string, password: string) => {
 export const logoutUser = async () => {
   try {
     console.log("Logging out user");
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Logout error:", error);
-      throw error;
+    
+    // Armazenar dados de diagnóstico antes do logout
+    await logAuthDiagnostic('Logout attempt', {
+      timestamp: new Date().toISOString()
+    });
+    
+    // Tentar várias vezes em caso de falha
+    let attempts = 0;
+    let success = false;
+    let lastError = null;
+    
+    while (attempts < 3 && !success) {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error(`Logout error (attempt ${attempts + 1}):`, error);
+          lastError = error;
+        } else {
+          success = true;
+          console.log("Logout successful");
+        }
+      } catch (e) {
+        console.error(`Exception in logout (attempt ${attempts + 1}):`, e);
+        lastError = e;
+      }
+      
+      attempts++;
+      
+      if (!success && attempts < 3) {
+        // Esperar um pouco antes de tentar novamente
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
-    console.log("Logout successful");
-    toast.success('Logout realizado com sucesso');
+    
+    if (!success && lastError) {
+      await logAuthDiagnostic('Logout failed after attempts', {
+        error: lastError.message,
+        attempts,
+        timestamp: new Date().toISOString()
+      });
+      throw lastError;
+    }
+    
+    // Limpar qualquer dado de usuário armazenado localmente
+    localStorage.removeItem('supabase.auth.token');
+    
+    await logAuthDiagnostic('Logout successful', {
+      timestamp: new Date().toISOString()
+    });
+    
+    // Limpeza de cache ajuda a resolver problemas de autenticação
+    await fetch('/api/reset-cache', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }).catch(() => {
+      // Ignore errors here, it's just a best-effort cleanup
+    });
+    
+    return true;
   } catch (error: any) {
     console.error('Erro ao fazer logout:', error);
     throw error;
