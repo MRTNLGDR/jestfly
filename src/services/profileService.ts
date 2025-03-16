@@ -4,7 +4,7 @@
 
 export {
   fetchUserProfile,
-  updateUserProfile,
+  updateProfile,
   followUser,
   unfollowUser,
   checkIfFollowing,

@@ -1,97 +1,133 @@
 
+// Import services
 import { supabase } from '../../integrations/supabase/client';
-import { Post } from '../../models/Post';
-
-/**
- * Verifica se um usuário está seguindo outro
- */
-export const checkIfFollowing = async (userId: string, targetUserId: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase
-      .from('user_follows')
-      .select('*')
-      .match({
-        follower_id: userId,
-        following_id: targetUserId
-      })
-      .maybeSingle();
-    
-    if (error) throw error;
-    
-    return !!data;
-  } catch (error) {
-    console.error("Erro ao verificar se segue usuário:", error);
-    return false;
-  }
-};
+import { toast } from 'sonner';
 
 /**
  * Segue um usuário
  */
-export const followUser = async (userId: string, targetUserId: string): Promise<boolean> => {
+export const followUser = async (userId: string, targetUserId: string) => {
   try {
-    // Check if already following
-    const isAlreadyFollowing = await checkIfFollowing(userId, targetUserId);
-    
-    if (isAlreadyFollowing) {
-      return true; // Already following
+    // Verificar se já está seguindo
+    const { data: existingFollow } = await supabase
+      .from('user_follows')
+      .select('id')
+      .eq('follower_id', userId)
+      .eq('following_id', targetUserId)
+      .maybeSingle();
+      
+    if (existingFollow) {
+      return { success: true, alreadyFollowing: true };
     }
     
-    // Insert follow relationship
+    // Seguir usuário via RPC para evitar problemas com RLS
     const { error } = await supabase
-      .from('user_follows')
-      .insert({
-        follower_id: userId,
-        following_id: targetUserId
+      .rpc('follow_user', { 
+        follower: userId, 
+        following: targetUserId 
       });
+      
+    if (error) {
+      console.error('Erro ao seguir usuário:', error);
+      throw error;
+    }
     
-    if (error) throw error;
-    
-    return true;
-  } catch (error) {
-    console.error("Erro ao seguir usuário:", error);
-    return false;
+    return { success: true, alreadyFollowing: false };
+  } catch (err) {
+    console.error('Erro ao seguir usuário:', err);
+    toast.error('Erro ao seguir usuário');
+    throw err;
   }
 };
 
 /**
  * Deixa de seguir um usuário
  */
-export const unfollowUser = async (userId: string, targetUserId: string): Promise<boolean> => {
+export const unfollowUser = async (userId: string, targetUserId: string) => {
   try {
+    // Deixar de seguir via RPC para evitar problemas com RLS
     const { error } = await supabase
-      .from('user_follows')
-      .delete()
-      .match({
-        follower_id: userId,
-        following_id: targetUserId
+      .rpc('unfollow_user', { 
+        follower: userId, 
+        following: targetUserId 
       });
+      
+    if (error) {
+      console.error('Erro ao deixar de seguir usuário:', error);
+      throw error;
+    }
     
-    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('Erro ao deixar de seguir usuário:', err);
+    toast.error('Erro ao deixar de seguir usuário');
+    throw err;
+  }
+};
+
+/**
+ * Verifica se um usuário está seguindo outro
+ */
+export const checkIfFollowing = async (userId: string, targetUserId: string) => {
+  try {
+    const { data, error } = await supabase
+      .rpc('is_following', { 
+        follower: userId, 
+        following: targetUserId 
+      });
+      
+    if (error) {
+      console.error('Erro ao verificar se está seguindo:', error);
+      throw error;
+    }
     
-    return true;
-  } catch (error) {
-    console.error("Erro ao deixar de seguir usuário:", error);
+    return data || false;
+  } catch (err) {
+    console.error('Erro ao verificar se está seguindo:', err);
     return false;
   }
 };
 
 /**
- * Busca os posts de um usuário
+ * Busca seguidores de um usuário
  */
-export const fetchUserPosts = async (userId: string): Promise<Post[]> => {
+export const fetchFollowers = async (userId: string) => {
   try {
     const { data, error } = await supabase
-      .from('community_posts')
-      .select('*, profiles:profiles(*)')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .from('user_follows')
+      .select('follower_id')
+      .eq('following_id', userId);
+      
+    if (error) {
+      console.error('Erro ao buscar seguidores:', error);
+      throw error;
+    }
     
-    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Erro ao buscar seguidores:', err);
+    throw err;
+  }
+};
+
+/**
+ * Busca usuários que um usuário segue
+ */
+export const fetchFollowing = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('user_follows')
+      .select('following_id')
+      .eq('follower_id', userId);
+      
+    if (error) {
+      console.error('Erro ao buscar seguindo:', error);
+      throw error;
+    }
     
-    return data as unknown as Post[] || [];
-  } catch (error) {
-    console.error("Erro ao buscar posts do usuário:", error);
-    return [];
+    return data || [];
+  } catch (err) {
+    console.error('Erro ao buscar seguindo:', err);
+    throw err;
   }
 };

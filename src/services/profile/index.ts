@@ -44,6 +44,13 @@ export const fetchUserProfile = async (userId: string) => {
     }
     
     // Combinar perfil básico com dados sociais
+    // Verificar se basicProfile não é um número (como poderia ser em caso de contagem)
+    if (typeof basicProfile === 'number') {
+      console.error("basicProfile é um número, não um objeto:", basicProfile);
+      return null;
+    }
+    
+    // Agora é seguro combinar os dados
     const completeProfile = {
       ...basicProfile,
       followers_count: followersCount,
