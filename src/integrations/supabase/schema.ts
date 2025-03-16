@@ -1,5 +1,4 @@
 
-import { Database as OriginalDatabase } from './types';
 import { Json } from './types';
 
 /**
@@ -159,8 +158,10 @@ export interface ExtendedDatabase {
 }
 
 // Properly extend the Database type to add our extensions without duplicate declarations
-declare module '@/integrations/supabase/types' {
-  interface Database extends ExtendedDatabase {}
+declare global {
+  namespace Supabase {
+    interface Database extends ExtendedDatabase {}
+  }
 }
 
 // Export model type for use in other files

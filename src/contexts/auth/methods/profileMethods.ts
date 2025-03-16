@@ -88,7 +88,7 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
       }
       
       // Cast safely to ensure correct types
-      const profileType = data.profile_type as ProfileType || 'fan';
+      const profileType = (data.profile_type as ProfileType) || 'fan';
       
       // Fazendo cast seguro para UserProfile com valores padrão para os campos necessários
       const userProfile: UserProfile = {

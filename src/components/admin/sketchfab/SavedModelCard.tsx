@@ -5,11 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Check, ExternalLink, FileAxis3d, Trash2 } from "lucide-react";
 import { Json } from "@/integrations/supabase/types";
+import { ModelType } from "@/integrations/supabase/schema";
 
 interface SavedModel {
   id: string;
   name: string;
-  model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+  model_type: ModelType;
   url: string | null;
   thumbnail_url: string | null;
   is_active: boolean | null;
