@@ -29,6 +29,13 @@ export const refreshUserSession = async (
     
     if (sessionError) {
       console.error("Session refresh failed:", sessionError);
+      
+      // Verificar se é um erro de timeout e fornecer uma mensagem mais clara
+      if (sessionError.message.includes('timeout') || sessionError.message.includes('network')) {
+        toast.error("Tempo limite excedido ao atualizar sessão. Verifique sua conexão e tente novamente.");
+        return { user: null, profile: null, error: "Tempo limite excedido ao atualizar sessão" };
+      }
+      
       toast.error("Falha ao atualizar sessão. Tente fazer login novamente.");
       return { user: null, profile: null, error: sessionError.message };
     }
@@ -40,8 +47,22 @@ export const refreshUserSession = async (
     
     const refreshedUser = sessionData.session.user;
     
-    // Now get the latest user profile data
-    const refreshedData = await fetchUserData(refreshedUser.id);
+    // Now get the latest user profile data with a longer timeout
+    const fetchPromise = fetchUserData(refreshedUser.id);
+    const timeoutPromise = new Promise<null>((_, reject) => {
+      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados do perfil")), 10000);
+    });
+    
+    // Race between fetch and timeout
+    const refreshedData = await Promise.race([fetchPromise, timeoutPromise])
+      .catch(error => {
+        console.error("Fetch profile timeout:", error);
+        logAuthDiagnostic('Profile fetch timeout during refresh', {
+          user_id: refreshedUser.id,
+          timestamp: new Date().toISOString()
+        });
+        return null;
+      });
     
     if (refreshedData) {
       console.log("User data refreshed successfully:", refreshedData.display_name);

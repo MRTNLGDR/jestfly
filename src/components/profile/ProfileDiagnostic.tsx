@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { runAuthDiagnostics, attemptProfileFix } from '../../services/diagnosticService';
 import { useAuth } from '../../contexts/auth';
 import { toast } from 'sonner';
-import { AlertTriangle, RefreshCw, Bug, Activity } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Bug, Activity, Database } from 'lucide-react';
 import { LoadingSpinner } from '../ui/loading-spinner';
 
 interface ProfileDiagnosticProps {
@@ -17,6 +17,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
   const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false);
   const [isFixing, setIsFixing] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<Record<string, any> | null>(null);
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
   const handleRunDiagnostic = async () => {
     setIsRunningDiagnostic(true);
@@ -25,7 +26,11 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
       setDiagnosticResults(results);
       
       if (results.success) {
-        toast.success("Diagnóstico concluído");
+        if (results.user_data) {
+          toast.success("Diagnóstico concluído: Perfil encontrado no banco de dados");
+        } else {
+          toast.warning("Diagnóstico concluído: Perfil não encontrado no banco de dados");
+        }
       } else {
         toast.error("Falha no diagnóstico: " + results.error);
       }
@@ -119,14 +124,46 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
             <RefreshCw className="h-4 w-4" />
             Recarregar Perfil
           </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 bg-green-900/20 border-green-700/50 hover:bg-green-900/40"
+          >
+            <Database className="h-4 w-4" />
+            Recarregar Página
+          </Button>
         </div>
         
         {diagnosticResults && (
           <div className="mt-4 p-3 rounded-md bg-gray-800/50">
-            <h4 className="text-sm font-medium text-white mb-2">Resultados do Diagnóstico:</h4>
-            <pre className="text-xs overflow-auto max-h-40 text-green-400 whitespace-pre-wrap">
-              {JSON.stringify(diagnosticResults, null, 2)}
-            </pre>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-medium text-white">Resultados do Diagnóstico:</h4>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+                className="text-xs h-6 px-2"
+              >
+                {showTechnicalDetails ? "Ocultar detalhes" : "Mostrar detalhes técnicos"}
+              </Button>
+            </div>
+            
+            {!showTechnicalDetails ? (
+              <div className="text-sm text-white/80">
+                <p>Status: {diagnosticResults.success ? "Sucesso" : "Falha"}</p>
+                <p>Conexão com banco de dados: {diagnosticResults.connectivity?.success ? "OK" : "Falha"}</p>
+                <p>Perfil encontrado: {diagnosticResults.user_data ? "Sim" : "Não"}</p>
+                {diagnosticResults.errors && Object.values(diagnosticResults.errors).some(e => e) && (
+                  <p className="text-red-400">Erros detectados. Veja os detalhes técnicos para mais informações.</p>
+                )}
+              </div>
+            ) : (
+              <pre className="text-xs overflow-auto max-h-40 text-green-400 whitespace-pre-wrap">
+                {JSON.stringify(diagnosticResults, null, 2)}
+              </pre>
+            )}
           </div>
         )}
       </div>

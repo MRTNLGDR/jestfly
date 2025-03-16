@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/auth';
 import { PermissionType } from '../contexts/auth/types';
 import { Skeleton } from './ui/skeleton';
 import { toast } from 'sonner';
+import { Button } from './ui/button';
+import { RefreshCw } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,9 +19,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireAuth = true,
   requiredRoles = []
 }) => {
-  const { currentUser, userData, loading, error, hasPermission } = useAuth();
+  const { currentUser, userData, loading, error, hasPermission, refreshUserData } = useAuth();
   const location = useLocation();
   const [localLoading, setLocalLoading] = useState(true);
+  const [loadAttempts, setLoadAttempts] = useState(0);
   
   // Mostrar erros de autenticação
   useEffect(() => {
@@ -35,15 +38,34 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       return;
     }
     
-    // Set a timeout to stop loading after 3 seconds
+    // Set a timeout to stop loading after 8 seconds (increased from 3)
     const timeout = setTimeout(() => {
       console.log("Protected route loading timeout reached");
       setLocalLoading(false);
       toast.error("Tempo limite excedido ao verificar autenticação");
-    }, 3000);
+    }, 8000);
     
     return () => clearTimeout(timeout);
   }, [loading]);
+  
+  // Auto retry logic
+  useEffect(() => {
+    if (!loading && error && loadAttempts < 2) {
+      const retryTimeout = setTimeout(() => {
+        console.log(`Auto retry attempt ${loadAttempts + 1}`);
+        setLoadAttempts(prev => prev + 1);
+        setLocalLoading(true);
+        refreshUserData();
+      }, 2000);
+      
+      return () => clearTimeout(retryTimeout);
+    }
+  }, [loading, error, loadAttempts, refreshUserData]);
+
+  const handleManualRetry = () => {
+    setLocalLoading(true);
+    refreshUserData();
+  };
 
   // If still in initial loading, show skeleton
   if (localLoading) {
@@ -53,6 +75,33 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-8 w-2/3" />
+        </div>
+      </div>
+    );
+  }
+
+  // Se temos erro após tentativas de carregamento, mostrar opção de retry manual
+  if (error && loadAttempts >= 2) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-black to-purple-950">
+        <div className="neo-blur rounded-xl border border-white/10 p-8 text-center max-w-md w-full">
+          <h2 className="text-2xl font-bold text-white mb-3">Erro de Autenticação</h2>
+          <p className="text-white/70 mb-6">{error}</p>
+          <div className="flex flex-col space-y-4">
+            <Button
+              onClick={handleManualRetry}
+              className="flex items-center justify-center space-x-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              <span>Tentar Novamente</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => window.location.reload()}
+            >
+              Recarregar Página
+            </Button>
+          </div>
         </div>
       </div>
     );

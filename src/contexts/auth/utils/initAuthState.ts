@@ -10,7 +10,18 @@ import { logAuthDiagnostic } from './diagnosticUtils';
 export const initializeAuthState = async () => {
   try {
     console.log("Initializing auth state");
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    // Use a timeout promise para evitar que a operação fique presa
+    const sessionPromise = supabase.auth.getSession();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar sessão")), 8000);
+    });
+    
+    // Race entre a operação normal e o timeout
+    const { data: { session }, error: sessionError } = await Promise.race([
+      sessionPromise,
+      timeoutPromise
+    ]);
     
     if (sessionError) {
       console.error("Session error:", sessionError);
@@ -25,15 +36,29 @@ export const initializeAuthState = async () => {
     if (user) {
       console.log("Fetching initial user profile for:", user.id);
       try {
-        // Verifique se o perfil existe
-        const { data: profileExists, error: checkError } = await supabase
+        // Verifique se o perfil existe com timeout
+        const checkProfilePromise = supabase
           .from('profiles')
           .select('id')
           .eq('id', user.id)
           .maybeSingle();
+          
+        const checkTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Tempo limite excedido ao verificar perfil")), 8000);
+        });
+        
+        const { data: profileExists, error: checkError } = await Promise.race([
+          checkProfilePromise,
+          checkTimeoutPromise
+        ]);
         
         if (checkError) {
           console.error("Error checking if profile exists:", checkError);
+          await logAuthDiagnostic('Error checking if profile exists during init', {
+            user_id: user.id,
+            error: String(checkError),
+            timestamp: new Date().toISOString()
+          });
         }
         
         // Se o perfil não existir, crie-o com dados básicos
@@ -73,8 +98,22 @@ export const initializeAuthState = async () => {
           }
         }
         
-        // Agora busque o perfil completo
-        const userProfile = await fetchUserData(user.id);
+        // Agora busque o perfil completo com timeout
+        const fetchProfilePromise = fetchUserData(user.id);
+        const fetchTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados de perfil")), 10000);
+        });
+        
+        const userProfile = await Promise.race([fetchProfilePromise, fetchTimeoutPromise])
+          .catch(async (error) => {
+            console.error("Profile fetch timeout during init:", error);
+            await logAuthDiagnostic('Profile fetch timeout during init', {
+              user_id: user.id,
+              error: String(error),
+              timestamp: new Date().toISOString()
+            });
+            return null;
+          });
         
         if (userProfile) {
           console.log("Initial user profile loaded successfully:", userProfile.display_name);

@@ -39,21 +39,26 @@ export const useAuthState = () => {
     
     setLastRefreshAttempt(new Date());
     
-    const { user, profile, error: refreshError } = await refreshUserSession(currentUser);
-    
-    if (user) {
-      setCurrentUser(user);
-    }
-    
-    if (profile) {
-      setUserData(profile);
-      setError(null);
-    } else if (refreshError) {
-      setError(refreshError);
+    try {
+      const { user, profile, error: refreshError } = await refreshUserSession(currentUser);
+      
+      if (user) {
+        setCurrentUser(user);
+      }
+      
+      if (profile) {
+        setUserData(profile);
+        setError(null);
+      } else if (refreshError) {
+        setError(refreshError);
+      }
+    } catch (err: any) {
+      console.error("Error in refreshUserData:", err.message);
+      toast.error("Erro ao atualizar dados do usuário: " + err.message);
     }
   };
 
-  // Prevent infinite loading state
+  // Prevent infinite loading state with a longer timeout
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading) {
@@ -62,80 +67,100 @@ export const useAuthState = () => {
         setError("Tempo limite excedido ao carregar dados de autenticação");
         toast.error("Tempo limite excedido ao carregar dados de autenticação. Tente novamente mais tarde.");
       }
-    }, 5000); // 5 second timeout
+    }, 15000); // Aumentado para 15 segundos
     
     return () => clearTimeout(timeout);
   }, [loading]);
 
   useEffect(() => {
     console.log("Setting up auth state listener");
+    let authListener: any = null;
     
     // Configurar o listener de mudança de estado de autenticação
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event);
-      const user = session?.user ?? null;
-      setCurrentUser(user);
-      
-      if (user) {
-        try {
-          console.log("Fetching user profile after auth state change for:", user.id);
-          const userProfile = await fetchUserData(user.id);
-          console.log("User profile retrieved:", userProfile ? "success" : "not found");
+    const setupAuthListener = async () => {
+      try {
+        const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log("Auth state changed:", event);
+          const user = session?.user ?? null;
+          setCurrentUser(user);
           
-          if (!userProfile) {
-            console.warn("No user profile found for authenticated user");
-            
-            // Log diagnostic information
-            await logAuthDiagnostic('No user profile found after auth state change', {
-              user_id: user.id,
-              event,
-              timestamp: new Date().toISOString()
-            });
-            
-            setError("Perfil de usuário não encontrado");
-            toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
+          if (user) {
+            try {
+              console.log("Fetching user profile after auth state change for:", user.id);
+              const userProfile = await fetchUserData(user.id);
+              console.log("User profile retrieved:", userProfile ? "success" : "not found");
+              
+              if (!userProfile) {
+                console.warn("No user profile found for authenticated user");
+                
+                // Log diagnostic information
+                await logAuthDiagnostic('No user profile found after auth state change', {
+                  user_id: user.id,
+                  event,
+                  timestamp: new Date().toISOString()
+                });
+                
+                setError("Perfil de usuário não encontrado");
+                toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
+              } else {
+                setUserData(userProfile);
+                setError(null);
+              }
+            } catch (err: any) {
+              console.error("Error fetching user data after auth change:", err);
+              setError("Erro ao buscar dados do usuário");
+              toast.error("Erro ao buscar dados do usuário. Tente novamente mais tarde.");
+              
+              // Log diagnostic information
+              await logAuthDiagnostic('Error fetching user profile after auth state change', {
+                user_id: user.id,
+                error: String(err),
+                event,
+                timestamp: new Date().toISOString()
+              });
+            } finally {
+              setLoading(false);
+            }
           } else {
-            setUserData(userProfile);
-            setError(null);
+            setUserData(null);
+            setLoading(false);
           }
-        } catch (err: any) {
-          console.error("Error fetching user data after auth change:", err);
-          setError("Erro ao buscar dados do usuário");
-          toast.error("Erro ao buscar dados do usuário. Tente novamente mais tarde.");
-          
-          // Log diagnostic information
-          await logAuthDiagnostic('Error fetching user profile after auth state change', {
-            user_id: user.id,
-            error: String(err),
-            event,
-            timestamp: new Date().toISOString()
-          });
-        }
-      } else {
-        setUserData(null);
+        });
+        
+        authListener = listener.subscription;
+      } catch (err) {
+        console.error("Error setting up auth listener:", err);
+        setLoading(false);
+        setError("Erro ao configurar listener de autenticação");
       }
-      
-      setLoading(false);
-    });
+    };
 
     // Verificar o estado inicial da autenticação
     const initAuth = async () => {
-      const { user, profile, error: initError } = await initializeAuthState();
-      
-      if (user) {
-        setCurrentUser(user);
+      try {
+        const { user, profile, error: initError } = await initializeAuthState();
+        
+        if (user) {
+          setCurrentUser(user);
+        }
+        
+        if (profile) {
+          setUserData(profile);
+        }
+        
+        if (initError) {
+          setError(initError);
+        }
+        
+        console.log("Auth initialization complete");
+      } catch (err: any) {
+        console.error("Error during auth initialization:", err.message);
+        setError("Erro durante inicialização da autenticação: " + err.message);
+      } finally {
+        setLoading(false);
       }
       
-      if (profile) {
-        setUserData(profile);
-      }
-      
-      if (initError) {
-        setError(initError);
-      }
-      
-      console.log("Auth initialization complete");
-      setLoading(false);
+      await setupAuthListener();
     };
 
     initAuth();
@@ -143,7 +168,9 @@ export const useAuthState = () => {
     // Cleanup
     return () => {
       console.log("Cleaning up auth listener");
-      authListener.subscription.unsubscribe();
+      if (authListener) {
+        authListener.unsubscribe();
+      }
     };
   }, []);
 

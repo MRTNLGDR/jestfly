@@ -6,73 +6,91 @@ import { ProfileType } from '../integrations/supabase/schema';
 
 export const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
+    console.log(`Iniciando busca de perfil para usuário: ${userId}`);
+    const startTime = Date.now();
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
+    console.log(`Tempo para buscar perfil básico: ${Date.now() - startTime}ms`);
     
-    if (data) {
-      // Buscar contagens de seguidores e seguindo
-      const { data: followersCount, error: followersError } = await supabase
-        .rpc('count_followers', { user_id: userId });
-
-      const { data: followingCount, error: followingError } = await supabase
-        .rpc('count_following', { user_id: userId });
-
-      if (followersError) {
-        console.error('Erro ao buscar seguidores:', followersError);
-      }
-      
-      if (followingError) {
-        console.error('Erro ao buscar seguindo:', followingError);
-      }
-      
-      // Cast safely to ensure correct types
-      const profileType = data.profile_type as ProfileType || 'fan';
-      
-      // Ensure social_links and preferences are properly typed
-      const socialLinks = typeof data.social_links === 'object' && data.social_links !== null 
-        ? data.social_links 
-        : {};
-        
-      const preferences = typeof data.preferences === 'object' && data.preferences !== null 
-        ? data.preferences 
-        : {
-            email_notifications: true,
-            push_notifications: true,
-            theme: 'dark' as 'dark' | 'light' | 'system',
-            language: 'pt'
-          };
-      
-      // Convertendo para o formato esperado por UserProfile
-      const userProfile: UserProfile = {
-        id: data.id,
-        email: data.email || '',
-        display_name: data.display_name || '',
-        username: data.username || '',
-        avatar_url: data.avatar || '', // Map the database 'avatar' field to the expected 'avatar_url'
-        bio: data.bio || '',
-        followers_count: followersCount || 0,
-        following_count: followingCount || 0,
-        profile_type: profileType,
-        is_verified: Boolean(data.is_verified),
-        social_links: socialLinks as UserProfile['social_links'],
-        preferences: preferences as UserProfile['preferences'],
-        created_at: data.created_at || new Date().toISOString(),
-        updated_at: data.updated_at || new Date().toISOString(),
-        last_login: data.last_login || new Date().toISOString()
-      };
-      
-      return userProfile;
+    if (error) {
+      console.error(`Erro ao buscar perfil: ${error.message}`, error);
+      throw error;
     }
     
-    return null;
-  } catch (error) {
-    console.error("Erro ao buscar perfil do usuário:", error);
-    return null;
+    if (!data) {
+      console.warn(`Nenhum perfil encontrado para o usuário: ${userId}`);
+      return null;
+    }
+    
+    // Buscar contagens de seguidores e seguindo
+    console.log(`Buscando contagens para usuário: ${userId}`);
+    const followersStartTime = Date.now();
+    
+    // Fazer ambas as chamadas em paralelo
+    const [followersResult, followingResult] = await Promise.all([
+      supabase.rpc('count_followers', { user_id: userId }),
+      supabase.rpc('count_following', { user_id: userId })
+    ]);
+    
+    console.log(`Tempo para buscar contagens: ${Date.now() - followersStartTime}ms`);
+    
+    const followersCount = followersResult.data || 0;
+    const followingCount = followingResult.data || 0;
+    
+    if (followersResult.error) {
+      console.error('Erro ao buscar seguidores:', followersResult.error);
+    }
+    
+    if (followingResult.error) {
+      console.error('Erro ao buscar seguindo:', followingResult.error);
+    }
+    
+    // Cast safely to ensure correct types
+    const profileType = data.profile_type as ProfileType || 'fan';
+    
+    // Ensure social_links and preferences are properly typed
+    const socialLinks = typeof data.social_links === 'object' && data.social_links !== null 
+      ? data.social_links 
+      : {};
+      
+    const preferences = typeof data.preferences === 'object' && data.preferences !== null 
+      ? data.preferences 
+      : {
+          email_notifications: true,
+          push_notifications: true,
+          theme: 'dark' as 'dark' | 'light' | 'system',
+          language: 'pt'
+        };
+    
+    // Convertendo para o formato esperado por UserProfile
+    const userProfile: UserProfile = {
+      id: data.id,
+      email: data.email || '',
+      display_name: data.display_name || '',
+      username: data.username || '',
+      avatar_url: data.avatar || '', // Map the database 'avatar' field to the expected 'avatar_url'
+      bio: data.bio || '',
+      followers_count: followersCount || 0,
+      following_count: followingCount || 0,
+      profile_type: profileType,
+      is_verified: Boolean(data.is_verified),
+      social_links: socialLinks as UserProfile['social_links'],
+      preferences: preferences as UserProfile['preferences'],
+      created_at: data.created_at || new Date().toISOString(),
+      updated_at: data.updated_at || new Date().toISOString(),
+      last_login: data.last_login || new Date().toISOString()
+    };
+    
+    console.log(`Perfil completo carregado: ${userProfile.display_name}`);
+    return userProfile;
+  } catch (error: any) {
+    console.error(`Erro ao buscar perfil do usuário: ${error.message}`, error);
+    throw error;
   }
 };
 

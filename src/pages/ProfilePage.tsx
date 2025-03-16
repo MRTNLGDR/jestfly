@@ -9,13 +9,13 @@ import ProfileTabs from '../components/profile/ProfileTabs';
 import ProfileDiagnostic from '../components/profile/ProfileDiagnostic';
 import Footer from '../components/Footer';
 import { toast } from 'sonner';
-import { Undo2, RefreshCw } from 'lucide-react';
+import { Undo2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { LoadingSpinner } from '../components/ui/loading-spinner';
 import { Button } from '../components/ui/button';
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const { currentUser, refreshUserData } = useAuth();
+  const { currentUser, userData, refreshUserData } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
@@ -26,6 +26,7 @@ const ProfilePage: React.FC = () => {
   const loadProfile = async () => {
     setIsLoading(true);
     setError(null);
+    
     try {
       console.log("Loading profile with userId:", userId, "currentUser:", currentUser?.id);
       
@@ -39,12 +40,24 @@ const ProfilePage: React.FC = () => {
         return;
       }
       
-      const profileData = await fetchUserProfile(targetUserId);
+      // Implementar timeout para evitar espera infinita
+      const fetchPromise = fetchUserProfile(targetUserId);
+      const timeoutPromise = new Promise<null>((_, reject) => {
+        setTimeout(() => reject(new Error("Tempo limite excedido ao carregar perfil")), 10000);
+      });
+      
+      // Race between fetch and timeout
+      const profileData = await Promise.race([fetchPromise, timeoutPromise])
+        .catch(error => {
+          console.error("Profile fetch timeout:", error);
+          return null;
+        });
+      
       console.log("Profile data received:", profileData);
       
       if (!profileData) {
         console.log("No profile data found");
-        setError('Perfil não encontrado');
+        setError('Perfil não encontrado ou tempo limite excedido');
         setIsLoading(false);
         return;
       }
@@ -55,9 +68,9 @@ const ProfilePage: React.FC = () => {
       setIsCurrentUser(
         !!(currentUser && currentUser.id === profileData.id)
       );
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar perfil:', error);
-      setError('Erro ao carregar perfil');
+      setError(`Erro ao carregar perfil: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +93,7 @@ const ProfilePage: React.FC = () => {
         console.log(`Automatic retry attempt ${loadAttempts + 1} to load profile`);
         setLoadAttempts(prev => prev + 1);
         loadProfile();
-      }, 2000);
+      }, 3000);
       
       return () => clearTimeout(timer);
     }
@@ -100,7 +113,10 @@ const ProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black to-purple-950 pt-20 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-white/70">Carregando dados do perfil...</p>
+        </div>
       </div>
     );
   }
@@ -109,6 +125,7 @@ const ProfilePage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black to-purple-950 pt-20 flex flex-col items-center justify-center">
         <div className="neo-blur rounded-xl border border-white/10 p-8 text-center max-w-md w-full">
+          <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-3">Erro</h2>
           <p className="text-white/70 mb-6">{error}</p>
           
