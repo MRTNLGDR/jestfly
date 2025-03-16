@@ -1,6 +1,8 @@
+
 import { supabase } from '../integrations/supabase/client';
 import { UserProfile } from '../models/User';
 import { Post } from '../models/Post';
+import { ProfileType } from '../integrations/supabase/schema';
 
 export const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
@@ -28,6 +30,9 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         console.error('Erro ao buscar seguindo:', followingError);
       }
       
+      // Cast safely to ensure correct types
+      const profileType = data.profile_type as ProfileType || 'fan';
+      
       // Ensure social_links and preferences are properly typed
       const socialLinks = typeof data.social_links === 'object' && data.social_links !== null 
         ? data.social_links 
@@ -52,7 +57,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
         bio: data.bio || '',
         followers_count: followersCount || 0,
         following_count: followingCount || 0,
-        profile_type: data.profile_type || 'fan',
+        profile_type: profileType,
         is_verified: Boolean(data.is_verified),
         social_links: socialLinks as UserProfile['social_links'],
         preferences: preferences as UserProfile['preferences'],
@@ -99,12 +104,22 @@ export const updateUserProfile = async (
   }
 };
 
+// Due to missing function, these will need to be implemented directly
 export const followUser = async (userId: string, targetUserId: string): Promise<boolean> => {
   try {
+    // Check if already following
+    const isAlreadyFollowing = await checkIfFollowing(userId, targetUserId);
+    
+    if (isAlreadyFollowing) {
+      return true; // Already following
+    }
+    
+    // Insert follow relationship
     const { error } = await supabase
-      .rpc('follow_user', { 
-        follower: userId, 
-        following: targetUserId 
+      .from('user_follows')
+      .insert({
+        follower_id: userId,
+        following_id: targetUserId
       });
     
     if (error) throw error;
@@ -119,9 +134,11 @@ export const followUser = async (userId: string, targetUserId: string): Promise<
 export const unfollowUser = async (userId: string, targetUserId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .rpc('unfollow_user', { 
-        follower: userId, 
-        following: targetUserId 
+      .from('user_follows')
+      .delete()
+      .match({
+        follower_id: userId,
+        following_id: targetUserId
       });
     
     if (error) throw error;
@@ -136,14 +153,17 @@ export const unfollowUser = async (userId: string, targetUserId: string): Promis
 export const checkIfFollowing = async (userId: string, targetUserId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
-      .rpc('is_following', { 
-        follower: userId, 
-        following: targetUserId 
-      });
+      .from('user_follows')
+      .select('*')
+      .match({
+        follower_id: userId,
+        following_id: targetUserId
+      })
+      .maybeSingle();
     
     if (error) throw error;
     
-    return Boolean(data);
+    return !!data;
   } catch (error) {
     console.error("Erro ao verificar se segue usuário:", error);
     return false;

@@ -1,43 +1,49 @@
 
 import { Database as OriginalDatabase } from './types';
+import { Json } from './types';
 
 /**
  * This file extends the Supabase types without modifying the original types.ts file
  */
-export interface ExtendedDatabase extends OriginalDatabase {
+
+// Define additional types used in the application
+export type ModelType = 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+export type ProfileType = 'fan' | 'artist' | 'collaborator' | 'admin';
+
+export interface ExtendedDatabase {
   public: {
     Tables: {
       models: {
         Row: {
           id: string;
           name: string;
-          model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+          model_type: ModelType;
           url: string | null;
           thumbnail_url: string | null;
           is_active: boolean | null;
-          params: any | null;
+          params: Json | null;
           created_at: string | null;
           updated_at: string | null;
         };
         Insert: {
           id?: string;
           name: string;
-          model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+          model_type: ModelType;
           url?: string | null;
           thumbnail_url?: string | null;
           is_active?: boolean | null;
-          params?: any | null;
+          params?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
         Update: {
           id?: string;
           name?: string;
-          model_type?: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+          model_type?: ModelType;
           url?: string | null;
           thumbnail_url?: string | null;
           is_active?: boolean | null;
-          params?: any | null;
+          params?: Json | null;
           created_at?: string | null;
           updated_at?: string | null;
         };
@@ -52,9 +58,9 @@ export interface ExtendedDatabase extends OriginalDatabase {
           avatar: string | null;
           cover_image: string | null;
           website: string | null;
-          social_links: any | null;
-          preferences: any | null;
-          profile_type: string | null;
+          social_links: Json | null;
+          preferences: Json | null;
+          profile_type: ProfileType | null;
           is_verified: boolean | null;
           followers_count: number | null;
           following_count: number | null;
@@ -71,9 +77,9 @@ export interface ExtendedDatabase extends OriginalDatabase {
           avatar?: string | null;
           cover_image?: string | null;
           website?: string | null;
-          social_links?: any | null;
-          preferences?: any | null;
-          profile_type?: string | null;
+          social_links?: Json | null;
+          preferences?: Json | null;
+          profile_type?: ProfileType | null;
           is_verified?: boolean | null;
           followers_count?: number | null;
           following_count?: number | null;
@@ -90,171 +96,15 @@ export interface ExtendedDatabase extends OriginalDatabase {
           avatar?: string | null;
           cover_image?: string | null;
           website?: string | null;
-          social_links?: any | null;
-          preferences?: any | null;
-          profile_type?: string | null;
+          social_links?: Json | null;
+          preferences?: Json | null;
+          profile_type?: ProfileType | null;
           is_verified?: boolean | null;
           followers_count?: number | null;
           following_count?: number | null;
           created_at?: string | null;
           updated_at?: string | null;
           last_login?: string | null;
-        };
-      };
-      community_posts: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          title: string;
-          content: string | null;
-          category: string | null;
-          likes_count: number | null;
-          comments_count: number | null;
-          is_pinned: boolean | null;
-          is_featured: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          user_id?: string | null;
-          title: string;
-          content?: string | null;
-          category?: string | null;
-          likes_count?: number | null;
-          comments_count?: number | null;
-          is_pinned?: boolean | null;
-          is_featured?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          user_id?: string | null;
-          title?: string;
-          content?: string | null;
-          category?: string | null;
-          likes_count?: number | null;
-          comments_count?: number | null;
-          is_pinned?: boolean | null;
-          is_featured?: boolean | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
-      };
-      post_comments: {
-        Row: {
-          id: string;
-          post_id: string | null;
-          user_id: string | null;
-          content: string;
-          likes_count: number | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          post_id?: string | null;
-          user_id?: string | null;
-          content: string;
-          likes_count?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          post_id?: string | null;
-          user_id?: string | null;
-          content?: string;
-          likes_count?: number | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
-      };
-      post_likes: {
-        Row: {
-          id: string;
-          post_id: string | null;
-          user_id: string | null;
-          created_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          post_id?: string | null;
-          user_id?: string | null;
-          created_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          post_id?: string | null;
-          user_id?: string | null;
-          created_at?: string | null;
-        };
-      };
-      user_follows: {
-        Row: {
-          id: string;
-          follower_id: string | null;
-          following_id: string | null;
-          created_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          follower_id?: string | null;
-          following_id?: string | null;
-          created_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          follower_id?: string | null;
-          following_id?: string | null;
-          created_at?: string | null;
-        };
-      };
-      notes: {
-        Row: {
-          id: string;
-          user_id: string | null;
-          title: string;
-          content: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          user_id?: string | null;
-          title: string;
-          content?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          user_id?: string | null;
-          title?: string;
-          content?: string | null;
-          created_at?: string | null;
-          updated_at?: string | null;
-        };
-      };
-      diagnostic_logs: {
-        Row: {
-          id: string;
-          message: string;
-          metadata: any | null;
-          created_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          message: string;
-          metadata?: any | null;
-          created_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          message?: string;
-          metadata?: any | null;
-          created_at?: string | null;
         };
       };
     };
@@ -280,17 +130,38 @@ export interface ExtendedDatabase extends OriginalDatabase {
         Returns: void;
       };
       log_auth_diagnostic: {
-        Args: { message: string; metadata: any };
+        Args: { message: string; metadata: Json };
         Returns: void;
       };
-    };
-    Enums: {
-      model_type: 'diamond' | 'sphere' | 'torus' | 'crystal' | 'sketchfab';
+      // Add missing RPC functions that are being used in code
+      is_following: {
+        Args: { follower: string; following: string };
+        Returns: boolean;
+      };
+      follow_user: {
+        Args: { follower: string; following: string };
+        Returns: void;
+      };
+      unfollow_user: {
+        Args: { follower: string; following: string };
+        Returns: void;
+      };
+      check_auth_connectivity: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      check_user_data: {
+        Args: { user_id: string };
+        Returns: Json;
+      };
     };
   };
 }
 
-// Extending the original Database type to include our schema
+// Properly extend the Database type to add our extensions without duplicate declarations
 declare module '@/integrations/supabase/types' {
   interface Database extends ExtendedDatabase {}
 }
+
+// Export model type for use in other files
+export type SavedModel = ExtendedDatabase['public']['Tables']['models']['Row'];

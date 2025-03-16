@@ -2,6 +2,7 @@
 import { supabase } from '../../../integrations/supabase/client';
 import { UserProfile } from '../../../models/User';
 import { toast } from 'sonner';
+import { ProfileType } from '../../../integrations/supabase/schema';
 
 /**
  * Updates a user's profile data
@@ -86,6 +87,9 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
         console.error('Exceção ao buscar seguindo:', followingErr);
       }
       
+      // Cast safely to ensure correct types
+      const profileType = data.profile_type as ProfileType || 'fan';
+      
       // Fazendo cast seguro para UserProfile com valores padrão para os campos necessários
       const userProfile: UserProfile = {
         ...data,
@@ -101,7 +105,8 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
           push_notifications: true,
           theme: 'dark',
           language: 'pt'
-        }
+        },
+        profile_type: profileType
       };
       
       console.log("User profile prepared:", userProfile.display_name);

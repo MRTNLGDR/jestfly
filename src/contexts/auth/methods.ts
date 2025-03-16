@@ -63,7 +63,7 @@ export const registerUser = async (
   try {
     // Create user profile in our profiles table
     const { error: profileError } = await supabase
-      .from('user_profiles')
+      .from('profiles')
       .insert({
         id: data.user.id,
         ...userData
@@ -111,7 +111,7 @@ export const updateUserProfile = async (
   data: Partial<UserProfile>
 ): Promise<void> => {
   const { error } = await supabase
-    .from('user_profiles')
+    .from('profiles')
     .update(data)
     .eq('id', userId);
 
@@ -123,7 +123,7 @@ export const updateUserProfile = async (
 
 export const fetchUserData = async (userId: string): Promise<UserProfile | null> => {
   const { data, error } = await supabase
-    .from('user_profiles')
+    .from('profiles')
     .select('*')
     .eq('id', userId)
     .single();
@@ -138,5 +138,5 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
     throw new Error(error.message);
   }
 
-  return data as UserProfile;
+  return data as unknown as UserProfile;
 };

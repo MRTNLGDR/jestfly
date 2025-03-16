@@ -10,17 +10,20 @@ export const runAuthDiagnostics = async (userId?: string): Promise<Record<string
   try {
     console.log("Running auth diagnostics...");
     
-    // First check database connectivity
-    const { data: connectivityData, error: connectivityError } = await supabase
-      .rpc('check_auth_connectivity');
+    // First check if we can query basic tables
+    let connectivityData = null;
+    let connectivityError = null;
     
-    if (connectivityError) {
-      console.error("Database connectivity check failed:", connectivityError);
-      return {
-        success: false,
-        database_connection: false,
-        error: connectivityError.message
-      };
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('count(*)')
+        .limit(1);
+        
+      connectivityData = { success: !error, count: data?.length || 0 };
+      connectivityError = error;
+    } catch (err: any) {
+      connectivityError = err;
     }
     
     console.log("Database connectivity results:", connectivityData);
@@ -30,16 +33,23 @@ export const runAuthDiagnostics = async (userId?: string): Promise<Record<string
     let userError = null;
     
     if (userId) {
-      const { data: userCheckData, error: userCheckError } = await supabase
-        .rpc('check_user_data', { user_id: userId });
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+        
+        userData = data;
+        userError = error;
+      } catch (err: any) {
+        userError = err;
+      }
       
-      userData = userCheckData;
-      userError = userCheckError;
-      
-      if (userCheckError) {
-        console.error("User data check failed:", userCheckError);
+      if (userError) {
+        console.error("User data check failed:", userError);
       } else {
-        console.log("User data check results:", userCheckData);
+        console.log("User data check results:", userData);
       }
     }
     
