@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { supabase } from '../../../integrations/supabase/client';
 import { fetchUserData } from '../methods';
 import { logAuthDiagnostic } from './diagnosticUtils';
+import { UserProfile } from '../../../models/User';
 
 /**
  * Initializes the authentication state
@@ -13,7 +14,7 @@ export const initializeAuthState = async () => {
     
     // Use a timeout promise para evitar que a operação fique presa
     const sessionPromise = supabase.auth.getSession();
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise<{data: {session: null}, error: Error}>((_, reject) => {
       setTimeout(() => reject(new Error("Tempo limite excedido ao buscar sessão")), 8000);
     });
     
@@ -21,7 +22,7 @@ export const initializeAuthState = async () => {
     const { data: { session }, error: sessionError } = await Promise.race([
       sessionPromise,
       timeoutPromise
-    ]);
+    ]) as { data: { session: any }, error: any };
     
     if (sessionError) {
       console.error("Session error:", sessionError);
@@ -43,14 +44,14 @@ export const initializeAuthState = async () => {
           .eq('id', user.id)
           .maybeSingle();
           
-        const checkTimeoutPromise = new Promise((_, reject) => {
+        const checkTimeoutPromise = new Promise<{data: null, error: Error}>((_, reject) => {
           setTimeout(() => reject(new Error("Tempo limite excedido ao verificar perfil")), 8000);
         });
         
         const { data: profileExists, error: checkError } = await Promise.race([
           checkProfilePromise,
           checkTimeoutPromise
-        ]);
+        ]) as { data: any, error: any };
         
         if (checkError) {
           console.error("Error checking if profile exists:", checkError);
@@ -100,7 +101,7 @@ export const initializeAuthState = async () => {
         
         // Agora busque o perfil completo com timeout
         const fetchProfilePromise = fetchUserData(user.id);
-        const fetchTimeoutPromise = new Promise((_, reject) => {
+        const fetchTimeoutPromise = new Promise<null>((_, reject) => {
           setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados de perfil")), 10000);
         });
         
@@ -116,16 +117,18 @@ export const initializeAuthState = async () => {
           });
         
         if (userProfile) {
-          console.log("Initial user profile loaded successfully:", userProfile.display_name);
+          // Type assertion to ensure TypeScript knows this is a UserProfile
+          const typedUserProfile = userProfile as UserProfile;
+          console.log("Initial user profile loaded successfully:", typedUserProfile.display_name);
           
           // Log successful auth initialization for diagnostics
           await logAuthDiagnostic('Auth initialization successful', {
             user_id: user.id,
-            profile_type: userProfile.profile_type,
+            profile_type: typedUserProfile.profile_type,
             timestamp: new Date().toISOString()
           });
           
-          return { user, profile: userProfile, error: null };
+          return { user, profile: typedUserProfile, error: null };
         } else {
           console.warn("No user profile found for authenticated user on initialization");
           toast.error("Não foi possível carregar seu perfil. Entre em contato com o suporte.");
