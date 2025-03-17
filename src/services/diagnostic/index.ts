@@ -5,13 +5,13 @@ export type { DiagnosticResult, ConnectivityTestResult, ProfileFixResult, Policy
 // Export everything from the profileRepair module
 export * from './profileRepair';
 
-// Export functions from runDiagnostics
+// Export functions from diagnostic modules
 export {
   runAuthDiagnostics,
   runProfileDiagnostics,
   runConnectionDiagnostics,
   diagnoseAndRepairProfile
-} from './runDiagnostics';
+} from './diagnostics';
 
 // Additional helper functions for direct use in components
 export const attemptProfileFix = async (userId?: string) => {
@@ -26,7 +26,7 @@ export const attemptProfileFix = async (userId?: string) => {
   }
   
   try {
-    const { diagnoseAndRepairProfile } = await import('./runDiagnostics');
+    const { diagnoseAndRepairProfile } = await import('./diagnostics/repairDiagnostics');
     return await diagnoseAndRepairProfile(targetId);
   } catch (error) {
     console.error("Erro ao tentar corrigir perfil:", error);
