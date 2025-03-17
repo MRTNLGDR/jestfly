@@ -1,10 +1,9 @@
-
 import { toast } from 'sonner';
 import { supabase } from '../../../integrations/supabase/client';
 import { fetchUserData } from '../methods/profileMethods';
 import { logAuthDiagnostic } from './diagnosticUtils';
 import { UserProfile } from '../../../types/auth';
-import { forceCreateProfile } from '../../../services/diagnostic/profileRepair';
+import { forceCreateProfile } from '../../../services/diagnostic';
 
 /**
  * Inicializa o estado de autenticação

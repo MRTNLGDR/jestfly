@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
 import { LoginFormData } from '../../../types/auth';
-import { attemptProfileFix } from '../../../services/diagnostic/profileRepair';
+import { attemptProfileFix } from '../../../services/diagnostic';
 
 interface LoginHandlerProps {
   children: (props: {

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { UserProfile } from '../../../models/User';
 import { fetchUserProfile } from '../../../services/profileService';
-import { forceCreateProfile, attemptProfileFix } from '../../../services/diagnostic/profileRepair';
+import { forceCreateProfile, attemptProfileFix } from '../../../services/diagnostic';
 import { toast } from 'sonner';
 
 export const useProfileManager = (
