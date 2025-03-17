@@ -8,7 +8,8 @@ import { ConnectivityTestResult } from './types';
 export const testSupabaseConnectivity = async (): Promise<ConnectivityTestResult> => {
   try {
     const start = Date.now();
-    const { data, error } = await supabase.from('profiles').select('id').limit(1);
+    // Use a simpler query that's less likely to hit RLS issues
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
     const duration = Date.now() - start;
     
     return {
@@ -22,6 +23,40 @@ export const testSupabaseConnectivity = async (): Promise<ConnectivityTestResult
       success: false,
       error: String(err),
       timestamp: new Date().toISOString()
+    };
+  }
+};
+
+/**
+ * Verifica especificamente erros de recursão em políticas
+ */
+export const checkPolicyRecursion = async (): Promise<{hasRecursion: boolean, details: string | null}> => {
+  try {
+    const { data, error } = await supabase.from('profiles').select('id').limit(1);
+    
+    if (error && error.message && error.message.includes('infinite recursion')) {
+      return {
+        hasRecursion: true,
+        details: error.message
+      };
+    }
+    
+    return {
+      hasRecursion: false,
+      details: null
+    };
+  } catch (err: any) {
+    // Check if the error message contains recursion information
+    if (err.message && err.message.includes('infinite recursion')) {
+      return {
+        hasRecursion: true,
+        details: err.message
+      };
+    }
+    
+    return {
+      hasRecursion: false,
+      details: String(err)
     };
   }
 };

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
 import { LoginFormData } from '../../../types/auth';
+import { attemptProfileFix } from '../../../services/diagnostic/profileRepair';
 
 interface LoginHandlerProps {
   children: (props: {
@@ -55,6 +56,18 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
       // Esperar um momento para garantir que a sessão foi estabelecida
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Verificar e corrigir possíveis problemas de perfil
+      try {
+        const fixResult = await attemptProfileFix();
+        if (!fixResult.success) {
+          console.warn("Alerta: Problemas detectados com o perfil:", fixResult.message);
+          // Continuar mesmo com problemas, mas registrar
+        }
+      } catch (fixErr) {
+        console.error("Erro ao tentar corrigir perfil:", fixErr);
+        // Continuar mesmo com erro
+      }
+      
       // Atualizar dados do usuário
       await refreshUserData();
       
@@ -87,6 +100,8 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
         errorMessage = 'Tente novamente mais tarde';
       } else if (error.message?.includes('network')) {
         errorMessage = 'Problema de conexão. Verifique sua internet.';
+      } else if (error.message?.includes('infinite recursion')) {
+        errorMessage = 'Erro de configuração no servidor. Por favor, contate o suporte.';
       }
       
       toast.error(errorMessage);

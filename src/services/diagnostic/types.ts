@@ -12,6 +12,7 @@ export interface DiagnosticResult {
   };
   auth_user_exists?: boolean;
   user_data?: any;
+  policy_recursion_detected?: boolean;
   errors?: {
     profile_error?: string | null;
     [key: string]: any;
@@ -32,4 +33,9 @@ export interface ProfileFixResult {
   message: string;
   profile?: any;
   error?: string;
+}
+
+export interface PolicyCheckResult {
+  hasRecursion: boolean;
+  details: string | null;
 }

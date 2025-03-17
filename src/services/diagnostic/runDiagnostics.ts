@@ -1,6 +1,6 @@
 
 import { supabase } from '../../integrations/supabase/client';
-import { testSupabaseConnectivity, logDiagnosticInfo } from './connectivityUtils';
+import { testSupabaseConnectivity, logDiagnosticInfo, checkPolicyRecursion } from './connectivityUtils';
 import { DiagnosticResult } from './types';
 
 /**
@@ -20,6 +20,20 @@ export const runAuthDiagnostics = async (userId?: string): Promise<DiagnosticRes
     
     // Verificar conectividade básica com Supabase
     const connectivityTest = await testSupabaseConnectivity();
+    
+    // Checar especificamente por erros de recursão em políticas
+    const policyCheck = await checkPolicyRecursion();
+    if (policyCheck.hasRecursion) {
+      console.warn("Detectado erro de recursão infinita nas políticas RLS:", policyCheck.details);
+      
+      return {
+        success: false,
+        connectivity: connectivityTest,
+        policy_recursion_detected: true,
+        error: "Erro de recursão infinita detectado nas políticas RLS. Contate o administrador do sistema.",
+        timestamp: new Date().toISOString()
+      };
+    }
     
     // Verificar se o usuário existe na auth.users
     let authUserExists = false;
@@ -51,6 +65,7 @@ export const runAuthDiagnostics = async (userId?: string): Promise<DiagnosticRes
       user_id: userId,
       connectivity: connectivityTest,
       profile_found: !!userProfile,
+      policy_recursion_check: policyCheck,
       timestamp: new Date().toISOString()
     });
     
@@ -59,6 +74,7 @@ export const runAuthDiagnostics = async (userId?: string): Promise<DiagnosticRes
       connectivity: connectivityTest,
       auth_user_exists: authUserExists,
       user_data: userProfile,
+      policy_recursion_detected: policyCheck.hasRecursion,
       errors: {
         profile_error: profileError ? String(profileError) : null
       },
