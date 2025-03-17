@@ -2,20 +2,10 @@
 export * from './connectivityUtils';
 export type { DiagnosticResult, ConnectivityTestResult, ProfileFixResult, PolicyCheckResult } from './types';
 
-// Exportando todas as funções do profileRepair
-export {
-  checkProfileStatus,
-  ProfileStatus,
-  createMissingProfile,
-  repairIncompleteProfile,
-  repairCorruptProfile,
-  checkUserExists,
-  checkUserData
-} from './profileRepair';
+// Export everything from the profileRepair module
+export * from './profileRepair';
 
-export type { ProfileCheckResult } from './profileRepair';
-
-// Exportando funções do runDiagnostics
+// Export functions from runDiagnostics
 export {
   runAuthDiagnostics,
   runProfileDiagnostics,
@@ -23,7 +13,7 @@ export {
   diagnoseAndRepairProfile
 } from './runDiagnostics';
 
-// Funções auxiliares adicionais para uso direto em componentes
+// Additional helper functions for direct use in components
 export const attemptProfileFix = async (userId?: string) => {
   const { currentUser } = await import('../../contexts/auth').then(m => m.useAuth());
   const targetId = userId || currentUser?.id;
