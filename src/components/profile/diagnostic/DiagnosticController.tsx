@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { 
   runAuthDiagnostics, 
   attemptProfileFix, 
@@ -14,7 +14,7 @@ interface DiagnosticControllerProps {
   onRefresh?: () => void;
 }
 
-const DiagnosticController: React.FC<DiagnosticControllerProps> = ({ userId, onRefresh }) => {
+const DiagnosticController = ({ userId, onRefresh }: DiagnosticControllerProps) => {
   const { currentUser, refreshUserData } = useAuth();
   const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false);
   const [isFixing, setIsFixing] = useState(false);
