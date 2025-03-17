@@ -14,6 +14,26 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRoles,
   requireAuth = true
 }) => {
-  // Always provide access without authentication
+  const { currentUser, hasPermission } = useAuth();
+  
+  // Se não requerer autenticação, renderiza o conteúdo normalmente
+  if (!requireAuth) {
+    return <>{children}</>;
+  }
+  
+  // Se requerer autenticação mas o usuário não estiver logado
+  if (requireAuth && !currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Se tiver roles específicas requeridas
+  if (requiredRoles && requiredRoles.length > 0) {
+    const hasRequiredRole = hasPermission(requiredRoles);
+    if (!hasRequiredRole) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+  }
+  
+  // Usuário autenticado e com permissões adequadas
   return <>{children}</>;
 };
