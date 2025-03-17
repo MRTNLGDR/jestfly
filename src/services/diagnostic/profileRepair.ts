@@ -15,23 +15,41 @@ export const createProfileViaRPC = async (user: User): Promise<boolean> => {
     console.log("Tentando criar perfil via RPC para contornar erros de RLS:", user.id);
     
     // Esta função RPC deve ser criada no banco de dados para funcionar
-    const { data, error } = await supabase.rpc('create_profile_bypass_rls', {
-      user_id: user.id,
-      user_email: user.email,
-      display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
-      username: user.user_metadata?.username || user.email?.split('@')[0] || `user_${Date.now()}`,
-      profile_type: user.email?.includes('admin') ? 'admin' : 'fan'
+    // Usando uma chamada direta ao Supabase para contornar a tipagem do RPC
+    const { data, error } = await supabase.rpc('log_auth_diagnostic', {
+      message: 'Bypass RLS profile creation attempt',
+      metadata: {
+        user_id: user.id,
+        email: user.email,
+        timestamp: new Date().toISOString()
+      }
     });
     
-    if (error) {
-      console.error("Erro ao criar perfil via RPC:", error);
+    // Como não temos uma RPC específica, vamos tentar criar o perfil diretamente
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: user.id,
+        email: user.email,
+        display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+        username: user.user_metadata?.username || user.email?.split('@')[0] || `user_${Date.now()}`,
+        profile_type: user.email?.includes('admin') ? 'admin' : 'fan',
+        is_verified: false,
+        avatar: user.user_metadata?.avatar_url || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_login: new Date().toISOString()
+      });
+    
+    if (insertError) {
+      console.error("Erro ao criar perfil via método alternativo:", insertError);
       return false;
     }
     
-    console.log("Perfil criado com sucesso via RPC");
+    console.log("Perfil criado com sucesso via método alternativo");
     return true;
   } catch (err) {
-    console.error("Exceção ao criar perfil via RPC:", err);
+    console.error("Exceção ao criar perfil via método alternativo:", err);
     return false;
   }
 };
