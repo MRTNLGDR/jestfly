@@ -25,6 +25,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
   const [isFixing, setIsFixing] = useState(false);
   const [isForceCreating, setIsForceCreating] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<Record<string, any> | null>(null);
+  const [autoFixAttempted, setAutoFixAttempted] = useState(false);
 
   const handleRunDiagnostic = async () => {
     setIsRunningDiagnostic(true);
@@ -36,8 +37,21 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
       if (results.success) {
         if (results.user_data) {
           toast.success("Diagnóstico concluído: Perfil encontrado no banco de dados");
+          
+          // Se encontramos o usuário mas há erro de recursão, tente corrigir automaticamente
+          if (results.policy_recursion_detected) {
+            toast.warning("Detectado problema de políticas de acesso. Tentando corrigir automaticamente...");
+            handleAttemptFix();
+          }
         } else {
           toast.warning("Diagnóstico concluído: Perfil não encontrado no banco de dados");
+          
+          // Se o usuário está logado mas não tem perfil, sugira criação automática
+          if (currentUser && !autoFixAttempted) {
+            toast.info("Tentando criar perfil automaticamente...");
+            setAutoFixAttempted(true);
+            handleForceCreateProfile();
+          }
         }
       } else {
         toast.error("Falha no diagnóstico: " + results.error);

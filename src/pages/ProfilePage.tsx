@@ -49,6 +49,14 @@ const ProfilePage: React.FC = () => {
         .catch(error => {
           console.error("Profile fetch timeout:", error);
           
+          // Check for specific errors that require special handling
+          const errorMsg = error?.message || String(error);
+          
+          // If error is related to infinite recursion, log for diagnostics
+          if (errorMsg.includes('infinite recursion')) {
+            console.error("Infinite recursion detected in profile fetch:", error);
+          }
+          
           // If error is related to profile not existing and it's the current user,
           // attempt to create profile automatically
           if (currentUser && targetUserId === currentUser.id) {
