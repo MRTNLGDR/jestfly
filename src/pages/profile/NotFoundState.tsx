@@ -1,19 +1,14 @@
 
 import React from 'react';
 import { Button } from '../../components/ui/button';
-import { Undo2 } from 'lucide-react';
-import ProfileDiagnostic from '../../components/profile/ProfileDiagnostic';
+import { Undo2, RefreshCw } from 'lucide-react';
 
 interface NotFoundStateProps {
-  userId?: string;
-  currentUserId?: string;
   onRefresh: () => void;
   onBack: () => void;
 }
 
 const NotFoundState: React.FC<NotFoundStateProps> = ({ 
-  userId, 
-  currentUserId, 
   onRefresh, 
   onBack 
 }) => {
@@ -25,18 +20,24 @@ const NotFoundState: React.FC<NotFoundStateProps> = ({
           O perfil que você está procurando não existe ou foi removido.
         </p>
         
-        {currentUserId && (
-          <ProfileDiagnostic userId={userId || currentUserId} onRefresh={onRefresh} />
-        )}
-        
-        <Button
-          onClick={onBack}
-          className="flex items-center justify-center w-full"
-          variant="outline"
-        >
-          <Undo2 className="mr-2 h-4 w-4" />
-          Voltar
-        </Button>
+        <div className="flex flex-col space-y-3">
+          <Button
+            onClick={onRefresh}
+            className="flex items-center justify-center px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-md w-full"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Tentar Novamente
+          </Button>
+          
+          <Button
+            onClick={onBack}
+            variant="outline"
+            className="flex items-center justify-center w-full"
+          >
+            <Undo2 className="mr-2 h-4 w-4" />
+            Voltar
+          </Button>
+        </div>
       </div>
     </div>
   );

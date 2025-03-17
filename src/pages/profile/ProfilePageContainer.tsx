@@ -1,9 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/auth';
-import { UserProfile } from '../../models/User';
-import { fetchUserProfile } from '../../services/profileService';
 import LoadingState from './LoadingState';
 import ErrorState from './ErrorState';
 import NotFoundState from './NotFoundState';
@@ -19,13 +17,8 @@ const ProfilePageContainer: React.FC = () => {
     profile,
     isLoading,
     error,
-    loadAttempts,
-    autoRepairAttempted,
     isCurrentUser,
-    loadProfile,
-    handleRefresh,
-    setLoadAttempts,
-    setAutoRepairAttempted
+    handleRefresh
   } = useProfileManager(userId, currentUser, refreshUserData);
 
   const handleBack = () => {
@@ -40,8 +33,6 @@ const ProfilePageContainer: React.FC = () => {
     return (
       <ErrorState 
         error={error}
-        userId={userId}
-        currentUserId={currentUser?.id}
         onRefresh={handleRefresh}
         onBack={handleBack}
       />
@@ -51,8 +42,6 @@ const ProfilePageContainer: React.FC = () => {
   if (!profile) {
     return (
       <NotFoundState
-        userId={userId}
-        currentUserId={currentUser?.id}
         onRefresh={handleRefresh}
         onBack={handleBack}
       />
