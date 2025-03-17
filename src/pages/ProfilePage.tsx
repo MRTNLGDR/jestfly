@@ -2,17 +2,18 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchUserProfile } from '../services/profileService';
-import { UserProfile } from '../models/User';
+import { UserProfile } from '../types/auth';
 import { useAuth } from '../contexts/auth';
 import { toast } from 'sonner';
 import LoadingState from './profile/LoadingState';
 import ErrorState from './profile/ErrorState';
 import NotFoundState from './profile/NotFoundState';
 import ProfileDisplay from './profile/ProfileDisplay';
+import { forceCreateProfile } from '../services/diagnostic/profileRepair';
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const { currentUser } = useAuth();
+  const { currentUser, refreshUserData } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCurrentUser, setIsCurrentUser] = useState(false);
@@ -37,16 +38,32 @@ const ProfilePage: React.FC = () => {
         return;
       }
       
-      // Implementar timeout para evitar espera infinita
+      // Implement timeout to avoid infinite waiting
       const fetchPromise = fetchUserProfile(targetUserId);
       const timeoutPromise = new Promise<null>((_, reject) => {
-        setTimeout(() => reject(new Error("Tempo limite excedido ao carregar perfil")), 10000);
+        setTimeout(() => reject(new Error("Tempo limite excedido ao carregar perfil")), 15000);
       });
       
       // Race between fetch and timeout
       const profileData = await Promise.race([fetchPromise, timeoutPromise])
         .catch(error => {
           console.error("Profile fetch timeout:", error);
+          
+          // If error is related to profile not existing and it's the current user,
+          // attempt to create profile automatically
+          if (currentUser && targetUserId === currentUser.id) {
+            toast.info("Tentando criar perfil automaticamente...");
+            return forceCreateProfile(currentUser)
+              .then(result => {
+                if (result.success) {
+                  // If profile creation succeeded, try to fetch it again
+                  return fetchUserProfile(targetUserId);
+                }
+                return null;
+              })
+              .catch(() => null);
+          }
+          
           return null;
         });
       
@@ -83,21 +100,34 @@ const ProfilePage: React.FC = () => {
     }
   }, [userId, currentUser, navigate]);
 
-  // Add retry logic if profile fails to load
+  // Add retry logic if profile fails to load, with progressive backoff
   useEffect(() => {
-    if (error && loadAttempts < 2 && (currentUser || userId)) {
+    if (error && loadAttempts < 3 && (currentUser || userId)) {
+      const backoffTime = Math.min(2000 * Math.pow(2, loadAttempts), 15000); // Exponential backoff with max 15s
+      
       const timer = setTimeout(() => {
-        console.log(`Automatic retry attempt ${loadAttempts + 1} to load profile`);
+        console.log(`Automatic retry attempt ${loadAttempts + 1} to load profile (backoff: ${backoffTime}ms)`);
         setLoadAttempts(prev => prev + 1);
         loadProfile();
-      }, 3000);
+      }, backoffTime);
       
       return () => clearTimeout(timer);
     }
   }, [error, loadAttempts]);
 
   const handleRefresh = () => {
-    loadProfile();
+    // Clear previous errors and attempts
+    setError(null);
+    setLoadAttempts(0);
+    
+    // If we have the refresh function from auth context, use it
+    if (refreshUserData) {
+      refreshUserData().then(() => {
+        loadProfile();
+      });
+    } else {
+      loadProfile();
+    }
   };
 
   const handleBack = () => {

@@ -29,6 +29,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
   const handleRunDiagnostic = async () => {
     setIsRunningDiagnostic(true);
     try {
+      toast.info("Executando diagnóstico do perfil...");
       const results = await runAuthDiagnostics(userId || currentUser?.id);
       setDiagnosticResults(results);
       
@@ -51,9 +52,10 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
   const handleAttemptFix = async () => {
     setIsFixing(true);
     try {
-      const success = await attemptProfileFix();
+      toast.info("Tentando corrigir o perfil automaticamente...");
+      const result = await attemptProfileFix();
       
-      if (success) {
+      if (result.success) {
         if (refreshUserData) {
           await refreshUserData();
         }
@@ -81,9 +83,10 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
     
     setIsForceCreating(true);
     try {
-      const success = await forceCreateProfile(currentUser);
+      toast.info("Criando novo perfil...");
+      const result = await forceCreateProfile(currentUser);
       
-      if (success) {
+      if (result.success) {
         if (refreshUserData) {
           await refreshUserData();
         }
@@ -94,7 +97,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
         
         toast.success("Perfil criado com sucesso! Recarregando dados...");
       } else {
-        toast.error("Falha ao criar perfil. Por favor, entre em contato com o suporte.");
+        toast.error("Falha ao criar perfil: " + result.message);
       }
     } catch (error: any) {
       toast.error("Erro ao criar perfil: " + error.message);
@@ -106,6 +109,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
   const refreshProfile = async () => {
     if (refreshUserData && onRefresh) {
       try {
+        toast.info("Atualizando dados do perfil...");
         await refreshUserData();
         onRefresh();
         toast.success("Perfil atualizado!");

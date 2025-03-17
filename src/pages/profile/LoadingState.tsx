@@ -8,6 +8,7 @@ const LoadingState: React.FC = () => {
       <div className="text-center">
         <LoadingSpinner size="lg" />
         <p className="mt-4 text-white/70">Carregando dados do perfil...</p>
+        <p className="mt-2 text-sm text-white/50">Isso pode levar alguns instantes...</p>
       </div>
     </div>
   );

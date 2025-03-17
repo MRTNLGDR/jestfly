@@ -1,20 +1,22 @@
 
 import { UserProfile } from '../../../types/auth';
-import { PermissionType } from '../types';
+import { ProfileType } from '../../../integrations/supabase/schema';
 
 /**
- * Check if a user has the required permission
+ * Check if a user has a specific permission level or any from a list
  */
 export const hasPermission = (
-  userData: UserProfile | null,
-  requiredPermission: PermissionType | PermissionType[]
+  userData: UserProfile | null, 
+  requiredPermission: ProfileType | ProfileType[]
 ): boolean => {
   if (!userData) return false;
   
+  // If array of permissions, check if user has any of them
   if (Array.isArray(requiredPermission)) {
-    return requiredPermission.includes(userData.profile_type as PermissionType);
+    return requiredPermission.some(permission => userData.profile_type === permission);
   }
   
+  // Single permission check
   return userData.profile_type === requiredPermission;
 };
 
@@ -22,12 +24,12 @@ export const hasPermission = (
  * Check if a user is an admin
  */
 export const isUserAdmin = (userData: UserProfile | null): boolean => {
-  return userData?.profile_type === 'admin';
+  return hasPermission(userData, 'admin');
 };
 
 /**
  * Check if a user is an artist
  */
 export const isUserArtist = (userData: UserProfile | null): boolean => {
-  return userData?.profile_type === 'artist';
+  return hasPermission(userData, 'artist');
 };
