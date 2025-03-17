@@ -35,18 +35,12 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Skip actual authentication, just simulate success
     setIsSubmitting(true);
     
     // Simulate loading
     setTimeout(() => {
-      // Show success message
       toast.success('Login simulado com sucesso!');
-      
-      // Redirect to profile page
       navigate('/profile');
-      
       setIsSubmitting(false);
     }, 1000);
   };

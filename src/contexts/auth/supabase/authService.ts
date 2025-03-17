@@ -10,6 +10,6 @@ export const supabaseAuthService = {
   checkSessionStatus: statusService.checkSessionStatus,
   subscribeToAuthChanges: () => {
     console.warn('supabaseAuthService.subscribeToAuthChanges is a stub');
-    return () => {}; // Return unsubscribe function
+    return () => {};
   }
 };
