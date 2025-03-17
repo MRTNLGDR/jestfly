@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "../../ui/button";
 import { ArrowRight } from 'lucide-react';
 import { FormInputs } from './FormInputs';
-import { LoginFormData } from './types';
+import { LoginFormData } from '../../../types/auth';
 import { LoadingSpinner } from '../../ui/loading-spinner';
 
 interface LoginFormProps {

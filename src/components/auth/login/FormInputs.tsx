@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { FormField } from './FormField';
 import { Mail, LockKeyhole, Eye, EyeOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { LoginFormData } from './types';
+import { LoginFormData } from '../../../types/auth';
 
 interface FormInputsProps {
   formData: LoginFormData;

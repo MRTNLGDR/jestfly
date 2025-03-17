@@ -103,56 +103,35 @@ export const logoutUser = async () => {
       timestamp: new Date().toISOString()
     });
     
-    // Tentar várias vezes em caso de falha
-    let attempts = 0;
-    let success = false;
-    let lastError = null;
+    // Método correto para logout - mais seguro que manipular localStorage diretamente
+    const { error } = await supabase.auth.signOut({
+      scope: 'global' // Desloga todas as sessões, não apenas a atual
+    });
     
-    while (attempts < 3 && !success) {
-      try {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error(`Logout error (attempt ${attempts + 1}):`, error);
-          lastError = error;
-        } else {
-          success = true;
-          console.log("Logout successful");
-        }
-      } catch (e) {
-        console.error(`Exception in logout (attempt ${attempts + 1}):`, e);
-        lastError = e;
-      }
-      
-      attempts++;
-      
-      if (!success && attempts < 3) {
-        // Esperar um pouco antes de tentar novamente
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-    }
-    
-    if (!success && lastError) {
-      await logAuthDiagnostic('Logout failed after attempts', {
-        error: lastError.message,
-        attempts,
+    if (error) {
+      console.error("Logout error:", error);
+      await logAuthDiagnostic('Logout failed', {
+        error: error.message,
         timestamp: new Date().toISOString()
       });
-      throw lastError;
+      throw error;
     }
     
-    // Limpar qualquer dado de usuário armazenado localmente
-    localStorage.removeItem('supabase.auth.token');
+    console.log("Logout successful");
+    
+    // Forçar limpeza de dados no cliente
+    try {
+      // Limpar qualquer cache ou dados locais relacionados ao usuário
+      sessionStorage.clear();
+      
+      // Não é recomendado manipular diretamente o localStorage
+      // Isso é feito automaticamente pelo supabase.auth.signOut()
+    } catch (e) {
+      console.error("Error during client-side cleanup:", e);
+    }
     
     await logAuthDiagnostic('Logout successful', {
       timestamp: new Date().toISOString()
-    });
-    
-    // Limpeza de cache ajuda a resolver problemas de autenticação
-    await fetch('/api/reset-cache', { 
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    }).catch(() => {
-      // Ignore errors here, it's just a best-effort cleanup
     });
     
     return true;

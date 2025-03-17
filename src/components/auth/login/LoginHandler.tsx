@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/auth';
 import { toast } from 'sonner';
-import { LoginFormData } from './types';
+import { LoginFormData } from '../../../types/auth';
 
 interface LoginHandlerProps {
   children: (props: {
@@ -23,7 +23,7 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
-  const { login, refreshUserData, currentUser } = useAuth();
+  const { login, refreshUserData } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

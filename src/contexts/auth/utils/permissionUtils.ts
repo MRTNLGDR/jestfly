@@ -1,5 +1,5 @@
 
-import { UserProfile } from '../../../models/User';
+import { UserProfile } from '../../../types/auth';
 import { PermissionType } from '../types';
 
 /**
