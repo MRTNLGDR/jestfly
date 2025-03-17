@@ -1,46 +1,27 @@
 
 import React, { createContext, useContext } from 'react';
 import { AuthContextType } from './types';
+import { useAuthState } from './state/useAuthState';
+import { useAuthMethods } from './useAuthMethods';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Create a mock authenticated user
-  const mockUser = {
-    id: 'mock-user-id',
-    email: 'user@example.com',
-  };
-
-  // Create mock user data
-  const mockUserData = {
-    id: 'mock-user-id',
-    email: 'user@example.com',
-    username: 'user',
-    display_name: 'Demo User',
-    bio: 'This is a demo user account',
-    avatar_url: '',
-    followers_count: 0,
-    following_count: 0,
-    created_at: new Date().toISOString(),
-    profile_type: 'admin' as const,
-    is_verified: true,
-  };
-
-  // Create mock context values with no-op functions
+  // Usar o hook de estado real em vez de mock
+  const authState = useAuthState();
+  
+  // Usar os métodos reais de autenticação
+  const authMethods = useAuthMethods({
+    currentUser: authState.currentUser,
+    userData: authState.userData,
+    setUserData: authState.setUserData,
+    setError: authState.setError
+  });
+  
+  // Combinar o estado e os métodos em um único objeto de contexto
   const value: AuthContextType = {
-    currentUser: mockUser,
-    userData: mockUserData,
-    login: async () => {},
-    register: async () => {},
-    logout: async () => {},
-    resetPassword: async () => {},
-    loading: false,
-    error: null,
-    updateProfile: async () => {},
-    refreshUserData: async () => {},
-    isAdmin: true,
-    isArtist: true,
-    hasPermission: () => true
+    ...authState,
+    ...authMethods
   };
 
   return (

@@ -76,4 +76,6 @@ export interface AuthContextType {
   isAdmin: boolean;
   isArtist: boolean;
   hasPermission: (requiredPermission: ProfileType | ProfileType[]) => boolean;
+  setUserData?: React.Dispatch<React.SetStateAction<UserProfile | null>>;
+  setError?: React.Dispatch<React.SetStateAction<string | null>>;
 }

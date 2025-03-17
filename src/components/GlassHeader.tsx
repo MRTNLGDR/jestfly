@@ -24,70 +24,63 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
   const isMobile = useIsMobile();
   const location = useLocation();
   
-  // Track page changes and scrolling
   useEffect(() => {
-    // Add initial glassmorphism effect when navigating to a new page
+    // Efeito inicial de glassmorphism ao navegar
     setScrolled(true);
     
-    // Reset the effect after a delay (for animation purposes)
     const timer = setTimeout(() => {
       setScrolled(false);
     }, 1000);
     
-    // Track scrolling
+    // Monitorar o scroll
     const handleScroll = () => {
-      const isScrolled = window.scrollY > 10;
-      setScrolled(isScrolled);
+      setScrolled(window.scrollY > 10);
     };
     
     window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Verificação inicial
     
-    // Initial scroll check
-    handleScroll();
-    
-    // Cleanup
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(timer);
     };
-  }, [location.pathname]); // Re-run when the path changes
+  }, [location.pathname]);
   
-  // Close mobile menu when route changes
+  // Fechar menu mobile quando a rota muda
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
   
-  // Define glass effect classes based on scrolled state
+  // Classes de efeito de vidro com base no estado de scroll
   const glassEffect = scrolled 
     ? "bg-black/70 backdrop-blur-xl border-b border-white/20 shadow-lg transition-all duration-500" 
     : "bg-black/40 backdrop-blur-md transition-all duration-500";
-  
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
   
   return (
     <header className={`fixed top-0 left-0 w-full z-50 ${glassEffect}`}>
       <div className="max-w-[1800px] mx-auto px-3 sm:px-4 md:px-6 py-2.5 md:py-4">
         <div className="flex items-center justify-between">
-          {/* Left side - Logo and welcome text */}
+          {/* Logo e texto de boas-vindas */}
           <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-12">
             <Logo />
             {!isMobile && <WelcomeText />}
           </div>
           
-          {/* Center - Navigation (desktop only) */}
+          {/* Navegação desktop */}
           <DesktopNav menuItems={menuItems} />
           
-          {/* Right side - Controls and mobile menu toggle */}
+          {/* Controles e toggle do menu mobile */}
           <div className="flex items-center gap-1 sm:gap-2">
             <HeaderControls />
-            <MobileMenuToggle isOpen={mobileMenuOpen} onToggle={toggleMobileMenu} />
+            <MobileMenuToggle 
+              isOpen={mobileMenuOpen} 
+              onToggle={() => setMobileMenuOpen(!mobileMenuOpen)} 
+            />
           </div>
         </div>
       </div>
       
-      {/* Mobile menu */}
+      {/* Menu mobile */}
       <MobileMenu 
         isOpen={mobileMenuOpen} 
         menuItems={menuItems} 

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoginFormData } from '../../../types/auth';
 import { toast } from 'sonner';
+import { useAuth } from '../../../contexts/auth';
 
 interface LoginHandlerProps {
   children: (props: {
@@ -23,6 +24,7 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdminLogin, setIsAdminLogin] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,14 +33,12 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
 
   const toggleAdminLogin = () => {
     setIsAdminLogin(prev => !prev);
-    // Reset form data when toggling between admin and regular login
     setFormData({ email: '', password: '' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     if (!formData.email || !formData.password) {
       toast.error('Por favor, preencha todos os campos');
       return;
@@ -46,15 +46,19 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
     
     setIsSubmitting(true);
     
-    // Simulate loading
-    setTimeout(() => {
+    try {
+      await login(formData.email, formData.password);
       const destination = isAdminLogin ? '/admin' : '/profile';
       const message = isAdminLogin ? 'Login admin realizado' : 'Login realizado com sucesso!';
       
       toast.success(message);
       navigate(destination);
+    } catch (error: any) {
+      toast.error(error.message || 'Falha ao realizar login');
+      console.error('Erro no login:', error);
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (

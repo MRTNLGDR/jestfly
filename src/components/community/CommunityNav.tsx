@@ -3,15 +3,15 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Users, Calendar, Gift, Instagram, Video } from 'lucide-react';
 
-const CommunityNav: React.FC = () => {
-  const navItems = [
-    { path: '/community', label: 'Home', icon: <Users size={18} /> },
-    { path: '/community/events', label: 'Events', icon: <Calendar size={18} /> },
-    { path: '/community/giveaways', label: 'Giveaways', icon: <Gift size={18} /> },
-    { path: '/community/hub', label: 'JestFlyers Hub', icon: <Instagram size={18} /> },
-    { path: '/live-stream', label: 'Livestream', icon: <Video size={18} /> },
-  ];
+const navItems = [
+  { path: '/community', label: 'Home', icon: <Users size={18} /> },
+  { path: '/community/events', label: 'Events', icon: <Calendar size={18} /> },
+  { path: '/community/giveaways', label: 'Giveaways', icon: <Gift size={18} /> },
+  { path: '/community/hub', label: 'JestFlyers Hub', icon: <Instagram size={18} /> },
+  { path: '/live-stream', label: 'Livestream', icon: <Video size={18} /> },
+];
 
+const CommunityNav: React.FC = () => {
   return (
     <div className="backdrop-blur-md bg-black/40 border-b border-white/10 sticky top-[60px] md:top-[70px] z-10">
       <div className="container mx-auto px-2 sm:px-4">
