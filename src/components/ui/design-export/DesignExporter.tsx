@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Download, ImageIcon, FileCode, FilePlus } from 'lucide-react';
+import { Download, ImageIcon, FileCode, FilePlus, Printer, Layers, Copy } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -8,11 +8,26 @@ import html2canvas from 'html2canvas';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Tipos de formato de exportação
-type ExportFormat = 'png' | 'svg' | 'css';
+type ExportFormat = 'png' | 'svg' | 'css' | 'all';
+
+// Lista de rotas principais do JESTFLY para captura completa
+const mainRoutes = [
+  { path: '/', name: 'Home' },
+  { path: '/store', name: 'Store' },
+  { path: '/community', name: 'Community' },
+  { path: '/bookings', name: 'Bookings' },
+  { path: '/profile', name: 'Profile' },
+  { path: '/press-kit', name: 'Press Kit' },
+  { path: '/live-stream', name: 'Live Stream' },
+  { path: '/notes', name: 'Notes' }
+];
 
 const DesignExporter: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [activeTab, setActiveTab] = useState<ExportFormat>('png');
+  const [captureProgress, setCaptureProgress] = useState(0);
+  const [totalScreenshots, setTotalScreenshots] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Função para exportar a interface como imagem PNG
   const exportAsPNG = async () => {
@@ -128,6 +143,126 @@ const DesignExporter: React.FC = () => {
     }
   };
 
+  // Função para capturar todas as janelas principais
+  const captureAllScreens = async () => {
+    try {
+      setIsExporting(true);
+      setTotalScreenshots(mainRoutes.length);
+      
+      // Criar um elemento para organizar as capturas
+      const zip = document.createElement('div');
+      zip.style.display = 'none';
+      document.body.appendChild(zip);
+      
+      // Processar cada rota
+      for (let i = 0; i < mainRoutes.length; i++) {
+        const route = mainRoutes[i];
+        setCaptureProgress(i + 1);
+        
+        // Criar um iframe para carregar a página
+        const iframe = document.createElement('iframe');
+        iframe.style.width = '1920px';
+        iframe.style.height = '1080px';
+        iframe.style.position = 'absolute';
+        iframe.style.top = '-9999px';
+        iframe.style.left = '-9999px';
+        iframe.src = route.path;
+        
+        // Adicionar iframe ao DOM
+        document.body.appendChild(iframe);
+        
+        // Esperar o carregamento
+        await new Promise((resolve) => {
+          iframe.onload = resolve;
+          // Timeout de segurança
+          setTimeout(resolve, 5000);
+        });
+        
+        // Capturar como PNG
+        try {
+          const canvas = await html2canvas(iframe.contentDocument?.body || iframe.contentDocument?.documentElement || iframe, {
+            scale: 1.5,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#000',
+            windowWidth: 1920,
+            windowHeight: 1080,
+          });
+          
+          // Criar o download individual
+          const dataUrl = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = `jestfly-${route.name.toLowerCase()}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          toast.success(`Captura de ${route.name} concluída`);
+        } catch (err) {
+          console.error(`Erro ao capturar ${route.name}:`, err);
+          toast.error(`Falha ao capturar ${route.name}`);
+        }
+        
+        // Remover o iframe
+        document.body.removeChild(iframe);
+      }
+      
+      document.body.removeChild(zip);
+      toast.success('Captura de todas as janelas concluída');
+      
+    } catch (error) {
+      console.error('Erro ao capturar todas as janelas:', error);
+      toast.error('Erro ao capturar todas as janelas');
+    } finally {
+      setIsExporting(false);
+      setCaptureProgress(0);
+    }
+  };
+
+  // Função para capturar a tela atual e copiar para a área de transferência
+  const copyCurrentScreenToClipboard = async () => {
+    try {
+      setIsExporting(true);
+      
+      const appRoot = document.getElementById('root') || document.body;
+      const canvas = await html2canvas(appRoot, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+      });
+      
+      canvas.toBlob(async (blob) => {
+        if (blob) {
+          try {
+            const item = new ClipboardItem({ 'image/png': blob });
+            await navigator.clipboard.write([item]);
+            toast.success('Captura copiada para a área de transferência');
+          } catch (err) {
+            console.error('Erro ao copiar para a área de transferência:', err);
+            toast.error('Não foi possível copiar para a área de transferência');
+            
+            // Fallback - oferecer download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'jestfly-screenshot.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao capturar tela:', error);
+      toast.error('Erro ao capturar tela');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // Função para exportar o design no formato selecionado
   const exportDesign = async (format: ExportFormat) => {
     switch (format) {
@@ -139,6 +274,9 @@ const DesignExporter: React.FC = () => {
         break;
       case 'css':
         exportCSS();
+        break;
+      case 'all':
+        await captureAllScreens();
         break;
       default:
         toast.error('Formato não suportado');
@@ -167,22 +305,35 @@ const DesignExporter: React.FC = () => {
               <TabsTrigger value="png" className="flex-1">Imagem</TabsTrigger>
               <TabsTrigger value="svg" className="flex-1">SVG</TabsTrigger>
               <TabsTrigger value="css" className="flex-1">CSS</TabsTrigger>
+              <TabsTrigger value="all" className="flex-1">Todas</TabsTrigger>
             </TabsList>
             
             <TabsContent value="png" className="mt-4">
               <p className="text-xs text-muted-foreground mb-3">
                 Exporta a interface como imagem PNG de alta qualidade.
               </p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full" 
-                onClick={() => exportDesign('png')}
-                disabled={isExporting}
-              >
-                <Download className="h-3 w-3 mr-1" />
-                Exportar PNG
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-1" 
+                  onClick={() => exportDesign('png')}
+                  disabled={isExporting}
+                >
+                  <Download className="h-3 w-3 mr-1" />
+                  Exportar PNG
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex-none" 
+                  onClick={copyCurrentScreenToClipboard}
+                  disabled={isExporting}
+                  title="Copiar para área de transferência"
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
             </TabsContent>
             
             <TabsContent value="svg" className="mt-4">
@@ -215,6 +366,36 @@ const DesignExporter: React.FC = () => {
                 <FilePlus className="h-3 w-3 mr-1" />
                 Exportar CSS
               </Button>
+            </TabsContent>
+
+            <TabsContent value="all" className="mt-4">
+              <p className="text-xs text-muted-foreground mb-3">
+                Captura todas as janelas principais do JESTFLY.
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full" 
+                onClick={() => exportDesign('all')}
+                disabled={isExporting}
+              >
+                <Layers className="h-3 w-3 mr-1" />
+                Capturar todas as janelas
+              </Button>
+              
+              {captureProgress > 0 && (
+                <div className="mt-3">
+                  <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-primary rounded-full transition-all duration-300"
+                      style={{ width: `${(captureProgress / totalScreenshots) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-center mt-1 text-muted-foreground">
+                    Capturando {captureProgress} de {totalScreenshots}
+                  </p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
