@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Download, ImageIcon, FileCode, FilePlus, Printer, Layers, Copy, FileDown } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -414,7 +413,7 @@ const DesignExporter: React.FC = () => {
                 className="w-full" 
                 onClick={() => exportDesign('schema')}
               >
-                <Code className="h-3 w-3 mr-1" />
+                <FileCode className="h-3 w-3 mr-1" />
                 Acessar UI Schema Completo
               </Button>
             </TabsContent>
