@@ -7,7 +7,7 @@ import {
   DiagnosticButtons,
   DiagnosticResults
 } from './diagnostic';
-import DiagnosticController from './diagnostic/DiagnosticController';
+import useDiagnosticController from './diagnostic/DiagnosticController';
 
 interface ProfileDiagnosticProps {
   userId?: string;
@@ -16,7 +16,7 @@ interface ProfileDiagnosticProps {
 
 const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh }) => {
   const { currentUser } = useAuth();
-  const diagnosticController = DiagnosticController({ 
+  const diagnosticController = useDiagnosticController({ 
     userId: userId || currentUser?.id, 
     onRefresh 
   });

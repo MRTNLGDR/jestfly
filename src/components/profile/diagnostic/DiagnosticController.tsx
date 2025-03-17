@@ -14,7 +14,8 @@ interface DiagnosticControllerProps {
   onRefresh?: () => void;
 }
 
-const DiagnosticController = ({ userId, onRefresh }: DiagnosticControllerProps) => {
+// Changed to a custom hook with "use" prefix
+const useDiagnosticController = ({ userId, onRefresh }: DiagnosticControllerProps) => {
   const { currentUser, refreshUserData } = useAuth();
   const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false);
   const [isFixing, setIsFixing] = useState(false);
@@ -182,4 +183,4 @@ const DiagnosticController = ({ userId, onRefresh }: DiagnosticControllerProps) 
   };
 };
 
-export default DiagnosticController;
+export default useDiagnosticController;
