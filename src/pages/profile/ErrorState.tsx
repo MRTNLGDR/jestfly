@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '../../components/ui/button';
-import { Undo2, RefreshCw, AlertTriangle, LifeBuoy, Wrench } from 'lucide-react';
+import { Undo2, RefreshCw, AlertTriangle, LifeBuoy, Wrench, ShieldAlert } from 'lucide-react';
 import ProfileDiagnostic from '../../components/profile/ProfileDiagnostic';
 import { toast } from 'sonner';
 
@@ -23,13 +23,13 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   // Friendlier error messages
   const getFriendlyErrorMessage = (errorMsg: string): string => {
     if (errorMsg.includes('infinite recursion')) {
-      return 'Identificamos um problema técnico nas permissões do seu perfil. Use a ferramenta de diagnóstico abaixo para resolver automaticamente.';
+      return 'Identificamos um problema técnico nas permissões do seu perfil. Este é um erro comum e pode ser resolvido automaticamente com nossa ferramenta de diagnóstico.';
     } else if (errorMsg.includes('tempo limite') || errorMsg.includes('Timeout')) {
-      return 'O servidor demorou muito para responder. Este problema pode ser temporário ou relacionado à sua conexão. Tente novamente em alguns instantes.';
+      return 'O servidor demorou muito para responder. Este problema pode ser temporário ou relacionado à sua conexão. A ferramenta de diagnóstico também pode ajudar nestes casos.';
     } else if (errorMsg.includes('não encontrado') || errorMsg.includes('not found')) {
-      return 'Não foi possível encontrar seu perfil. Se você acabou de criar sua conta, use a ferramenta de diagnóstico abaixo para configurar seu perfil.';
+      return 'Não foi possível encontrar seu perfil. Se você acabou de criar sua conta, nossa ferramenta de diagnóstico pode configurar seu perfil automaticamente.';
     } else if (errorMsg.includes('buscar dados do usuário')) {
-      return 'Não foi possível carregar seus dados de perfil. Use a ferramenta de diagnóstico para resolver este problema automaticamente.';
+      return 'Não foi possível carregar seus dados de perfil. Nossa ferramenta de diagnóstico pode resolver este problema automaticamente na maioria dos casos.';
     } else {
       return errorMsg;
     }
@@ -52,19 +52,27 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-purple-950 pt-20 flex flex-col items-center justify-center">
       <div className="neo-blur rounded-xl border border-white/10 p-8 text-center max-w-md w-full">
-        <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+        <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 border border-red-500/20">
+          <AlertTriangle className="h-8 w-8 text-red-400" />
+        </div>
+        
         <h2 className="text-2xl font-bold text-white mb-3">Não foi possível carregar o perfil</h2>
         <p className="text-white/70 mb-6">{friendlyError}</p>
         
         {isProfileOwner ? (
           <>
             <div className="bg-yellow-500/10 p-4 rounded-md border border-yellow-500/20 mb-6">
-              <p className="text-yellow-300 text-sm">
-                {userId ? 
-                  "Use a ferramenta de diagnóstico abaixo para resolver problemas com seu perfil automaticamente." :
-                  "Se for a primeira vez que você acessa seu perfil, talvez precise inicializá-lo. Use a ferramenta de diagnóstico abaixo para configurar seu perfil."
-                }
-              </p>
+              <div className="flex items-start gap-2">
+                <ShieldAlert className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                <div className="text-left">
+                  <p className="text-yellow-300 text-sm">
+                    {userId ? 
+                      "Nossa ferramenta de diagnóstico pode resolver este problema automaticamente na maioria dos casos." :
+                      "Se for a primeira vez que você acessa seu perfil, nossa ferramenta de diagnóstico pode inicializá-lo corretamente."
+                    }
+                  </p>
+                </div>
+              </div>
             </div>
             
             <Button 
