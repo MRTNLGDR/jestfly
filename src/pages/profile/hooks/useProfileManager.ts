@@ -23,21 +23,21 @@ export const useProfileManager = (
     setError(null);
     
     try {
-      console.log("Loading profile with userId:", userId, "currentUser:", currentUser?.id);
+      console.log("Carregando perfil com userId:", userId, "currentUser:", currentUser?.id);
       
-      // If there's no userId in the parameter, use the current user's ID
+      // Se não houver userId no parâmetro, use o ID do usuário atual
       const targetUserId = userId || currentUser?.id;
       
       if (!targetUserId) {
-        console.log("No target user ID found");
+        console.log("Nenhum ID de usuário alvo encontrado");
         setError('Usuário não encontrado');
         setIsLoading(false);
         return;
       }
       
-      // If this is a retry and we haven't attempted auto-repair yet, try it
+      // Se for uma repetição e ainda não tentamos reparo automático, tente
       if (loadAttempts > 1 && !autoRepairAttempted && targetUserId === currentUser?.id) {
-        console.log("Attempting automatic profile repair during load");
+        console.log("Tentando reparo automático de perfil durante carregamento");
         setAutoRepairAttempted(true);
         
         try {
@@ -45,32 +45,32 @@ export const useProfileManager = (
           if (repairResult.success) {
             toast.success("Perfil reparado automaticamente!");
           } else {
-            console.warn("Auto-repair unsuccessful:", repairResult.message);
+            console.warn("Reparo automático mal-sucedido:", repairResult.message);
           }
         } catch (repairError) {
-          console.error("Error during auto-repair:", repairError);
+          console.error("Erro durante reparo automático:", repairError);
         }
       }
       
-      // Implement timeout to avoid infinite waiting
+      // Implementar timeout para evitar espera infinita
       const fetchPromise = fetchUserProfile(targetUserId);
       const timeoutPromise = new Promise<null>((_, reject) => {
-        setTimeout(() => reject(new Error("Tempo limite excedido ao carregar perfil")), 15000);
+        setTimeout(() => reject(new Error("Tempo limite excedido ao carregar perfil")), 10000);
       });
       
-      // Race between fetch and timeout
+      // Race entre busca e timeout
       const profileData = await Promise.race([fetchPromise, timeoutPromise])
         .catch(error => {
-          console.error("Profile fetch error:", error);
+          console.error("Erro na busca de perfil:", error);
           
-          // Check for specific errors that require special handling
+          // Verificar erros específicos que requerem tratamento especial
           const errorMsg = error?.message || String(error);
           
-          // If error is related to infinite recursion, log for diagnostics
+          // Se o erro estiver relacionado a recursão infinita, registre para diagnóstico
           if (errorMsg.includes('infinite recursion')) {
-            console.error("Infinite recursion detected in profile fetch:", error);
+            console.error("Recursão infinita detectada na busca de perfil:", error);
             
-            // Try to repair profile if this is the current user
+            // Tentar reparar perfil se este for o usuário atual
             if (currentUser && targetUserId === currentUser.id && !autoRepairAttempted) {
               setAutoRepairAttempted(true);
               toast.info("Problema detectado com seu perfil. Tentando reparar automaticamente...");
@@ -79,7 +79,7 @@ export const useProfileManager = (
                 .then(result => {
                   if (result.success) {
                     toast.success("Perfil reparado com sucesso!");
-                    // Try to fetch profile again after repair
+                    // Tentar buscar perfil novamente após reparo
                     return fetchUserProfile(targetUserId);
                   }
                   return null;
@@ -88,15 +88,15 @@ export const useProfileManager = (
             }
           }
           
-          // If error is related to profile not existing and it's the current user,
-          // attempt to create profile automatically
+          // Se o erro estiver relacionado a perfil inexistente e for o usuário atual,
+          // tentar criar perfil automaticamente
           if (currentUser && targetUserId === currentUser.id) {
             toast.info("Tentando criar perfil automaticamente...");
             return forceCreateProfile(currentUser)
               .then(result => {
                 if (result.success) {
                   toast.success("Perfil criado com sucesso!");
-                  // If profile creation succeeded, try to fetch it again
+                  // Se a criação do perfil for bem-sucedida, tentar buscá-lo novamente
                   return fetchUserProfile(targetUserId);
                 }
                 return null;
@@ -107,10 +107,10 @@ export const useProfileManager = (
           return null;
         });
       
-      console.log("Profile data received:", profileData);
+      console.log("Dados do perfil recebidos:", profileData);
       
       if (!profileData) {
-        console.log("No profile data found");
+        console.log("Nenhum dado de perfil encontrado");
         setError('Erro ao buscar dados do usuário. Tente novamente mais tarde.');
         setIsLoading(false);
         return;
@@ -118,7 +118,7 @@ export const useProfileManager = (
       
       setProfile(profileData);
       
-      // Check if this is the current user's profile
+      // Verificar se este é o perfil do usuário atual
       setIsCurrentUser(
         !!(currentUser && currentUser.id === profileData.id)
       );
@@ -131,12 +131,12 @@ export const useProfileManager = (
   };
 
   const handleRefresh = () => {
-    // Clear previous errors and attempts
+    // Limpar erros e tentativas anteriores
     setError(null);
     setLoadAttempts(0);
     setAutoRepairAttempted(false);
     
-    // If we have the refresh function from auth context, use it
+    // Se tivermos a função de atualização do contexto de autenticação, use-a
     if (refreshUserData) {
       refreshUserData().then(() => {
         loadProfile();
@@ -146,24 +146,24 @@ export const useProfileManager = (
     }
   };
 
-  // Load profile on mount
+  // Carregar perfil na montagem
   useEffect(() => {
     if (currentUser || userId) {
       loadProfile();
     } else {
-      // If we don't have a user or userId, we can't load a profile
+      // Se não tivermos um usuário ou userId, não podemos carregar um perfil
       setIsLoading(false);
       setError('Faça login para ver seu perfil');
     }
   }, [userId, currentUser]);
 
-  // Add retry logic if profile fails to load, with progressive backoff
+  // Adicionar lógica de repetição se o perfil falhar ao carregar, com backoff progressivo
   useEffect(() => {
     if (error && loadAttempts < 3 && (currentUser || userId)) {
-      const backoffTime = Math.min(2000 * Math.pow(2, loadAttempts), 15000); // Exponential backoff with max 15s
+      const backoffTime = Math.min(2000 * Math.pow(2, loadAttempts), 15000); // Backoff exponencial com máximo 15s
       
       const timer = setTimeout(() => {
-        console.log(`Automatic retry attempt ${loadAttempts + 1} to load profile (backoff: ${backoffTime}ms)`);
+        console.log(`Tentativa automática ${loadAttempts + 1} de carregar perfil (backoff: ${backoffTime}ms)`);
         setLoadAttempts(prev => prev + 1);
         loadProfile();
       }, backoffTime);

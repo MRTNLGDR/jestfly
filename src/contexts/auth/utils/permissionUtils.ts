@@ -3,7 +3,7 @@ import { UserProfile } from '../../../types/auth';
 import { ProfileType } from '../../../integrations/supabase/schema';
 
 /**
- * Check if a user has a specific permission level or any from a list
+ * Verifica se um usuário possui um nível específico de permissão ou qualquer das listadas
  */
 export const hasPermission = (
   userData: UserProfile | null, 
@@ -11,25 +11,39 @@ export const hasPermission = (
 ): boolean => {
   if (!userData) return false;
   
-  // If array of permissions, check if user has any of them
+  // Se for um array de permissões, verifica se o usuário tem qualquer uma delas
   if (Array.isArray(requiredPermission)) {
     return requiredPermission.some(permission => userData.profile_type === permission);
   }
   
-  // Single permission check
+  // Verificação de permissão única
   return userData.profile_type === requiredPermission;
 };
 
 /**
- * Check if a user is an admin
+ * Verifica se um usuário é administrador
  */
 export const isUserAdmin = (userData: UserProfile | null): boolean => {
   return hasPermission(userData, 'admin');
 };
 
 /**
- * Check if a user is an artist
+ * Verifica se um usuário é artista
  */
 export const isUserArtist = (userData: UserProfile | null): boolean => {
   return hasPermission(userData, 'artist');
+};
+
+/**
+ * Verifica se um usuário é colaborador
+ */
+export const isUserCollaborator = (userData: UserProfile | null): boolean => {
+  return hasPermission(userData, 'collaborator');
+};
+
+/**
+ * Verifica se um usuário é fã (usuário regular)
+ */
+export const isUserFan = (userData: UserProfile | null): boolean => {
+  return hasPermission(userData, 'fan');
 };

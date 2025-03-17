@@ -1,15 +1,15 @@
 
 import { supabase } from '../../../integrations/supabase/client';
-import { UserProfile } from '../../../models/User';
+import { UserProfile } from '../../../types/auth';
 import { toast } from 'sonner';
 import { ProfileType } from '../../../integrations/supabase/schema';
 
 /**
- * Updates a user's profile data
+ * Atualiza os dados do perfil de um usuário
  */
 export const updateUserProfile = async (userId: string, data: Partial<UserProfile>) => {
   try {
-    console.log("Updating profile for user:", userId);
+    console.log("Atualizando perfil para usuário:", userId);
     const { error } = await supabase
       .from('profiles')
       .update({
@@ -19,11 +19,11 @@ export const updateUserProfile = async (userId: string, data: Partial<UserProfil
       .eq('id', userId);
     
     if (error) {
-      console.error("Update profile error:", error);
+      console.error("Erro na atualização do perfil:", error);
       throw error;
     }
     
-    console.log("Profile updated successfully");
+    console.log("Perfil atualizado com sucesso");
     toast.success('Perfil atualizado com sucesso');
   } catch (error: any) {
     console.error('Erro ao atualizar perfil:', error);
@@ -32,11 +32,11 @@ export const updateUserProfile = async (userId: string, data: Partial<UserProfil
 };
 
 /**
- * Fetches a user's profile data
+ * Busca os dados do perfil de um usuário
  */
 export const fetchUserData = async (userId: string): Promise<UserProfile | null> => {
   try {
-    console.log("Fetching user data for:", userId);
+    console.log("Buscando dados do usuário:", userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -44,19 +44,20 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
       .single();
     
     if (error) {
+      // Tratar erro específico para perfil não encontrado
       if (error.code === 'PGRST116') {
-        console.warn("No profile found for user:", userId);
+        console.warn("Nenhum perfil encontrado para usuário:", userId);
         return null;
       }
-      console.error("Error fetching user data:", error);
+      console.error("Erro ao buscar dados do usuário:", error);
       throw error;
     }
     
-    console.log("User data received:", data ? "success" : "not found");
+    console.log("Dados do usuário recebidos:", data ? "sucesso" : "não encontrado");
     
     if (data) {
       // Buscar contagens de seguidores e seguindo
-      console.log("Fetching followers/following counts");
+      console.log("Buscando contagens de seguidores/seguindo");
       
       let followersCount = 0;
       let followingCount = 0;
@@ -87,7 +88,7 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
         console.error('Exceção ao buscar seguindo:', followingErr);
       }
       
-      // Cast safely to ensure correct types
+      // Cast seguro para garantir tipos corretos
       const profileType = (data.profile_type as ProfileType) || 'fan';
       
       // Fazendo cast seguro para UserProfile com valores padrão para os campos necessários
@@ -96,7 +97,7 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
         followers_count: followersCount,
         following_count: followingCount,
         is_verified: data.is_verified || false,
-        avatar_url: data.avatar || '',  // Map the database 'avatar' field to 'avatar_url'
+        avatar_url: data.avatar || '',  // Mapear o campo 'avatar' do banco para 'avatar_url'
         // Garantir que social_links seja do tipo correto
         social_links: data.social_links as UserProfile['social_links'] || {},
         // Convertendo o tipo preferences para o formato esperado
@@ -109,11 +110,11 @@ export const fetchUserData = async (userId: string): Promise<UserProfile | null>
         profile_type: profileType
       };
       
-      console.log("User profile prepared:", userProfile.display_name);
+      console.log("Perfil de usuário preparado:", userProfile.display_name);
       return userProfile;
     }
     
-    console.log("No user data found for:", userId);
+    console.log("Nenhum dado de usuário encontrado para:", userId);
     return null;
   } catch (error) {
     console.error("Erro ao buscar dados do usuário:", error);

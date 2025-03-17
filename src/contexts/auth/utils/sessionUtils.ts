@@ -1,13 +1,13 @@
 
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../../../integrations/supabase/client';
-import { UserProfile } from '../../../models/User';
-import { fetchUserData } from '../methods';
+import { UserProfile } from '../../../types/auth';
+import { fetchUserData } from '../methods/profileMethods';
 import { toast } from 'sonner';
 import { logAuthDiagnostic } from './diagnosticUtils';
 
 /**
- * Refreshes the user session and profile data
+ * Atualiza a sessão do usuário e dados do perfil
  */
 export const refreshUserSession = async (
   currentUser: User | null
@@ -17,18 +17,18 @@ export const refreshUserSession = async (
   error: string | null;
 }> => {
   if (!currentUser) {
-    console.warn("Cannot refresh user data: No current user");
+    console.warn("Não é possível atualizar dados: Nenhum usuário atual");
     return { user: null, profile: null, error: null };
   }
   
   try {
-    console.log("Refreshing user data for:", currentUser.id);
+    console.log("Atualizando dados do usuário para:", currentUser.id);
     
-    // First refresh the session to ensure we have the latest token
+    // Primeiro atualizar a sessão para garantir que temos o token mais recente
     const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
     
     if (sessionError) {
-      console.error("Session refresh failed:", sessionError);
+      console.error("Falha na atualização da sessão:", sessionError);
       
       // Verificar se é um erro de timeout e fornecer uma mensagem mais clara
       if (sessionError.message.includes('timeout') || sessionError.message.includes('network')) {
@@ -41,23 +41,23 @@ export const refreshUserSession = async (
     }
     
     if (!sessionData.session) {
-      console.warn("No session after refresh");
-      return { user: null, profile: null, error: "No session after refresh" };
+      console.warn("Nenhuma sessão após atualização");
+      return { user: null, profile: null, error: "Nenhuma sessão após atualização" };
     }
     
     const refreshedUser = sessionData.session.user;
     
-    // Now get the latest user profile data with a longer timeout
+    // Agora obter os dados mais recentes do perfil do usuário com um timeout maior
     const fetchPromise = fetchUserData(refreshedUser.id);
     const timeoutPromise = new Promise<null>((_, reject) => {
-      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados do perfil")), 30000); // Aumentado para 30 segundos
+      setTimeout(() => reject(new Error("Tempo limite excedido ao buscar dados do perfil")), 10000);
     });
     
-    // Race between fetch and timeout
+    // Race entre busca e timeout
     const refreshedData = await Promise.race([fetchPromise, timeoutPromise])
       .catch(error => {
-        console.error("Fetch profile timeout:", error);
-        logAuthDiagnostic('Profile fetch timeout during refresh', {
+        console.error("Timeout na busca de perfil:", error);
+        logAuthDiagnostic('Timeout na busca de perfil durante atualização', {
           user_id: refreshedUser.id,
           timestamp: new Date().toISOString()
         });
@@ -65,12 +65,12 @@ export const refreshUserSession = async (
       });
     
     if (refreshedData) {
-      console.log("User data refreshed successfully:", refreshedData.display_name);
+      console.log("Dados do usuário atualizados com sucesso:", refreshedData.display_name);
       return { user: refreshedUser, profile: refreshedData as UserProfile, error: null };
     } else {
-      console.warn("Failed to refresh user data - no data returned from fetchUserData");
+      console.warn("Falha ao atualizar dados do usuário - nenhum dado retornado de fetchUserData");
       
-      // Attempt profile creation/fix automatically
+      // Tentar criação/correção de perfil automaticamente
       const { error: insertError } = await supabase
         .from('profiles')
         .upsert({
@@ -86,12 +86,12 @@ export const refreshUserSession = async (
         }, { onConflict: 'id' });
       
       if (insertError) {
-        console.error("Error auto-creating profile during refresh:", insertError);
+        console.error("Erro na criação automática de perfil durante atualização:", insertError);
         toast.error("Não foi possível recuperar seu perfil. Tente novamente ou entre em contato com o suporte.");
         return { user: refreshedUser, profile: null, error: "Perfil de usuário não encontrado" };
       }
       
-      // Try fetching again after auto-creation
+      // Tentar buscar novamente após criação automática
       try {
         const newData = await fetchUserData(refreshedUser.id);
         if (newData) {
@@ -99,14 +99,14 @@ export const refreshUserSession = async (
           return { user: refreshedUser, profile: newData as UserProfile, error: null };
         }
       } catch (err) {
-        console.error("Error fetching profile after auto-creation:", err);
+        console.error("Erro ao buscar perfil após criação automática:", err);
       }
       
-      // If we still couldn't load, show error
+      // Se ainda não conseguimos carregar, mostrar erro
       toast.error("Dados do usuário não encontrados. Tente novamente ou entre em contato com o suporte.");
       
-      // Log diagnostic information
-      await logAuthDiagnostic('No user profile found during refresh', {
+      // Registrar informações de diagnóstico
+      await logAuthDiagnostic('Nenhum perfil de usuário encontrado durante atualização', {
         user_id: refreshedUser.id,
         timestamp: new Date().toISOString()
       });
@@ -114,7 +114,7 @@ export const refreshUserSession = async (
       return { user: refreshedUser, profile: null, error: "Perfil de usuário não encontrado" };
     }
   } catch (err: any) {
-    console.error("Error refreshing user data:", err);
+    console.error("Erro ao atualizar dados do usuário:", err);
     toast.error("Não foi possível atualizar os dados do usuário. Tente novamente mais tarde.");
     return { user: null, profile: null, error: err.message };
   }

@@ -359,6 +359,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_profile_type: {
+        Args: {
+          user_id: string
+        }
+        Returns: string
+      }
       increment_comment_count: {
         Args: {
           post_id: string
@@ -370,6 +376,12 @@ export type Database = {
           post_id: string
         }
         Returns: undefined
+      }
+      is_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
       }
       log_auth_diagnostic: {
         Args: {

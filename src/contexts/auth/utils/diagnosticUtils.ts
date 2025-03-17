@@ -1,49 +1,68 @@
 
 import { supabase } from '../../../integrations/supabase/client';
-import { toast } from 'sonner';
 
 /**
- * Logs diagnostic information to Supabase for auth-related issues
+ * Registra diagnósticos de autenticação para fins de depuração
  */
-export const logAuthDiagnostic = async (
-  message: string, 
-  metadata: Record<string, any>
-): Promise<void> => {
+export const logAuthDiagnostic = async (message: string, metadata: any = {}) => {
   try {
-    const { error } = await supabase
-      .from('diagnostic_logs')
-      .insert({
-        message,
-        metadata: {
-          ...metadata,
-          timestamp: new Date().toISOString(),
-          client_info: {
-            user_agent: navigator.userAgent,
-            language: navigator.language,
-            platform: navigator.platform
-          }
-        }
-      });
+    console.log(`[Auth Diagnostic] ${message}`, metadata);
+    
+    // Registrar diagnóstico no banco de dados se possível
+    const { error } = await supabase.rpc('log_auth_diagnostic', {
+      message,
+      metadata
+    });
     
     if (error) {
-      console.error("Failed to log diagnostic:", error);
-      
-      // Em caso de erro de permissão, tente sem RLS usando uma função RPC
-      if (error.message.includes('policy') || error.message.includes('permission')) {
-        try {
-          await supabase.rpc('log_auth_diagnostic', {
-            message,
-            metadata: {
-              ...metadata,
-              timestamp: new Date().toISOString()
-            }
-          });
-        } catch (rpcError) {
-          console.error("Failed to log diagnostic via RPC:", rpcError);
-        }
-      }
+      console.error('Erro ao registrar diagnóstico:', error);
     }
-  } catch (logError) {
-    console.error("Exception logging diagnostic:", logError);
+    
+    return true;
+  } catch (err) {
+    console.error('Erro ao registrar diagnóstico:', err);
+    return false;
+  }
+};
+
+/**
+ * Verifica a conectividade com a autenticação Supabase
+ */
+export const checkAuthConnectivity = async () => {
+  try {
+    // Verifica se pode acessar a sessão atual
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      return {
+        success: false,
+        message: 'Erro ao verificar sessão',
+        error: sessionError.message
+      };
+    }
+    
+    // Verifica se pode acessar o usuário atual
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      return {
+        success: false,
+        message: 'Erro ao verificar usuário',
+        error: userError.message
+      };
+    }
+    
+    return {
+      success: true,
+      message: 'Conectividade com autenticação OK',
+      session: sessionData?.session ? true : false,
+      user: userData?.user ? true : false
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: 'Exceção ao verificar conectividade com autenticação',
+      error: err.message
+    };
   }
 };

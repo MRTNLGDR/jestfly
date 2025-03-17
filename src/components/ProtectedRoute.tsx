@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
-import { PermissionType } from '../contexts/auth/types';
+import { ProfileType } from '../types/auth';
 import { Skeleton } from './ui/skeleton';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
@@ -11,7 +11,7 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAuth?: boolean;
-  requiredRoles?: PermissionType[];
+  requiredRoles?: ProfileType[];
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
@@ -32,28 +32,28 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [error]);
   
-  // Limit loading time to prevent infinite loading
+  // Limitar tempo de carregamento para evitar carregamento infinito
   useEffect(() => {
     if (!loading) {
       setLocalLoading(false);
       return;
     }
     
-    // Set a timeout to stop loading after 15 seconds
+    // Definir um timeout para parar o carregamento após 10 segundos
     const timeout = setTimeout(() => {
-      console.log("Protected route loading timeout reached");
+      console.log("Timeout de carregamento da rota protegida atingido");
       setLocalLoading(false);
       toast.error("Tempo limite excedido ao verificar autenticação");
-    }, 15000);
+    }, 10000);
     
     return () => clearTimeout(timeout);
   }, [loading]);
   
-  // Auto retry logic
+  // Lógica de nova tentativa automática
   useEffect(() => {
     if (!loading && error && loadAttempts < 3) {
       const retryTimeout = setTimeout(() => {
-        console.log(`Auto retry attempt ${loadAttempts + 1}`);
+        console.log(`Tentativa automática ${loadAttempts + 1}`);
         setLoadAttempts(prev => prev + 1);
         setLocalLoading(true);
         refreshUserData();
@@ -79,7 +79,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   };
 
-  // If still in initial loading, show skeleton
+  // Se ainda estiver no carregamento inicial, mostrar esqueleto
   if (localLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-black to-purple-950">
@@ -129,7 +129,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Se autenticação é requerida mas o usuário não está logado
   if (requireAuth && !currentUser) {
-    console.log("Auth required but user not logged in, redirecting to login");
+    console.log("Autenticação requerida mas usuário não está logado, redirecionando para login");
     toast.error("Faça login para acessar esta página");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -138,14 +138,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (requireAuth && requiredRoles.length > 0) {
     // Verificar primeiro se temos dados do usuário
     if (!userData) {
-      console.error("User is authenticated but userData is missing");
+      console.error("Usuário está autenticado mas userData está ausente");
       toast.error("Dados do usuário não disponíveis. Tente fazer login novamente.");
       return <Navigate to="/login" state={{ from: location }} replace />;
     }
     
     // Agora verificar permissões
     if (!hasPermission(requiredRoles)) {
-      console.log("User doesn't have required permissions, redirecting to unauthorized");
+      console.log("Usuário não tem as permissões necessárias, redirecionando para não autorizado");
       toast.error("Você não tem permissão para acessar esta página");
       return <Navigate to="/unauthorized" replace />;
     }
@@ -153,10 +153,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Se o usuário já está logado e tenta acessar páginas de login/registro
   if (!requireAuth && currentUser) {
-    console.log("User already logged in, redirecting to profile");
+    console.log("Usuário já está logado, redirecionando para perfil");
     return <Navigate to="/profile" replace />;
   }
 
-  console.log("Protected route rendering children");
+  console.log("Rota protegida renderizando filhos");
   return <>{children}</>;
 };
