@@ -8,7 +8,13 @@ import NotFoundState from './NotFoundState';
 import ProfileDisplay from './ProfileDisplay';
 import { useProfileManager } from './hooks/useProfileManager';
 
-const ProfilePageContainer: React.FC = () => {
+interface ProfilePageContainerProps {
+  defaultTab?: 'overview' | 'resources' | 'settings';
+}
+
+const ProfilePageContainer: React.FC<ProfilePageContainerProps> = ({ 
+  defaultTab = 'overview' 
+}) => {
   const { userId } = useParams<{ userId: string }>();
   const { currentUser, refreshUserData } = useAuth();
   const navigate = useNavigate();
@@ -53,6 +59,7 @@ const ProfilePageContainer: React.FC = () => {
       profile={profile}
       isCurrentUser={isCurrentUser}
       onBack={handleBack}
+      defaultTab={defaultTab}
     />
   );
 };

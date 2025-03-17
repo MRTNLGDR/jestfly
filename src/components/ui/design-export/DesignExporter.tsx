@@ -280,7 +280,8 @@ const DesignExporter: React.FC = () => {
         await captureAllScreens();
         break;
       case 'schema':
-        // Handled by the SchemaExporter component
+        // Redirecionar para a página de recursos com a aba UI Schema
+        window.location.href = '/profile/resources';
         break;
       default:
         toast.error('Formato não suportado');
@@ -407,7 +408,15 @@ const DesignExporter: React.FC = () => {
               <p className="text-xs text-muted-foreground mb-3">
                 Exporta o schema UI/UX completo do JESTFLY, incluindo cores, tipografia, componentes e layout.
               </p>
-              <SchemaExporter />
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full" 
+                onClick={() => exportDesign('schema')}
+              >
+                <Code className="h-3 w-3 mr-1" />
+                Acessar UI Schema Completo
+              </Button>
             </TabsContent>
           </Tabs>
         </div>
