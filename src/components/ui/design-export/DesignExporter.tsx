@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Download, ImageIcon, FileCode, FilePlus, Printer, Layers, Copy, FileDown } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -280,7 +281,7 @@ const DesignExporter: React.FC = () => {
         break;
       case 'schema':
         // Redirecionar para a página de recursos com a aba UI Schema
-        window.location.href = '/profile/resources';
+        window.location.href = '/resources';
         break;
       default:
         toast.error('Formato não suportado');

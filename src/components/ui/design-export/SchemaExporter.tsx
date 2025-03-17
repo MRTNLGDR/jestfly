@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, FileDown } from 'lucide-react';
+import { FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Tipos de elementos UI para exportação
