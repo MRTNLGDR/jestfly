@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '../../components/ui/button';
-import { Undo2, RefreshCw, AlertTriangle, LifeBuoy } from 'lucide-react';
+import { Undo2, RefreshCw, AlertTriangle, LifeBuoy, Wrench } from 'lucide-react';
 import ProfileDiagnostic from '../../components/profile/ProfileDiagnostic';
 import { toast } from 'sonner';
 
@@ -23,11 +23,13 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   // Friendlier error messages
   const getFriendlyErrorMessage = (errorMsg: string): string => {
     if (errorMsg.includes('infinite recursion')) {
-      return 'Encontramos um problema técnico ao carregar seu perfil. Nossa ferramenta de diagnóstico abaixo pode ajudar a resolver isso automaticamente.';
+      return 'Identificamos um problema técnico nas permissões do seu perfil. Use a ferramenta de diagnóstico abaixo para resolver automaticamente.';
     } else if (errorMsg.includes('tempo limite') || errorMsg.includes('Timeout')) {
       return 'O servidor demorou muito para responder. Este problema pode ser temporário ou relacionado à sua conexão. Tente novamente em alguns instantes.';
     } else if (errorMsg.includes('não encontrado') || errorMsg.includes('not found')) {
-      return 'Não foi possível encontrar os dados do perfil solicitado. Se você acabou de criar sua conta, use a ferramenta de diagnóstico abaixo para configurar seu perfil.';
+      return 'Não foi possível encontrar seu perfil. Se você acabou de criar sua conta, use a ferramenta de diagnóstico abaixo para configurar seu perfil.';
+    } else if (errorMsg.includes('buscar dados do usuário')) {
+      return 'Não foi possível carregar seus dados de perfil. Use a ferramenta de diagnóstico para resolver este problema automaticamente.';
     } else {
       return errorMsg;
     }
@@ -39,6 +41,12 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   const handleContactSupport = () => {
     toast.info("Funcionalidade de suporte será disponibilizada em breve!");
     // Aqui poderíamos implementar um formulário de contato ou abrir um sistema de tickets
+  };
+
+  const handleForceRepair = () => {
+    toast.info("Iniciando reparação automática do perfil...");
+    // Em vez de apenas exibir um toast, faça algo útil
+    onRefresh();
   };
 
   return (
@@ -58,6 +66,14 @@ const ErrorState: React.FC<ErrorStateProps> = ({
                 }
               </p>
             </div>
+            
+            <Button 
+              onClick={handleForceRepair}
+              className="flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md w-full mb-4"
+            >
+              <Wrench className="mr-2 h-4 w-4" />
+              Reparar Perfil Automaticamente
+            </Button>
             
             <ProfileDiagnostic userId={userId || currentUserId} onRefresh={onRefresh} />
             

@@ -2,14 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchUserProfile } from '../services/profileService';
-import { UserProfile } from '../types/auth';
+import { UserProfile } from '../models/User';
 import { useAuth } from '../contexts/auth';
 import { toast } from 'sonner';
 import LoadingState from './profile/LoadingState';
 import ErrorState from './profile/ErrorState';
 import NotFoundState from './profile/NotFoundState';
 import ProfileDisplay from './profile/ProfileDisplay';
-import { forceCreateProfile } from '../services/diagnostic/profileRepair';
+import { forceCreateProfile, attemptProfileFix } from '../services/diagnostic/profileRepair';
 
 const ProfilePage: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -20,6 +20,7 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loadAttempts, setLoadAttempts] = useState(0);
+  const [autoRepairAttempted, setAutoRepairAttempted] = useState(false);
 
   const loadProfile = async () => {
     setIsLoading(true);
@@ -38,6 +39,23 @@ const ProfilePage: React.FC = () => {
         return;
       }
       
+      // If this is a retry and we haven't attempted auto-repair yet, try it
+      if (loadAttempts > 1 && !autoRepairAttempted && targetUserId === currentUser?.id) {
+        console.log("Attempting automatic profile repair during load");
+        setAutoRepairAttempted(true);
+        
+        try {
+          const repairResult = await attemptProfileFix();
+          if (repairResult.success) {
+            toast.success("Perfil reparado automaticamente!");
+          } else {
+            console.warn("Auto-repair unsuccessful:", repairResult.message);
+          }
+        } catch (repairError) {
+          console.error("Error during auto-repair:", repairError);
+        }
+      }
+      
       // Implement timeout to avoid infinite waiting
       const fetchPromise = fetchUserProfile(targetUserId);
       const timeoutPromise = new Promise<null>((_, reject) => {
@@ -47,7 +65,7 @@ const ProfilePage: React.FC = () => {
       // Race between fetch and timeout
       const profileData = await Promise.race([fetchPromise, timeoutPromise])
         .catch(error => {
-          console.error("Profile fetch timeout:", error);
+          console.error("Profile fetch error:", error);
           
           // Check for specific errors that require special handling
           const errorMsg = error?.message || String(error);
@@ -55,6 +73,23 @@ const ProfilePage: React.FC = () => {
           // If error is related to infinite recursion, log for diagnostics
           if (errorMsg.includes('infinite recursion')) {
             console.error("Infinite recursion detected in profile fetch:", error);
+            
+            // Try to repair profile if this is the current user
+            if (currentUser && targetUserId === currentUser.id && !autoRepairAttempted) {
+              setAutoRepairAttempted(true);
+              toast.info("Problema detectado com seu perfil. Tentando reparar automaticamente...");
+              
+              return attemptProfileFix()
+                .then(result => {
+                  if (result.success) {
+                    toast.success("Perfil reparado com sucesso!");
+                    // Try to fetch profile again after repair
+                    return fetchUserProfile(targetUserId);
+                  }
+                  return null;
+                })
+                .catch(() => null);
+            }
           }
           
           // If error is related to profile not existing and it's the current user,
@@ -64,6 +99,7 @@ const ProfilePage: React.FC = () => {
             return forceCreateProfile(currentUser)
               .then(result => {
                 if (result.success) {
+                  toast.success("Perfil criado com sucesso!");
                   // If profile creation succeeded, try to fetch it again
                   return fetchUserProfile(targetUserId);
                 }
@@ -79,7 +115,7 @@ const ProfilePage: React.FC = () => {
       
       if (!profileData) {
         console.log("No profile data found");
-        setError('Perfil não encontrado ou tempo limite excedido');
+        setError('Erro ao buscar dados do usuário. Tente novamente mais tarde.');
         setIsLoading(false);
         return;
       }
@@ -92,7 +128,7 @@ const ProfilePage: React.FC = () => {
       );
     } catch (error: any) {
       console.error('Erro ao carregar perfil:', error);
-      setError(`Erro ao carregar perfil: ${error.message}`);
+      setError(`Erro ao buscar dados do usuário: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -127,6 +163,7 @@ const ProfilePage: React.FC = () => {
     // Clear previous errors and attempts
     setError(null);
     setLoadAttempts(0);
+    setAutoRepairAttempted(false);
     
     // If we have the refresh function from auth context, use it
     if (refreshUserData) {
@@ -143,7 +180,7 @@ const ProfilePage: React.FC = () => {
   };
 
   if (isLoading) {
-    return <LoadingState />;
+    return <LoadingState onRetry={handleRefresh} />;
   }
 
   if (error) {

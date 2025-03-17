@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { 
   runAuthDiagnostics, 
   attemptProfileFix, 
-  forceCreateProfile 
+  forceCreateProfile,
+  diagnoseAndRepairProfile
 } from '../../services/diagnostic';
 import { useAuth } from '../../contexts/auth';
 import { toast } from 'sonner';
@@ -41,7 +42,7 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
           // Se encontramos o usuário mas há erro de recursão, tente corrigir automaticamente
           if (results.policy_recursion_detected) {
             toast.warning("Detectado problema de políticas de acesso. Tentando corrigir automaticamente...");
-            handleAttemptFix();
+            await handleAttemptFix();
           }
         } else {
           toast.warning("Diagnóstico concluído: Perfil não encontrado no banco de dados");
@@ -50,16 +51,55 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
           if (currentUser && !autoFixAttempted) {
             toast.info("Tentando criar perfil automaticamente...");
             setAutoFixAttempted(true);
-            handleForceCreateProfile();
+            await handleForceCreateProfile();
           }
         }
       } else {
-        toast.error("Falha no diagnóstico: " + results.error);
+        // Tentar diagnóstico e reparo completo
+        toast.warning("Falha no diagnóstico básico. Tentando diagnóstico avançado e reparo...");
+        await handleFullDiagnostic();
       }
     } catch (error: any) {
       toast.error("Erro ao executar diagnóstico: " + error.message);
+      
+      // Mesmo em caso de erro, tentar reparo automático
+      if (!autoFixAttempted && currentUser) {
+        toast.info("Tentando reparo de emergência...");
+        setAutoFixAttempted(true);
+        await handleAttemptFix();
+      }
     } finally {
       setIsRunningDiagnostic(false);
+    }
+  };
+
+  const handleFullDiagnostic = async () => {
+    try {
+      toast.info("Executando diagnóstico e reparo completo...");
+      
+      const targetId = userId || currentUser?.id;
+      if (!targetId) {
+        toast.error("ID de usuário não disponível para diagnóstico completo");
+        return;
+      }
+      
+      const result = await diagnoseAndRepairProfile(targetId);
+      
+      if (result.success) {
+        toast.success("Reparo completo realizado com sucesso!");
+        
+        if (refreshUserData) {
+          await refreshUserData();
+        }
+        
+        if (onRefresh) {
+          onRefresh();
+        }
+      } else {
+        toast.error("Diagnóstico completo falhou: " + result.message);
+      }
+    } catch (error: any) {
+      toast.error("Erro no diagnóstico completo: " + error.message);
     }
   };
 
@@ -81,6 +121,8 @@ const ProfileDiagnostic: React.FC<ProfileDiagnosticProps> = ({ userId, onRefresh
         toast.success("Correção aplicada com sucesso! Recarregando dados do perfil...");
       } else {
         toast.error("A correção automática não foi bem-sucedida. Tente a criação forçada de perfil.");
+        // Tentar criação forçada automaticamente
+        await handleForceCreateProfile();
       }
     } catch (error: any) {
       toast.error("Erro ao tentar correção: " + error.message);
