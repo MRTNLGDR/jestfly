@@ -8,21 +8,57 @@ import { toast } from 'sonner';
 // Tipos de formato de exportação
 type ExportFormat = 'figma' | 'framer';
 
-// Interface para os estilos de um componente
-interface ComponentStyle {
+// Interface para os estilos de um componente no formato Figma
+interface FigmaComponentStyle {
   id: string;
-  type: string;
   name: string;
-  styles: Record<string, any>;
-  children?: ComponentStyle[];
+  type: string;
+  absoluteBoundingBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  style: {
+    fills: Array<{
+      type: string;
+      color: {
+        r: number;
+        g: number;
+        b: number;
+        a: number;
+      };
+    }>;
+    effects: any[];
+    strokes: any[];
+  };
+  children?: FigmaComponentStyle[];
 }
 
-// Interface para o arquivo de exportação
-interface DesignExport {
-  version: string;
-  format: ExportFormat;
+// Interface para o arquivo de exportação do Figma
+interface FigmaDesignExport {
+  document: {
+    id: string;
+    name: string;
+    type: string;
+    children: FigmaComponentStyle[];
+  };
+  styles: {
+    [key: string]: {
+      name: string;
+      styleType: string;
+      description: string;
+    };
+  };
+  schemaVersion: number;
   name: string;
-  components: ComponentStyle[];
+}
+
+// Interface para o arquivo de exportação do Framer
+interface FramerDesignExport {
+  version: string;
+  name: string;
+  components: any[];
   colors: Record<string, string>;
   typography: Record<string, any>;
   spacing: Record<string, any>;
@@ -31,8 +67,99 @@ interface DesignExport {
 const DesignExporter: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
 
-  // Função para extrair estilos de um componente DOM
-  const extractStyles = (element: Element, path = ''): ComponentStyle | null => {
+  // Converte cor CSS para valores RGBA de 0 a 1 (formato Figma)
+  const convertCssColorToRGBA = (color: string) => {
+    // Cor padrão em caso de falha
+    const defaultColor = { r: 0, g: 0, b: 0, a: 1 };
+    
+    try {
+      if (!color || color === 'none' || color === 'transparent') {
+        return { ...defaultColor, a: 0 };
+      }
+      
+      // Se for rgba ou rgb
+      if (color.startsWith('rgba') || color.startsWith('rgb')) {
+        const values = color.match(/\d+(\.\d+)?/g);
+        if (!values || values.length < 3) return defaultColor;
+        
+        return {
+          r: Number(values[0]) / 255,
+          g: Number(values[1]) / 255,
+          b: Number(values[2]) / 255,
+          a: values.length > 3 ? Number(values[3]) : 1
+        };
+      }
+      
+      // Se for hex
+      if (color.startsWith('#')) {
+        const hex = color.substring(1);
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+        const a = hex.length > 6 ? parseInt(hex.substring(6, 8), 16) / 255 : 1;
+        
+        return { r, g, b, a };
+      }
+      
+      return defaultColor;
+    } catch (e) {
+      console.error('Erro ao converter cor:', e);
+      return defaultColor;
+    }
+  };
+
+  // Extrai estilos para formato Figma
+  const extractFigmaStyles = (element: Element, parentId = ''): FigmaComponentStyle | null => {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return null;
+
+    const computedStyle = window.getComputedStyle(element);
+    const rect = element.getBoundingClientRect();
+    
+    const id = element.id || `${parentId ? `${parentId}_` : ''}${element.tagName.toLowerCase()}_${Math.random().toString(36).substring(2, 9)}`;
+    const name = element.getAttribute('data-component-name') || element.tagName.toLowerCase();
+    
+    // Extrair cor de fundo
+    const bgColor = convertCssColorToRGBA(computedStyle.backgroundColor);
+    
+    // Criar estilo Figma
+    const figmaStyle: FigmaComponentStyle = {
+      id,
+      name,
+      type: 'FRAME',
+      absoluteBoundingBox: {
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height
+      },
+      style: {
+        fills: [{
+          type: 'SOLID',
+          color: bgColor
+        }],
+        effects: [],
+        strokes: []
+      }
+    };
+
+    // Recursivamente processar elementos filhos
+    const children: FigmaComponentStyle[] = [];
+    Array.from(element.children).forEach(child => {
+      const childStyle = extractFigmaStyles(child, id);
+      if (childStyle) {
+        children.push(childStyle);
+      }
+    });
+
+    if (children.length > 0) {
+      figmaStyle.children = children;
+    }
+
+    return figmaStyle;
+  };
+
+  // Função para extrair estilos para Framer
+  const extractFramerStyles = (element: Element, path = ''): any | null => {
     if (!element || element.nodeType !== Node.ELEMENT_NODE) return null;
 
     const computedStyle = window.getComputedStyle(element);
@@ -61,9 +188,9 @@ const DesignExporter: React.FC = () => {
     };
 
     // Recursivamente processar elementos filhos
-    const children: ComponentStyle[] = [];
+    const children: any[] = [];
     Array.from(element.children).forEach(child => {
-      const childStyle = extractStyles(child, nodePath);
+      const childStyle = extractFramerStyles(child, nodePath);
       if (childStyle) {
         children.push(childStyle);
       }
@@ -78,14 +205,63 @@ const DesignExporter: React.FC = () => {
     };
   };
 
-  // Função para gerar arquivo de exportação
-  const generateExport = (format: ExportFormat): DesignExport => {
+  // Gera exportação no formato Figma
+  const generateFigmaExport = (): FigmaDesignExport => {
     const appRoot = document.getElementById('root') || document.body;
-    const components: ComponentStyle[] = [];
+    const components: FigmaComponentStyle[] = [];
+
+    Array.from(appRoot.children).forEach(child => {
+      const componentStyle = extractFigmaStyles(child);
+      if (componentStyle) {
+        components.push(componentStyle);
+      }
+    });
+
+    // Criar objeto de exportação no formato do Figma
+    return {
+      document: {
+        id: 'jestfly-design',
+        name: 'JESTFLY Design System',
+        type: 'DOCUMENT',
+        children: components
+      },
+      styles: {
+        // Cores do sistema
+        primary: {
+          name: 'Primary',
+          styleType: 'FILL',
+          description: 'Primary brand color'
+        },
+        secondary: {
+          name: 'Secondary',
+          styleType: 'FILL',
+          description: 'Secondary brand color'
+        },
+        // Tipografia
+        heading1: {
+          name: 'Heading 1',
+          styleType: 'TEXT',
+          description: 'Main heading style'
+        },
+        body: {
+          name: 'Body',
+          styleType: 'TEXT',
+          description: 'Body text style'
+        }
+      },
+      schemaVersion: 0.1,
+      name: 'JESTFLY Design System'
+    };
+  };
+
+  // Gera exportação no formato Framer
+  const generateFramerExport = (): FramerDesignExport => {
+    const appRoot = document.getElementById('root') || document.body;
+    const components: any[] = [];
 
     // Extrair componentes principais
     Array.from(appRoot.children).forEach(child => {
-      const componentStyle = extractStyles(child);
+      const componentStyle = extractFramerStyles(child);
       if (componentStyle) {
         components.push(componentStyle);
       }
@@ -97,7 +273,6 @@ const DesignExporter: React.FC = () => {
       secondary: getComputedStyle(document.documentElement).getPropertyValue('--secondary'),
       background: getComputedStyle(document.documentElement).getPropertyValue('--background'),
       foreground: getComputedStyle(document.documentElement).getPropertyValue('--foreground'),
-      // Adicione mais cores conforme necessário
     };
 
     // Extrair tipografia
@@ -133,7 +308,6 @@ const DesignExporter: React.FC = () => {
 
     return {
       version: '1.0.0',
-      format,
       name: 'JESTFLY Design System',
       components,
       colors,
@@ -148,7 +322,16 @@ const DesignExporter: React.FC = () => {
       setIsExporting(true);
       
       // Gerar dados de exportação
-      const exportData = generateExport(format);
+      let exportData;
+      let fileName;
+      
+      if (format === 'figma') {
+        exportData = generateFigmaExport();
+        fileName = 'jestfly-design-figma.json';
+      } else { // framer
+        exportData = generateFramerExport();
+        fileName = 'jestfly-design-framer.json';
+      }
       
       // Criar arquivo para download
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -157,7 +340,7 @@ const DesignExporter: React.FC = () => {
       // Criar link para download
       const link = document.createElement('a');
       link.href = url;
-      link.download = `jestfly-design.${format === 'figma' ? 'fig' : 'framer'}.json`;
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       
