@@ -1,6 +1,6 @@
 
 export * from './connectivityUtils';
-export * from './types';
+export type { DiagnosticResult, ConnectivityTestResult, ProfileFixResult, PolicyCheckResult } from './types';
 
 // Exportando todas as funções do profileRepair
 export {
@@ -10,9 +10,10 @@ export {
   repairIncompleteProfile,
   repairCorruptProfile,
   checkUserExists,
-  checkUserData,
-  ProfileCheckResult
+  checkUserData
 } from './profileRepair';
+
+export type { ProfileCheckResult } from './profileRepair';
 
 // Exportando funções do runDiagnostics
 export {
@@ -35,6 +36,7 @@ export const attemptProfileFix = async (userId?: string) => {
   }
   
   try {
+    const { diagnoseAndRepairProfile } = await import('./runDiagnostics');
     return await diagnoseAndRepairProfile(targetId);
   } catch (error) {
     console.error("Erro ao tentar corrigir perfil:", error);
@@ -54,6 +56,7 @@ export const forceCreateProfile = async (user: any) => {
   }
   
   try {
+    const { createMissingProfile } = await import('./profileRepair');
     const created = await createMissingProfile(user.id);
     return {
       success: created,
