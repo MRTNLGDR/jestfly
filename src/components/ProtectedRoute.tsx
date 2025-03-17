@@ -2,10 +2,11 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
+import { ProfileType } from '../types/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRoles?: string[];
+  requiredRoles?: ProfileType[];
   requireAuth?: boolean;
 }
 
