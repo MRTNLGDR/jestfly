@@ -1,6 +1,10 @@
 
 import React, { useState } from 'react';
-import { runAuthDiagnostics, attemptProfileFix, forceCreateProfile } from '../../services/diagnosticService';
+import { 
+  runAuthDiagnostics, 
+  attemptProfileFix, 
+  forceCreateProfile 
+} from '../../services/diagnostic';
 import { useAuth } from '../../contexts/auth';
 import { toast } from 'sonner';
 import {

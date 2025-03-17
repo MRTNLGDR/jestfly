@@ -4,7 +4,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import { fetchUserData } from '../methods';
 import { logAuthDiagnostic } from './diagnosticUtils';
 import { UserProfile } from '../../../models/User';
-import { forceCreateProfile } from '../../../services/diagnosticService';
+import { forceCreateProfile } from '../../../services/diagnostic';
 
 /**
  * Initializes the authentication state
