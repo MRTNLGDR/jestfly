@@ -1,14 +1,15 @@
 
 import React, { useState, useRef } from 'react';
-import { Download, ImageIcon, FileCode, FilePlus, Printer, Layers, Copy } from 'lucide-react';
+import { Download, ImageIcon, FileCode, FilePlus, Printer, Layers, Copy, FileDown } from 'lucide-react';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SchemaExporter from './SchemaExporter';
 
 // Tipos de formato de exportação
-type ExportFormat = 'png' | 'svg' | 'css' | 'all';
+type ExportFormat = 'png' | 'svg' | 'css' | 'all' | 'schema';
 
 // Lista de rotas principais do JESTFLY para captura completa
 const mainRoutes = [
@@ -278,6 +279,9 @@ const DesignExporter: React.FC = () => {
       case 'all':
         await captureAllScreens();
         break;
+      case 'schema':
+        // Handled by the SchemaExporter component
+        break;
       default:
         toast.error('Formato não suportado');
     }
@@ -297,15 +301,16 @@ const DesignExporter: React.FC = () => {
         <div className="space-y-4">
           <h3 className="text-sm font-medium">Exportar Design</h3>
           <p className="text-xs text-muted-foreground">
-            Exporte o design da interface para formatos compatíveis com Figma.
+            Exporte o design da interface para formatos compatíveis com Figma ou o schema UI/UX completo.
           </p>
           
           <Tabs defaultValue="png" value={activeTab} onValueChange={(value) => setActiveTab(value as ExportFormat)}>
-            <TabsList className="w-full">
+            <TabsList className="w-full grid grid-cols-5">
               <TabsTrigger value="png" className="flex-1">Imagem</TabsTrigger>
               <TabsTrigger value="svg" className="flex-1">SVG</TabsTrigger>
               <TabsTrigger value="css" className="flex-1">CSS</TabsTrigger>
               <TabsTrigger value="all" className="flex-1">Todas</TabsTrigger>
+              <TabsTrigger value="schema" className="flex-1">Schema</TabsTrigger>
             </TabsList>
             
             <TabsContent value="png" className="mt-4">
@@ -396,6 +401,13 @@ const DesignExporter: React.FC = () => {
                   </p>
                 </div>
               )}
+            </TabsContent>
+            
+            <TabsContent value="schema" className="mt-4">
+              <p className="text-xs text-muted-foreground mb-3">
+                Exporta o schema UI/UX completo do JESTFLY, incluindo cores, tipografia, componentes e layout.
+              </p>
+              <SchemaExporter />
             </TabsContent>
           </Tabs>
         </div>
