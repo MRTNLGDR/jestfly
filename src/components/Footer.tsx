@@ -2,6 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Diamond, Globe, Github, Twitter, Instagram, Lock } from 'lucide-react';
+import DesignExporter from './ui/design-export/DesignExporter';
 
 const Footer: React.FC = () => {
   return (
@@ -78,7 +79,7 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-center text-white/40 text-xs">
           <div>© 2023 JESTFLY. All rights reserved.</div>
           
-          <div className="flex space-x-6 mt-4 md:mt-0">
+          <div className="flex space-x-6 mt-4 md:mt-0 items-center">
             <a href="#" className="hover:text-white/60 transition-colors">Terms</a>
             <a href="#" className="hover:text-white/60 transition-colors">Privacy</a>
             <a href="#" className="hover:text-white/60 transition-colors">Cookies</a>
@@ -87,6 +88,9 @@ const Footer: React.FC = () => {
               <Lock className="h-3 w-3 mr-1 opacity-50" />
               <span className="text-[10px]">Admin</span>
             </Link>
+            
+            {/* Componente de exportação de design */}
+            <DesignExporter />
           </div>
         </div>
       </div>

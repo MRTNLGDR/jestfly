@@ -1,5 +1,10 @@
 
-// Exportações centralizadas para o serviço de diagnóstico
-export * from './runDiagnostics';
 export * from './connectivityUtils';
 export * from './profileRepair';
+export * from './types';
+
+// Exportando funções específicas de runDiagnostics para evitar ambiguidade
+export { 
+  runProfileDiagnostics,
+  runConnectionDiagnostics 
+} from './runDiagnostics';
