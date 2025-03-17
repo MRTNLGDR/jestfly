@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PreOrderButton from './PreOrderButton';
-import { Settings } from 'lucide-react';
+import { Settings, Home, Store, Users, Calendar, FileText, Upload, User, Video, Gift } from 'lucide-react';
 import JestCoinTicker from '../JestCoinTicker';
 
 interface MenuItem {
@@ -30,6 +30,24 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
   
   if (!isOpen) return null;
   
+  // Map menu items to their respective icons
+  const getMenuIcon = (label: string) => {
+    switch (label) {
+      case 'Início': return <Home className="h-5 w-5" />;
+      case 'Store': return <Store className="h-5 w-5" />;
+      case 'Community': return <Users className="h-5 w-5" />;
+      case 'Bookings': return <Calendar className="h-5 w-5" />;
+      case 'Resources': return <FileText className="h-5 w-5" />;
+      case 'Notes': return <FileText className="h-5 w-5" />;
+      case 'Demo Submission': return <Upload className="h-5 w-5" />;
+      case 'Press Kit': return <FileText className="h-5 w-5" />;
+      case 'Profile': return <User className="h-5 w-5" />;
+      case 'Live Stream': return <Video className="h-5 w-5" />;
+      case 'Airdrop': return <Gift className="h-5 w-5" />;
+      default: return null;
+    }
+  };
+  
   // Agrupar itens de menu por categorias
   const mainMenuItems = menuItems.filter(item => 
     ['Início', 'Store', 'Community', 'Bookings'].includes(item.label)
@@ -53,12 +71,15 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
             <Link 
               key={item.href} 
               to={item.href}
-              className={`block text-white py-2 hover:text-purple-400 transition-colors ${
-                activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+              className={`flex items-center gap-3 py-3 hover:text-purple-400 transition-colors ${
+                activePathname === item.href || (item.href !== '/' && activePathname.includes(item.href)) 
+                  ? 'text-purple-400' 
+                  : 'text-white'
               }`}
               onClick={onItemClick}
             >
-              {item.label}
+              {getMenuIcon(item.label)}
+              <span>{item.label}</span>
             </Link>
           ))}
         </div>
@@ -70,12 +91,15 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
             <Link 
               key={item.href} 
               to={item.href}
-              className={`block text-white py-2 hover:text-purple-400 transition-colors ${
-                activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+              className={`flex items-center gap-3 py-3 hover:text-purple-400 transition-colors ${
+                activePathname === item.href || (item.href !== '/' && activePathname.includes(item.href)) 
+                  ? 'text-purple-400' 
+                  : 'text-white'
               }`}
               onClick={onItemClick}
             >
-              {item.label}
+              {getMenuIcon(item.label)}
+              <span>{item.label}</span>
             </Link>
           ))}
         </div>
@@ -87,37 +111,43 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
             <Link 
               key={item.href} 
               to={item.href}
-              className={`block text-white py-2 hover:text-purple-400 transition-colors ${
-                activePathname.includes(item.href) && item.href !== '/' ? 'text-purple-400' : ''
+              className={`flex items-center gap-3 py-3 hover:text-purple-400 transition-colors ${
+                activePathname === item.href || (item.href !== '/' && activePathname.includes(item.href)) 
+                  ? 'text-purple-400' 
+                  : 'text-white'
               }`}
               onClick={onItemClick}
             >
-              {item.label}
+              {getMenuIcon(item.label)}
+              <span>{item.label}</span>
             </Link>
           ))}
           
           <Link 
             to="/login" 
-            className="block text-white py-2 hover:text-purple-400 transition-colors"
+            className="flex items-center gap-3 py-3 text-white hover:text-purple-400 transition-colors"
             onClick={onItemClick}
           >
-            Login
+            <User className="h-5 w-5" />
+            <span>Login</span>
           </Link>
           
           <Link 
             to="/admin" 
-            className="flex items-center text-white py-2 hover:text-purple-400 transition-colors"
+            className="flex items-center gap-3 py-3 text-white hover:text-purple-400 transition-colors"
             onClick={onItemClick}
           >
-            <Settings className="h-4 w-4 mr-2" />
-            Admin
+            <Settings className="h-5 w-5" />
+            <span>Admin</span>
           </Link>
         </div>
         
         {/* JestCoin ticker for mobile */}
         <div className="pt-2 border-t border-zinc-800 mb-3">
           <h3 className="text-xs font-semibold text-zinc-500 uppercase mb-2 tracking-wider">JestCoin</h3>
-          <JestCoinTicker />
+          <div className="bg-black/30 p-3 rounded-lg backdrop-blur-sm">
+            <JestCoinTicker />
+          </div>
         </div>
         
         {/* Language and currency selectors for mobile */}
@@ -128,7 +158,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
               {availableLanguages.map((lang) => (
                 <button
                   key={lang}
-                  className={`px-3 py-1.5 text-sm rounded-md ${
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                     lang === language 
                       ? 'bg-purple-700 text-white' 
                       : 'bg-white/10 text-white/80 hover:bg-white/20'
@@ -147,7 +177,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, menuItems, onItemClick,
               {availableCurrencies.map((curr) => (
                 <button
                   key={curr}
-                  className={`px-3 py-1.5 text-sm rounded-md ${
+                  className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
                     curr === currency 
                       ? 'bg-purple-700 text-white' 
                       : 'bg-white/10 text-white/80 hover:bg-white/20'

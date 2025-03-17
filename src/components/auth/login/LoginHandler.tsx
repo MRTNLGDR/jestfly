@@ -31,16 +31,28 @@ export const LoginHandler: React.FC<LoginHandlerProps> = ({ children }) => {
 
   const toggleAdminLogin = () => {
     setIsAdminLogin(prev => !prev);
+    // Reset form data when toggling between admin and regular login
+    setFormData({ email: '', password: '' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!formData.email || !formData.password) {
+      toast.error('Por favor, preencha todos os campos');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Simulate loading
     setTimeout(() => {
-      toast.success('Login simulado com sucesso!');
-      navigate('/profile');
+      const destination = isAdminLogin ? '/admin' : '/profile';
+      const message = isAdminLogin ? 'Login admin realizado' : 'Login realizado com sucesso!';
+      
+      toast.success(message);
+      navigate(destination);
       setIsSubmitting(false);
     }, 1000);
   };

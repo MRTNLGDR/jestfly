@@ -42,12 +42,20 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
     
     window.addEventListener('scroll', handleScroll);
     
+    // Initial scroll check
+    handleScroll();
+    
     // Cleanup
     return () => {
       window.removeEventListener('scroll', handleScroll);
       clearTimeout(timer);
     };
   }, [location.pathname]); // Re-run when the path changes
+  
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
   
   // Define glass effect classes based on scrolled state
   const glassEffect = scrolled 
@@ -65,7 +73,7 @@ const GlassHeader: React.FC<GlassHeaderProps> = ({ menuItems = [] }) => {
           {/* Left side - Logo and welcome text */}
           <div className="flex items-center space-x-2 sm:space-x-4 md:space-x-12">
             <Logo />
-            <WelcomeText />
+            {!isMobile && <WelcomeText />}
           </div>
           
           {/* Center - Navigation (desktop only) */}
